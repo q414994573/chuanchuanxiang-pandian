@@ -48,3 +48,7 @@
 ## 谁在用
 
 老板娘现在可以用三星手机的 KakaoTalk 打开链接查看已发布的快照，不用登录 Google，也不用安装 App。她还不能和店里另一部手机改同一份正在填的盘货。登录方式和共同编辑还没做，见工作日志。
+
+## 云端协同开发状态
+
+Firebase 接入代码在开发分支准备中，部署与验收说明见 [docs/firebase-collaboration.md](docs/firebase-collaboration.md)。`firebase-config.json` 默认关闭；只有配置项目、安全规则、成员授权并完成验收后才启用。不要将当前正式快照或本地模拟器测试误认为已上线的云同步。
