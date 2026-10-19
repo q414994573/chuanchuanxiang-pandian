@@ -39,6 +39,19 @@ service cloud.firestore {
     allow update,delete: if false;
    }
   }
+  match /countDrafts/{uid} {
+    allow read: if request.auth != null && request.auth.uid == uid && owner();
+    allow create, update: if request.auth != null && request.auth.uid == uid && owner()
+      && request.resource.data.keys().hasOnly(['schema','date','localId','pos','field','body','updatedAt'])
+      && request.resource.data.schema == 'ccx-draft-1'
+      && request.resource.data.date is string && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+      && request.resource.data.localId is string && request.resource.data.localId.matches('^count-[a-zA-Z0-9-]{1,80}$')
+      && request.resource.data.pos is int && request.resource.data.pos >= 0 && request.resource.data.pos < 129
+      && request.resource.data.field in ['stock','qty']
+      && request.resource.data.body is string && request.resource.data.body.size() > 20 && request.resource.data.body.size() < 400000
+      && request.resource.data.updatedAt == request.time;
+    allow delete: if false;
+  }
  }
 }
 `);

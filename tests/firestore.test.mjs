@@ -51,4 +51,16 @@ await assert.rejects(prod.save(first.id,current,current.quantities,'mutation-off
 Object.defineProperty(navigator,'onLine',{value:true,configurable:true});
 assert.equal((await prod.read(first.id)).revision,3);
 console.log('PASS 129-product rules, authorized edit, invalid quantity denied; no production service used');
+const draftBody=JSON.stringify({marker:'preview-draft',savedAt:1,note:'only the owner keeps this count'});
+const draftDoc={schema:'ccx-draft-1',date:'2026-10-20',localId:'count-draft-preview-001',pos:4,field:'qty',body:draftBody,updatedAt:serverTimestamp()};
+await assertSucceeds(setDoc(doc(chef,'countDrafts','chef'),draftDoc));
+await assertSucceeds(getDoc(doc(chef,'countDrafts','chef')));
+await assertFails(getDoc(doc(boss,'countDrafts','chef')));
+await assertFails(setDoc(doc(boss,'countDrafts','boss'),{...draftDoc,updatedAt:serverTimestamp()}));
+await assertFails(setDoc(doc(chef,'countDrafts','boss'),{...draftDoc,updatedAt:serverTimestamp()}));
+await assertFails(setDoc(doc(stranger,'countDrafts','stranger'),{...draftDoc,updatedAt:serverTimestamp()}));
+await assertFails(deleteDoc(doc(chef,'countDrafts','chef')));
+await assertFails(setDoc(doc(chef,'countDrafts','chef'),{...draftDoc,schema:'ccx-cloud-1',updatedAt:serverTimestamp()}));
+await assertFails(getDocs(collection(boss,'countDrafts')));
+console.log('PASS owner-only count draft; editor and strangers cannot read it');
 }finally{await env.cleanup();}

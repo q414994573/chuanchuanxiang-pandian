@@ -1,0 +1,40 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),path=require('path');
+const {matches,typoRisk,supplierText,bossShareText}=require('../redesign-preview/search.cjs');
+const root=path.join(__dirname,'..');
+const products=JSON.parse(fs.readFileSync(path.join(root,'current-order.json'),'utf8')).products;
+const aliases=JSON.parse(fs.readFileSync(path.join(root,'redesign-preview/aliases.json'),'utf8'));
+const byId=new Map(aliases.items.map(item=>[item.id,item.aliases]));
+const find=q=>products.filter(p=>matches(p,q,byId.get(p.id)));
+test('shop names, hangul initials and spacing all find the same product',()=>{
+ assert.equal(aliases.items.length,110);
+ const scallion=products.find(p=>p.name==='대파');
+ assert.equal(matches(scallion,'\u3137\u314d',byId.get(scallion.id)),true);
+ assert.equal(matches(scallion,String.fromCharCode(0x1103,0x1111),byId.get(scallion.id)),true);
+ assert.equal(matches(scallion,'대 파',byId.get(scallion.id)),true);
+ assert.equal(matches(scallion,'大葱',byId.get(scallion.id)),true);
+ assert.deepEqual(find('大蒜').map(p=>p.id),['kr:4']);
+ assert.deepEqual(find('竹签').map(p=>p.id),['other:8']);
+ assert.deepEqual(find('PB').map(p=>p.name),['pb']);
+ const squid=find('墨鱼').map(p=>p.name);
+ assert.deepEqual(squid,['墨鱼丸']);
+ assert.equal(squid.includes('갑오징어피쉬볼(大)'),false);
+ const skewer=aliases.items.find(item=>item.id==='other:8');
+ assert.equal(skewer.matchedFrom,'대나무 꼬치');
+ assert.equal(skewer.name.startsWith('대나무 꼬치'),true);
+});
+test('tenfold or an extra zero is a typo reminder, not a stock rule',()=>{
+ assert.equal(typoRisk('30','3'),true);
+ assert.equal(typoRisk('2','20'),true);
+ assert.equal(typoRisk('10','1'),true);
+ assert.equal(typoRisk('3','2'),false);
+ assert.equal(typoRisk('','3'),false);
+ assert.equal(typoRisk('5',null),false);
+});
+test('supplier copy stays one product per line and the boss text has no name suffix',()=>{
+ const text=supplierText('2026-10-25',[{name:'대파',qty:'2',unit:'단'},{name:'辣椒段',qty:'5',unit:'봉'}]);
+ assert.equal(text,'10/25 천천향 주문\n대파 2단\n辣椒段 5봉');
+ const share=bossShareText('2026-10-25',{kr:11,cn:18,other:0},'https://example.test/order');
+ assert.match(share,/^10月25日 订货单\n韩国 11 样 · 中国 18 样 · 其他 0 样\n请核对，点链接修改：https:\/\/example\.test\/order$/);
+ assert.equal(share.includes('（大伟）'),false);
+ assert.equal(share.includes('大伟'),false);
+});

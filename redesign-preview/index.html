@@ -4,21 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#bb1827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="천천향 盘货">
 <meta name="robots" content="noindex">
-<title>川川香 · 新版预览</title>
-<link rel="stylesheet" href="./preview.css?v=20261020-preview">
+<title>천천향 盘货</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./logo.jpg">
+<link rel="stylesheet" href="./preview.css?v=20261020-agreed">
 </head>
 <body>
 <div class="banner">新版预览·不是正式订单<small>订单编号以 test- 开头。这里不会写入正式订单。</small></div>
 <div id="app"></div>
-<nav class="tabs" id="tabs">
+<nav class="tabs">
   <button type="button" data-act="tab" data-tab="count">盘货</button>
-  <button type="button" data-act="tab" data-tab="archive">存档</button>
-  <button type="button" data-act="tab" data-tab="history">历史</button>
-  <button type="button" data-act="tab" data-tab="me">我的</button>
+  <button type="button" data-act="tab" data-tab="order">今日订单</button>
+  <button type="button" data-act="tab" data-tab="more">更多</button>
 </nav>
 <div id="toast" role="status"></div>
-<script src="../count-core.js?v=20261020-preview"></script>
-<script src="./preview.bundle.js?v=20261020-preview"></script>
+<script src="../count-core.js?v=20261020-agreed"></script>
+<script src="./preview.bundle.js?v=20261020-agreed"></script>
 </body>
 </html>
