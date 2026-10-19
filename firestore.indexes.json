@@ -1,0 +1,1 @@
+{"indexes":[],"fieldOverrides":[{"collectionGroup":"orders","fieldPath":"snapshot","indexes":[]},{"collectionGroup":"revisions","fieldPath":"snapshot","indexes":[]}]}
