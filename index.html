@@ -46,6 +46,7 @@ html{scroll-behavior:smooth}button,a,input{touch-action:manipulation}button{min-
 .search-overlay .search-result .right{text-align:right;flex-shrink:0;font-size:12px;color:#7e737b;line-height:1.7}.search-overlay .search-result .right b{color:#b71c2b}
 .search-overlay .search-empty{padding:20px 3px;color:#827780;font-size:13px;line-height:1.8}
 body.searching{overflow:hidden}
+.history-tag{display:inline-flex;max-width:100%;align-items:center;background:#f5f5f6;border-radius:10px}.history-tag .search-chip{min-width:0;text-align:left}.history-remove{border:0;background:transparent;color:#8b8288;min-width:36px;font-size:18px}.search-result>span:first-child{min-width:0}.search-overlay .search-result .right{max-width:44%;overflow-wrap:anywhere}
 @media(max-width:480px){.search-overlay{padding-left:15px;padding-right:15px}.search-overlay .search-top{gap:5px}.search-overlay .search-go{min-width:40px}}
 
 </style>
@@ -55,7 +56,7 @@ body.searching{overflow:hidden}
 <div class="wrap"><div class="summary"><div id="stats" class="stats"></div><div id="source" class="source"></div><div id="snapshotAge" class="snapshot-age"></div></div>
 <nav class="nav" aria-label="页面导航"><button class="tab active" data-view="all">全部商品 <span class="num">129</span></button><button class="tab" data-view="orders">本次订货明细 <span id="orderTabCount" class="num">0</span></button><button class="tab" data-view="focus">重点确认 <span class="num">47</span></button><button class="tab" data-view="special">特殊检查</button></nav>
 <main>
-<section id="pane-all" class="pane active"><div class="section-head"><div><h2>129种商品完整总览</h2><p>韩国45种 · 中国66种 · 其他18种。按10月18日确认存档展示，空白保持空白。</p></div><small id="allCounter">129项</small></div><div class="filters"><div class="search-row"><label class="search"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#998c94" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input id="find" placeholder="搜索商品名称（中文 / 韩文）" aria-label="搜索所有商品"/></label><button class="smallbtn" id="clear">重置筛选</button></div><div class="buttons" id="catButtons"><button class="filter selected" data-cat="all">全部 129</button><button class="filter" data-cat="kr">韩国食品 45</button><button class="filter" data-cat="cn">中国食品 66</button><button class="filter" data-cat="other">其他商品 18</button></div><div class="buttons" id="subButtons"><button class="filter selected" data-sub="all">全部状态</button><button class="filter" data-sub="ordered">仅本次订货</button><button class="filter" data-sub="pending">未填库存</button><button class="filter" data-sub="star">仅★重点</button><button class="filter" data-sub="stocked">仅看已填库存</button></div></div><div id="allRows"></div><div class="order-bar"><button class="smallbtn" id="copyAll">复制当前显示的商品表</button></div></section>
+<section id="pane-all" class="pane active"><div class="section-head"><div><h2>129种商品完整总览</h2><p>韩国45种 · 中国66种 · 其他18种。按10月18日确认存档展示，空白保持空白。</p></div><small id="allCounter">129项</small></div><div class="filters"><div class="search-row"><label class="search"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#998c94" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input id="find" readonly aria-haspopup="dialog" placeholder="搜索商品名称（中文 / 韩文）" aria-label="搜索所有商品"/></label><button class="smallbtn" id="clear">重置筛选</button></div><div class="buttons" id="catButtons"><button class="filter selected" data-cat="all">全部 129</button><button class="filter" data-cat="kr">韩国食品 45</button><button class="filter" data-cat="cn">中国食品 66</button><button class="filter" data-cat="other">其他商品 18</button></div><div class="buttons" id="subButtons"><button class="filter selected" data-sub="all">全部状态</button><button class="filter" data-sub="ordered">仅本次订货</button><button class="filter" data-sub="pending">未填库存</button><button class="filter" data-sub="star">仅★重点</button><button class="filter" data-sub="stocked">仅看已填库存</button></div></div><div id="allRows"></div><div class="order-bar"><button class="smallbtn" id="copyAll">复制当前显示的商品表</button></div></section>
 <section id="pane-orders" class="pane"><div class="section-head"><div><h2>本次订货明细</h2><p>只列出实际填写订货数量的商品，按中国食品、韩国食品、其他商品排列。</p></div></div><div class="order-help"><b>数据原则：</b>订货单内容来自当周实际表格；数量和单位照原表显示，不自动补数量、不猜单位、不混入库存为零但未下单的商品。</div><div class="order-bar"><button class="smallbtn primary" id="copyOrder">复制全部订货文字</button><button class="smallbtn" id="copyOrderDetailed">复制带库存的订货明细</button></div><p id="orderDate" class="notice"></p><div id="orderRows"></div></section>
 <section id="pane-focus" class="pane"><div class="section-head"><div><h2>老板娘重点确认</h2><p>47种 ★ 商品独立汇总：韩国15种、中国32种，每周全部盘点、全部汇报。</p></div></div><div class="focus-tiles" id="focusStats"></div><div id="focusNote" class="notice"></div><div class="order-bar"><button class="smallbtn primary" id="copyFocus">复制47种库存及订货清单</button><button class="smallbtn" id="focusPending">只看未填库存</button><button class="smallbtn" id="focusAll">显示全部47种</button></div><div id="focusRows"></div></section>
 <section id="pane-special" class="pane"><div class="section-head"><div><h2>特殊商品检查</h2><p>这是盘货防错流程，与47种★商品报告不同，可持续扩充。</p></div></div><div class="specialcard"><h3>① 감자수제비 · 包装单位核对</h3><p>1大包＝2小包；库存和订货数量统一按大包计算。下单时如果写2봉，实际等于4小包。不得擅自把数量翻倍或减半。</p></div><div class="specialcard"><h3>② 고수（香菜）· 二次实物清点</h3><p>曾连续两次发生实物漏看。每周盘货必须二次清点并由你确认；网页无法替代真实冰箱盘点。</p></div><div class="specialcard"><h3>其他审核</h3><p>重点商品库存完整性、库存为0、缺失订货单位等，都需要核实；这些提醒不会自动向供应商增加商品。</p></div><div id="specialValues"></div><div id="auditRows"></div></section>
@@ -65,12 +66,12 @@ body.searching{overflow:hidden}
 <div id="searchOverlay" class="search-overlay" role="dialog" aria-modal="true" aria-label="搜索川川香商品" aria-hidden="true">
   <div class="search-top">
     <button type="button" class="back" id="searchBack" aria-label="返回商品总览">‹</button>
-    <label class="search-box"><span aria-hidden="true">⌕</span><input id="searchEntry" type="search" enterkeyhint="search" autocomplete="off" placeholder="搜索129种商品（中文 / 韩文）" aria-label="输入商品名称"></label>
+    <label class="search-box"><span aria-hidden="true">⌕</span><input id="searchEntry" type="search" enterkeyhint="search" autocomplete="off" placeholder="搜索129种商品（中文 / 韩文）" aria-label="输入商品名称"><button type="button" id="searchErase" aria-label="清除搜索文字" style="border:0;background:transparent;min-width:32px;font-size:20px">×</button></label>
     <button type="button" class="search-go" id="searchGo">搜索</button>
   </div>
   <div id="searchLanding">
     <section class="search-section"><h3>搜索历史 <button type="button" id="searchHistoryClear">清空历史</button></h3><div id="searchHistory" class="search-chips"></div></section>
-    <section class="search-section"><h3>快捷查看</h3><div class="search-chips" id="searchQuick"><button type="button" class="search-chip quick" data-quick="star">★ 重点商品</button><button type="button" class="search-chip quick" data-quick="stocked">已填库存</button><button type="button" class="search-chip quick" data-quick="ordered">本次订货</button><button type="button" class="search-chip quick" data-quick="all">全部129种</button></div></section>
+    <section class="search-section"><h3>快捷查看</h3><div class="search-chips" id="searchQuick"><button type="button" class="search-chip quick" data-quick="kr">韩国食品</button><button type="button" class="search-chip quick" data-quick="cn">中国食品</button><button type="button" class="search-chip quick" data-quick="other">其他商品</button><button type="button" class="search-chip quick" data-quick="star">★ 重点商品</button><button type="button" class="search-chip quick" data-quick="stocked">已填库存</button><button type="button" class="search-chip quick" data-quick="ordered">本次订货</button><button type="button" class="search-chip quick" data-quick="all">全部129种</button></div></section>
     <section class="search-section"><h3>常用检查入口</h3><div id="searchSuggestions" class="search-chips"></div><p style="color:#9a9299;font-size:12px;margin-top:10px">以上是固定快捷入口，不代表真实搜索热度。</p></section>
   </div>
   <section class="search-section" id="searchMatchesSection" hidden><h3 id="searchMatchesTitle">搜索结果</h3><div id="searchMatches"></div></section>
@@ -159,8 +160,11 @@ function copyFocus(){const lines=['川川香｜'+(SOURCE.date||'本次')+'老板
 function wireSearch(){
  const overlay=$('#searchOverlay'),input=$('#searchEntry'),landing=$('#searchLanding'),results=$('#searchMatches'),section=$('#searchMatchesSection');
  const histKey='ccx-search-history-v1';
+ let savedScroll=0;
+ const background=Array.from(document.body.children).filter(el=>el!==overlay&&!['SCRIPT','STYLE'].includes(el.tagName));
+ const inertBefore=new Map();
  const getHistory=()=>{try{const a=JSON.parse(localStorage.getItem(histKey)||'[]');return Array.isArray(a)?a.filter(x=>typeof x==='string').slice(0,12):[];}catch(e){return [];}};
- const renderHistory=()=>{const a=getHistory();$('#searchHistory').innerHTML=a.length?a.map(q=>'<button type="button" class="search-chip" data-term="'+esc(q)+'">'+esc(q)+'</button>').join(''):'<span style="color:#8b8288;font-size:13px">暂无搜索记录</span>';};
+ const renderHistory=()=>{const a=getHistory();$('#searchHistory').innerHTML=a.length?a.map(q=>'<span class="history-tag"><button type="button" class="search-chip" data-term="'+esc(q)+'">'+esc(q)+'</button><button type="button" class="history-remove" data-remove="'+esc(q)+'" aria-label="删除记录：'+esc(q)+'">×</button></span>').join(''):'<span style="color:#8b8288;font-size:13px">暂无搜索记录</span>';};
  const remember=q=>{try{localStorage.setItem(histKey,JSON.stringify([q,...getHistory().filter(x=>x!==q)].slice(0,12)));}catch(e){}renderHistory();};
  const showLanding=()=>{landing.hidden=false;section.hidden=true;};
  const renderMatches=()=>{
@@ -174,9 +178,9 @@ function wireSearch(){
      return '<button type="button" class="search-result" data-product-id="'+esc(p.id)+'"><span><strong>'+esc(p.name)+(p.star?' ★':'')+'</strong><small>'+esc(p.category)+' · '+(p.alias?esc(p.alias)+' · ':'')+'第'+esc(p.row)+'行</small></span><span class="right">库存：<b>'+esc(stock)+'</b><br>订货：'+esc(order)+'</span></button>';
    }).join(''):'<div class="search-empty">没有找到商品。请尝试中文、韩文或更短的关键词。</div>';
  };
- const resetButtons=()=>{$('#catButtons .filter').forEach(b=>b.classList.toggle('selected',b.dataset.cat===state.cat));$('#subButtons .filter').forEach(b=>b.classList.toggle('selected',b.dataset.sub===state.sub));};
- const close=()=>{overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.classList.remove('searching');$('#clear').focus({preventScroll:true});};
- const open=()=>{if(overlay.classList.contains('open'))return;overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.classList.add('searching');input.value='';showLanding();renderHistory();
+ const resetButtons=()=>{$$('#catButtons .filter').forEach(b=>b.classList.toggle('selected',b.dataset.cat===state.cat));$$('#subButtons .filter').forEach(b=>b.classList.toggle('selected',b.dataset.sub===state.sub));};
+ const close=()=>{overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.classList.remove('searching');document.body.style.position='';document.body.style.top='';document.body.style.width='';background.forEach(el=>el.inert=inertBefore.get(el));window.scrollTo({top:savedScroll,behavior:'instant'});$('#clear').focus({preventScroll:true});};
+ const open=()=>{if(overlay.classList.contains('open'))return;savedScroll=window.scrollY;background.forEach(el=>{inertBefore.set(el,el.inert);el.inert=true;});document.body.style.position='fixed';document.body.style.top=-savedScroll+'px';document.body.style.width='100%';overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.classList.add('searching');input.value=state.search;renderMatches();renderHistory();
    const names=['고수','감자수제비','깐마늘','숙주','干豆腐','芝麻酱'];
    const a=names.map(q=>P.find(p=>p.name===q||p.name.startsWith(q))).filter(Boolean);
    $('#searchSuggestions').innerHTML=a.map(p=>'<button type="button" class="search-chip" data-product-id="'+esc(p.id)+'">'+esc(p.name)+'</button>').join('');
@@ -184,11 +188,13 @@ function wireSearch(){
  };
  const apply=q=>{q=q.trim();if(!q)return;remember(q);state.search=q;state.cat='all';state.sub='all';$('#find').value=q;resetButtons();renderAll();close();nav('all');};
  $('#find').addEventListener('focus',open);$('#find').addEventListener('click',open);
+ $('#searchErase').addEventListener('click',()=>{input.value='';renderMatches();input.focus({preventScroll:true});});
  $('#searchBack').addEventListener('click',close);$('#searchGo').addEventListener('click',()=>apply(input.value));
- input.addEventListener('input',renderMatches);input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();apply(input.value);}});
- overlay.addEventListener('click',e=>{const p=e.target.closest('[data-product-id]');if(p){const item=P.find(x=>x.id===p.dataset.productId);if(item)apply(item.name);return;}const t=e.target.closest('[data-term]');if(t)apply(t.dataset.term);});
+ input.addEventListener('input',renderMatches);input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();apply(input.value);}});
+ overlay.addEventListener('click',e=>{const removal=e.target.closest('[data-remove]');if(removal){try{localStorage.setItem(histKey,JSON.stringify(getHistory().filter(q=>q!==removal.dataset.remove)));}catch(e){}renderHistory();return;}const p=e.target.closest('[data-product-id]');if(p){const item=P.find(x=>x.id===p.dataset.productId);if(item)apply(item.name);return;}const t=e.target.closest('[data-term]');if(t)apply(t.dataset.term);});
  $('#searchHistoryClear').addEventListener('click',()=>{try{localStorage.removeItem(histKey);}catch(e){}renderHistory();});
- $('#searchQuick [data-quick]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.quick;state.search='';state.cat='all';state.sub=m==='star'?'star':m==='stocked'?'stocked':'all';$('#find').value='';resetButtons();renderAll();close();nav(m==='ordered'?'orders':'all');}));
+ $$('#searchQuick [data-quick]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.quick;state.search='';state.cat=['kr','cn','other'].includes(m)?m:'all';state.sub=m==='star'?'star':m==='stocked'?'stocked':'all';$('#find').value='';resetButtons();renderAll();close();nav(m==='ordered'?'orders':'all');}));
+ overlay.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const a=Array.from(overlay.querySelectorAll('button,input')).filter(el=>el.getClientRects().length&&!el.disabled);const first=a[0],last=a[a.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))close();});
 }
 
@@ -223,3 +229,4 @@ if(['all','orders','focus','special'].includes(initial)&&initial!=='all')nav(ini
 
 </body>
 </html>
+
