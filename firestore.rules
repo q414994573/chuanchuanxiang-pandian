@@ -6,12 +6,14 @@ service cloud.firestore {
   function qty(v) { return v.matches('^(0|[1-9][0-9]{0,8}|1000000000)$'); }
   function production(d) { return d.units.keys().hasOnly(["kr:3","kr:4","kr:5","kr:6","kr:7","kr:8","kr:9","kr:10","kr:11","kr:12","kr:13","kr:15","kr:16","kr:17","kr:19","kr:20","kr:21","kr:23","kr:25","kr:26","kr:28","kr:29","kr:30","kr:31","kr:32","kr:33","kr:35","kr:36","kr:37","kr:38","kr:40","kr:41","kr:42","kr:43","kr:44","kr:45","kr:47","kr:48","kr:49","kr:50","kr:51","kr:53","kr:54","kr:56","kr:58","cn:3","cn:4","cn:5","cn:7","cn:8","cn:9","cn:10","cn:12","cn:13","cn:14","cn:16","cn:17","cn:18","cn:19","cn:20","cn:21","cn:22","cn:23","cn:25","cn:26","cn:27","cn:28","cn:29","cn:30","cn:31","cn:33","cn:34","cn:35","cn:36","cn:37","cn:39","cn:40","cn:41","cn:42","cn:44","cn:45","cn:46","cn:47","cn:48","cn:50","cn:51","cn:52","cn:53","cn:54","cn:55","cn:56","cn:57","cn:58","cn:59","cn:60","cn:62","cn:63","cn:64","cn:65","cn:66","cn:68","cn:69","cn:71","cn:72","cn:73","cn:75","cn:77","cn:79","cn:81","cn:82","cn:84","other:3","other:4","other:5","other:6","other:7","other:8","other:10","other:11","other:12","other:13","other:14","other:15","other:16","other:18","other:19","other:20","other:21","other:22"]) && d.units.size() == 129 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){128}$'); }
   function sandbox(d) { return d.units.keys().hasOnly(['test:a','test:b','test:c']) && d.units.size() == 3 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){2}$'); }
-  function shape(d,group) { return d.keys().hasOnly(['schema','date','snapshot','quantities','units','createdBy','createdAt','updatedBy','updatedAt','revision','mutationId'])
+  function shape(d,group) { return d.keys().hasOnly(['schema','date','snapshot','quantities','units','createdBy','createdAt','updatedBy','updatedAt','updatedByName','revision','mutationId'])
     && d.schema == 'ccx-cloud-1' && d.date is string && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
     && d.snapshot is string && d.snapshot.size() < 500000 && d.quantities is string && d.units is map
     && d.revision is int && d.revision > 0
     && d.mutationId is string && d.mutationId.matches('^[a-zA-Z0-9-]{10,80}$')
     && d.updatedBy == request.auth.uid && d.updatedAt == request.time
+    && d.updatedByName is string && d.updatedByName.size() > 0 && d.updatedByName.size() <= 20
+    && d.updatedByName == get(/databases/$(database)/documents/members/$(request.auth.uid)).data.name
     && (group == 'orders' ? production(d) : sandbox(d)); }
   match /members/{uid} { allow get: if request.auth != null && request.auth.uid == uid; allow list,write: if false; }
   match /{group}/{id} {
@@ -22,8 +24,9 @@ service cloud.firestore {
     && request.resource.data.createdBy == request.auth.uid && request.resource.data.createdAt == request.time
     && request.resource.data.revision == 1 && audit();
    allow update: if permitted() && shape(request.resource.data,group)
-    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','revision','updatedBy','updatedAt','mutationId'])
-    && request.resource.data.revision == resource.data.revision + 1 && audit();
+    && request.resource.data.revision == resource.data.revision + 1 && audit()
+    && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','revision','updatedBy','updatedAt','updatedByName','mutationId'])
+      || (owner() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','snapshot','revision','updatedBy','updatedAt','updatedByName','mutationId'])));
    allow delete: if false;
    match /revisions/{mutation} {
     allow read: if group in ['orders','sandboxOrders'] && member();
