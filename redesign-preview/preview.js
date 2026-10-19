@@ -214,6 +214,7 @@ function special(p){
 }
 
 function render(){
+  document.body.classList.toggle('counting',screen==='count'&&!!draft);
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===screen||(screen==='review'&&b.dataset.tab==='count')));
   if(screen==='archive')app.innerHTML=archiveHtml();
   else if(screen==='history')app.innerHTML=historyPage();
@@ -221,8 +222,14 @@ function render(){
   else if(screen==='order')app.innerHTML=orderHtml();
   else if(screen==='review')app.innerHTML=reviewHtml();
   else app.innerHTML=draft?countHtml():introHtml();
-  const active=app.querySelector('.field.on b');
-  if(active)active.scrollIntoView({block:'nearest'});
+  fitCount();
+}
+function fitCount(){
+  if(screen!=='count'||!draft)return;
+  const fields=app.querySelector('.fields'),keys=app.querySelector('.keys');
+  if(!fields||!keys)return;
+  const overlap=fields.getBoundingClientRect().bottom-keys.getBoundingClientRect().top;
+  if(overlap>0)window.scrollBy(0,overlap+8);
 }
 function introHtml(){
   return `<div class="card"><h1>开始盘货</h1><p class="muted">按原来的顺序，一项一项填。先存在这台手机里，没登录也能盘。</p><label>日期<input id="countDate" type="date" value="${today()}"></label></div>${dock('<button class="primary" type="button" data-act="start">开始一份新盘货</button>')}`;
@@ -236,14 +243,14 @@ function countHtml(){
   <div class="progress"><i style="width:${Math.round(n/129*100)}%"></i></div>
   <p class="muted" data-meta>已处理 ${n}/129 · 订货 ${orderedCount()} 种 · 已存在这台手机</p>
   <h2 class="name">${E(p.alias&&p.alias!==p.name?p.alias:p.name)}</h2>
-  <p class="alias">${E(p.name)}${p.alias&&p.alias!==p.name?'':''} · ${E(p.unit||'单位未定')}</p>
+  <p class="alias">${E(p.name)} · ${E(p.unit||'单位未定')}</p>
   ${special(p)}
+  <p class="muted">上期参考：库存 ${p.referenceStock??'未填'} · 订货 ${p.referenceOrder??'未填'}</p>
   <div class="fields">
     <button type="button" class="field ${field==='stock'?'on':''}" data-act="field" data-field="stock"><small>库存${p.hasStock?'':'（这项没有）'}</small><b>${E(stockShown)}</b><em>${E(r.stockUnit||'')}</em></button>
     <button type="button" class="field ${field==='qty'?'on':''}" data-act="field" data-field="qty"><small>订货</small><b>${E(qtyShown)}</b><em>${E(p.unit||'单位未定')}</em></button>
   </div>
   ${keys()}
-  <p class="muted">上期参考：库存 ${p.referenceStock??'未填'} · 订货 ${p.referenceOrder??'未填'}</p>
   ${dock('<button class="ghost" type="button" data-act="skip">本次不订</button><button class="primary" type="button" data-act="next">下一项</button>')}`;
 }
 function paintCount(){

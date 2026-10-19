@@ -46,7 +46,7 @@ h2{font-size:20px;margin:0 0 8px}
 .alias{font-size:18px;color:var(--muted);margin:4px 0 10px}
 .warn{background:#fff4e5;border-radius:12px;padding:10px 12px;font-size:15px;margin:0 0 10px}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.field{text-align:left;background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px;min-height:96px}
+.field{text-align:left;background:#fff;border:2px solid var(--line);border-radius:16px;padding:10px 12px;min-height:84px}
 .field.on{border-color:var(--red);background:#fff7f8}
 .field small{display:block;color:var(--muted);font-size:14px}
 .field b{display:block;font-size:36px;line-height:1.1;margin-top:4px}
@@ -54,9 +54,11 @@ h2{font-size:20px;margin:0 0 8px}
 .cats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
 .cats button{min-height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:14px;font-weight:700;color:var(--ink)}
 .cats button.on{border-color:var(--red);color:var(--red);background:#fff7f8}
+body.counting .keys{position:fixed;left:8px;right:8px;bottom:calc(var(--tabs) + var(--dock) + env(safe-area-inset-bottom));z-index:24;margin:0;padding-top:6px;background:var(--bg)}
+body.counting #app{padding-bottom:calc(var(--tabs) + var(--dock) + 280px + env(safe-area-inset-bottom))}
 .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
-.keys button{min-height:58px;border:0;border-radius:14px;background:#fff;font-size:24px;font-weight:700}
-.keys button.span{grid-column:1/-1;min-height:44px;font-size:16px;color:var(--muted)}
+.keys button{min-height:50px;border:0;border-radius:14px;background:#fff;font-size:24px;font-weight:700}
+.keys button.span{grid-column:1/-1;min-height:42px;font-size:16px;color:var(--muted)}
 .list .row{width:100%;text-align:left;background:#fff;border:0;border-bottom:1px solid var(--line);min-height:64px;padding:10px 2px;display:flex;justify-content:space-between;gap:10px;align-items:center}
 .list .row b{font-size:17px}
 .list .row small{display:block;color:var(--muted);font-size:14px;font-weight:500}
