@@ -29,6 +29,25 @@ button,input,select{font:inherit}button{cursor:pointer}a{text-decoration:none;co
 html{scroll-behavior:smooth}button,a,input{touch-action:manipulation}button{min-height:44px}.data-cell,.section-head>div{min-width:0}.section-head h2{overflow-wrap:anywhere}.alias{display:block;color:#827780;font-size:12px;font-weight:500}.snapshot-age{font-size:12px;line-height:1.6;margin:10px 3px 0;color:#775f3d}.toast{white-space:normal;overflow-wrap:anywhere}.sheet-head,.lineitem{grid-template-columns:minmax(0,2.5fr) repeat(3,minmax(0,1fr))}.data-cell{overflow-wrap:anywhere}.nav{scroll-margin-top:10px}.pane{scroll-margin-top:76px}.bottom a{text-decoration:underline;color:#88565d}dialog{max-width:min(92vw,600px);border:1px solid #ddd;border-radius:18px;padding:20px}dialog::backdrop{background:#0006}#copyFallback{display:block;width:100%;min-height:240px;font-size:16px;margin-bottom:12px}.specialcard .current-value{margin-top:8px;font-weight:750;color:#41313a}
 @media(max-width:780px){.nav{display:grid;grid-template-columns:1fr 1fr;overflow:visible;gap:6px}.tab{white-space:normal;padding:10px 5px}.hero h1{font-size:32px}.hero-desc{font-size:13px}.lineitem{grid-template-columns:1fr 1fr}.section-head{align-items:flex-start}.section-head h2{font-size:22px}.source{flex-wrap:wrap}.source .date{margin-left:28px}.order-row{grid-template-columns:minmax(0,1fr) auto}.order-row .stockinfo{grid-column:1/-1;text-align:left}.section-head small{white-space:nowrap}.pane{scroll-margin-top:122px}.focusstat{padding:12px}.prodname .low{font-size:11px;margin-left:5px}.sheet-head{display:none}.hero-bg{background-position:65% 35%}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Search experience inspired by familiar mobile search apps; all results are actual catalog entries */
+.search-overlay{position:fixed;inset:0;z-index:80;background:#fff;display:none;overflow-y:auto;overscroll-behavior:contain;padding:calc(env(safe-area-inset-top) + 15px) max(16px,calc((100vw - 760px)/2)) calc(env(safe-area-inset-bottom) + 30px);color:#242027}
+.search-overlay.open{display:block}.search-overlay .search-top{display:flex;align-items:center;gap:10px;position:sticky;top:-15px;background:#fff;padding:7px 0 14px;z-index:2}
+.search-overlay .back{border:0;background:transparent;color:#544b53;font-size:25px;min-width:44px;min-height:46px;border-radius:12px}
+.search-overlay .search-box{min-width:0;flex:1;display:flex;align-items:center;background:#f6f6f7;border:1px solid #dddce0;border-radius:30px;height:48px;padding:0 15px;gap:9px}
+.search-overlay .search-box input{min-width:0;width:100%;border:0;outline:0;background:transparent;font-size:16px;color:#222}
+.search-overlay .search-go{border:0;background:transparent;color:#ba1b2c;font-size:15px;font-weight:800;min-width:48px}
+.search-overlay .search-section{margin:15px 0 25px}.search-overlay .search-section h3{font-size:17px;margin:0 0 13px;display:flex;justify-content:space-between;align-items:center}
+.search-overlay .search-section h3 button{font-size:12px;font-weight:650;border:0;background:transparent;color:#89838a}
+.search-overlay .search-chips{display:flex;gap:9px;flex-wrap:wrap}.search-overlay .search-chip{border:0;background:#f5f5f6;border-radius:10px;padding:11px 14px;min-height:44px;max-width:100%;font-size:14px;color:#403b40;overflow-wrap:anywhere}
+.search-overlay .search-chip.quick{background:#fff4f5;color:#9b1c2c}
+.search-overlay .search-result{width:100%;text-align:left;border:0;border-bottom:1px solid #f0ebee;background:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 2px;min-height:62px}
+.search-overlay .search-result strong{display:block;font-size:15px;overflow-wrap:anywhere}.search-overlay .search-result small{display:block;font-size:12px;color:#827a81;margin-top:4px;overflow-wrap:anywhere}
+.search-overlay .search-result .right{text-align:right;flex-shrink:0;font-size:12px;color:#7e737b;line-height:1.7}.search-overlay .search-result .right b{color:#b71c2b}
+.search-overlay .search-empty{padding:20px 3px;color:#827780;font-size:13px;line-height:1.8}
+body.searching{overflow:hidden}
+@media(max-width:480px){.search-overlay{padding-left:15px;padding-right:15px}.search-overlay .search-top{gap:5px}.search-overlay .search-go{min-width:40px}}
+
 </style>
 </head>
 <body>
@@ -147,9 +166,24 @@ async function refreshConfirmedSnapshot(){
   SOURCE=next;P=next.products.map(({min,...p})=>p);render();
  }catch(error){console.warn('Weekly snapshot refresh unavailable; retaining dated embedded archive',error);}
 }
-wire();render();refreshConfirmedSnapshot();
+wireSearch();wire();render();refreshConfirmedSnapshot();
 const initial=location.hash.slice(1)||(new URLSearchParams(location.search).has('focus')?'focus':'all');
 if(['all','orders','focus','special'].includes(initial)&&initial!=='all')nav(initial);
 </script>
+
+<div id="searchOverlay" class="search-overlay" role="dialog" aria-modal="true" aria-label="搜索川川香商品" aria-hidden="true">
+  <div class="search-top">
+    <button type="button" class="back" id="searchBack" aria-label="返回商品总览">‹</button>
+    <label class="search-box"><span aria-hidden="true">⌕</span><input id="searchEntry" type="search" enterkeyhint="search" autocomplete="off" placeholder="搜索129种商品（中文 / 韩文）" aria-label="输入商品名称"></label>
+    <button type="button" class="search-go" id="searchGo">搜索</button>
+  </div>
+  <div id="searchLanding">
+    <section class="search-section"><h3>搜索历史 <button type="button" id="searchHistoryClear">清空历史</button></h3><div id="searchHistory" class="search-chips"></div></section>
+    <section class="search-section"><h3>快捷查看</h3><div class="search-chips" id="searchQuick"><button type="button" class="search-chip quick" data-quick="star">★ 重点商品</button><button type="button" class="search-chip quick" data-quick="stocked">已填库存</button><button type="button" class="search-chip quick" data-quick="ordered">本次订货</button><button type="button" class="search-chip quick" data-quick="all">全部129种</button></div></section>
+    <section class="search-section"><h3>常用检查入口</h3><div id="searchSuggestions" class="search-chips"></div><p style="color:#9a9299;font-size:12px;margin-top:10px">以上是固定快捷入口，不代表真实搜索热度。</p></section>
+  </div>
+  <section class="search-section" id="searchMatchesSection" hidden><h3 id="searchMatchesTitle">搜索结果</h3><div id="searchMatches"></div></section>
+</div>
+
 </body>
 </html>
