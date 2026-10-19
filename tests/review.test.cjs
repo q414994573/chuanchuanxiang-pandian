@@ -5,20 +5,9 @@ const quick=['kr','cn','other','all','star','ordered','stocked'].map(x=>{const e
 doc={querySelector:s=>el(s),querySelectorAll:s=>s==='#searchQuick [data-quick]'?quick:s==='#catButtons .filter'?cat:s==='#subButtons .filter'?sub:[],getElementById:id=>({textContent:JSON.stringify(data)}),createElement:t=>el('new-'+t),body:{children:[el('main'),el('#searchOverlay')],style:{},classList:el('body').classList,appendChild(){}},addEventListener(){}};
 const mem=new Map();const ctx={document:doc,localStorage:{getItem:k=>mem.get(k),setItem:(k,v)=>mem.set(k,v),removeItem:k=>mem.delete(k)},window:{scrollY:540,scrollTo(o){this.lastScroll=o.top}},location:{protocol:'file:',hash:'',search:''},navigator:{},Intl,Date,URLSearchParams,console,setTimeout:()=>{},matchMedia:()=>({matches:true}),fetch:async()=>{throw Error('offline test')},confirm:()=>true,Blob,URL};vm.createContext(ctx);for(const s of scripts.filter(s=>!s[1].includes('embedded-data')&&!s[1].includes('src=')))vm.runInContext(s[2],ctx);vm.runInContext(fs.readFileSync(require('path').join(__dirname,'../workspace-ui.js'),'utf8'),ctx);
 const run=s=>vm.runInContext(s,ctx);
-assert.equal(data.products.length,129);assert.equal(data.products.filter(p=>p.star).length,47);
+assert.equal(data.products.length,129);assert.equal(data.products.filter(p=>p.star).length,0);
 assert.equal((el('#allRows').innerHTML.match(/class="product-record"/g)||[]).length,129);
 assert(!el('body').classList.contains('card-layout'));el('#cardMode').fire('click');assert(el('body').classList.contains('card-layout'));el('#compactMode').fire('click');assert(!el('body').classList.contains('card-layout'));
 el('#find').fire('click');assert(el('#searchOverlay').classList.contains('open'));el('#searchEntry').value='고수';el('#searchEntry').fire('input');assert(el('#searchMatches').innerHTML.includes('고수'));el('#searchGo').fire('click');assert(!el('#searchOverlay').classList.contains('open'));assert.equal(ctx.window.lastScroll,540);assert(mem.get('ccx-search-history-v1').includes('고수'));el('#find').fire('click');quick[0].fire('click');assert.equal(run('itemsFiltered().length'),45);
-const officialBefore=run('JSON.stringify(SOURCE)');
-assert.equal(run('P.filter(complete).length'),0);
-run("changeItem('kr:4','status','skip')");assert.equal(run("reviewOf('kr:4').status"),'pending'); // positive order cannot be skipped
-run("changeItem('kr:3','status','sent')");assert.equal(run("reviewOf('kr:3').status"),'pending'); // blank cannot be marked ordered
-run("changeItem('kr:3','status','skip')");assert.equal(run("reviewOf('kr:3').status"),'skip');assert.equal(run('P.filter(complete).length'),1);
-run("changeItem('kr:6','status','verified')");assert(!run("complete(P.find(p=>p.id==='kr:6'))"));run("changeItem('kr:6','physical',true)");assert(run("complete(P.find(p=>p.id==='kr:6'))"));
-assert.equal(run('JSON.stringify(SOURCE)'),officialBefore);
-assert(run('validReview(JSON.parse(JSON.stringify(reviewDocument)))'));assert(!run("validReview({...reviewDocument,date:'2026-10-11'})"));assert(!run("validReview({...reviewDocument,fingerprint:'bad'})"));
-run('reviewDocument.suppliers.kr=true');run("changeItem('kr:3','status','pending')");assert(!run('reviewDocument.suppliers.kr'));assert(run('reviewDocument.log.length>=4'));
-run('reviewDocument=null;ensureReview()');assert(run("reviewOf('kr:6').physical"));assert(!run('archiveValid({...SOURCE,confirmed:false})'));
-assert(el('#archiveComparison').innerHTML.includes('尚无更早'));
-run("archiveCache.set('2026-10-11',{...SOURCE,date:'2026-10-11',products:SOURCE.products.map(p=>({...p,order:p.id==='kr:4'?0.5:p.order}))})");el('#archiveDate').value='2026-10-18';run('renderArchiveSelection()');assert(el('#archiveComparison').innerHTML.includes('订货数量变化较大'));
-console.log('PASS: 129 products, 47 stars; compact/card modes; search, scroll and categories; review transitions; physical gate; immutable quantities; backup validation/persistence; supplier invalidation; real archive comparison and missing-history state.');
+
+assert(!el('#allRows').innerHTML.includes('data-review'));assert(!el('#allRows').innerHTML.includes('★'));console.log('PASS: archive page initialization, 129 products, no star/review controls, layout and search.');

@@ -3,7 +3,7 @@ const source=JSON.parse(fs.readFileSync(path.join(__dirname,'../current-order.js
 assert(C.validate(d,source));assert.deepEqual(d.catalog.map(p=>p.id),source.products.map(p=>p.id));assert.equal(d.catalog.filter(p=>C.complete(d,p)).length,0);
 for(const bad of ['','-1','1e3','2箱','1000001'])assert.equal(C.number(bad),null);
 let p=d.catalog[0];assert.equal(C.finish(d,p.id).completed,false);assert(!C.complete(d,p));C.finish(d,p.id,true);assert(C.complete(d,p));assert.equal(d.items[p.id].stock,'');assert.equal(d.items[p.id].physical,false);
-p=d.catalog.find(p=>p.star);C.finish(d,p.id,true);assert(C.complete(d,p));assert.equal(d.items[p.id].physical,false);
+p=d.catalog.find(p=>p.id==='kr:6');C.finish(d,p.id,true);assert(C.complete(d,p));assert.equal(d.items[p.id].physical,false);
 C.edit(d,p.id,'quantity','2');assert(!C.complete(d,p));assert.equal(d.items[p.id].decision,'order');C.finish(d,p.id);assert(C.complete(d,p));
 C.edit(d,p.id,'quantity','');assert(!C.complete(d,p));assert.equal(d.items[p.id].decision,'pending');C.edit(d,p.id,'quantity','0');assert.throws(()=>C.finish(d,p.id));C.edit(d,p.id,'quantity','2');C.edit(d,p.id,'unit','');assert.throws(()=>C.finish(d,p.id));C.finish(d,p.id,true);assert(C.complete(d,p));
 C.edit(d,p.id,'stock','-1');assert.throws(()=>C.finish(d,p.id,true));C.edit(d,p.id,'stock','');C.finish(d,p.id,true);assert(C.complete(d,p));
