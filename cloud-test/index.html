@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>川川香 · 云端测试版</title>
+<link rel="stylesheet" href="../count-app.css?v=20261020-cloudtest">
+<link rel="stylesheet" href="../cloud-app.css?v=20261020-cloudtest">
+<style>
+:root{--red:#bb1827;--red2:#8f1121;--ink:#212027;--sub:#686775;--muted:#90909a;--bg:#f7f6f7;--paper:#fff;--line:#ebe7e8;--gold:#f0ba62;--green:#1c7a57;--mint:#eaf7ee;--warn:#a36115;--warnbg:#fff4e7}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC",sans-serif}
+.test-banner{position:sticky;top:0;z-index:20;background:#bb1827;color:#fff;padding:14px 16px;text-align:center;font-size:22px;font-weight:800;letter-spacing:.02em}
+.test-banner small{display:block;margin-top:4px;font-size:14px;font-weight:500}
+main{max-width:720px;margin:0 auto;padding:12px 14px 64px}
+.test-note,.test-steps{background:#fff;border:1px solid #ebc8cc;border-radius:12px;padding:12px 14px}
+.test-steps{font-size:14px}
+#testSkipRest{display:block;width:100%;min-height:48px;margin:12px 0;background:#bb1827;color:#fff;border:0;border-radius:12px;font-size:16px;font-weight:700}
+#testSkipStatus{min-height:1.4em}
+.toast{display:none;position:fixed;left:16px;right:16px;bottom:16px;background:#212027;color:#fff;padding:12px 14px;border-radius:12px;z-index:30}
+dialog{max-width:min(92vw,600px);border:1px solid #ddd;border-radius:18px;padding:20px}
+#copyFallback{display:block;width:100%;min-height:180px;font-size:16px}
+</style>
+</head>
+<body>
+<div class="test-banner">云端测试版·不是正式订单<small>这不是店里正在用的正式订货。正式首页没有连接云端。</small></div>
+<main>
+<p class="test-note">这一页只给已经建好的两个账号试用。订单编号会变成 test-count- 开头。不要把这里的数量发给供应商。</p>
+<div id="cloudRoot"></div>
+<button type="button" id="testSkipRest">其余全部标成本次不订（仅这一页）</button>
+<p id="testSkipStatus" role="status"></p>
+<div id="countRoot"></div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog id="copyDialog"><h3>复制清单</h3><p>请长按下方文字，选择全选并复制。</p><textarea id="copyFallback" readonly aria-label="待复制清单"></textarea><button type="button" id="closeCopy">关闭</button></dialog>
+<script>
+window.CCX_CLOUD_TEST=true;
+window.CCX_COUNT_STORAGE_PREFIX='ccx-cloud-test-session:';
+window.CCX_COUNT_ACTIVE_KEY='ccx-cloud-test-active';
+window.normalize=s=>String(s??'').normalize('NFKC').replace(/\s+/g,'').toLowerCase();
+window.toast=msg=>{const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.__ccxToast);window.__ccxToast=setTimeout(()=>{t.style.display='none';},2000);};
+window.downloadJSON=(value,name)=>{const blob=new Blob([JSON.stringify(value,null,2)],{type:'application/json'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000);};
+window.copyText=async text=>{try{await navigator.clipboard.writeText(text);toast('已复制清单');return;}catch(e){}const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.top='0';document.body.appendChild(ta);ta.focus();ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(err){}ta.remove();if(ok)toast('已复制清单');else{document.getElementById('copyFallback').value=text;document.getElementById('copyDialog').showModal();}};
+document.getElementById('closeCopy').addEventListener('click',()=>document.getElementById('copyDialog').close());
+function loadScript(src){return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(Error('脚本读取失败'));document.body.appendChild(s);});}
+(async function(){
+ try{
+  const r=await fetch('../current-order.json',{cache:'no-store'});
+  if(!r.ok)throw Error('商品目录读取失败');
+  window.SOURCE=await r.json();
+  if(!SOURCE.products||SOURCE.products.length!==129)throw Error('商品目录不是129种');
+  await loadScript('../count-core.js?v=20261020-cloudtest');
+  await loadScript('../count-app.js?v=20261020-cloudtest');
+  document.getElementById('testSkipRest').addEventListener('click',()=>{
+   try{CountBridge.prepareTestCount();document.getElementById('testSkipStatus').textContent='已保留填写了订货数量的商品，其余标成本次不订，库存仍是空的。请点「检查并生成订单」，再点「确认复核完成并锁定数量」，然后回到上面点「提交本机盘货审核」。';}
+   catch(e){document.getElementById('testSkipStatus').textContent=e.message||'操作失败';}
+  });
+  await loadScript('../cloud-app.bundle.js?v=20261020-cloudtest');
+ }catch(e){document.getElementById('cloudRoot').textContent='测试页没有载入成功：'+(e.message||e);}
+})();
+</script>
+</body>
+</html>

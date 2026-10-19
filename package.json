@@ -1,0 +1,37 @@
+{
+  "name": "chuanchuanxiang-pandian",
+  "version": "1.0.0",
+  "description": "\u7f51\u7ad9\u56fa\u5b9a\u7f51\u5740\uff1ahttps://q414994573.github.io/chuanchuanxiang-pandian/",
+  "main": "count-app.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-ccx-collaboration \"node tests/firestore.test.mjs\"",
+    "build": "esbuild cloud/app.js --bundle --minify --format=iife --outfile=cloud-app.bundle.js",
+    "rules:generate": "node scripts/generate-rules.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/q414994573/chuanchuanxiang-pandian.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/q414994573/chuanchuanxiang-pandian/issues"
+  },
+  "homepage": "https://github.com/q414994573/chuanchuanxiang-pandian#readme",
+  "dependencies": {
+    "firebase": "13.0.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "esbuild": "0.28.2",
+    "firebase-tools": "14.27.0"
+  },
+  "private": true
+}
