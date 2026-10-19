@@ -1,4 +1,10 @@
 {
-  "firestore": {"rules": "firestore.rules", "indexes": "firestore.indexes.json"},
+  "firestore": {
+    "database": "(default)",
+    "location": "asia-northeast3",
+    "edition": "STANDARD",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "emulators": {"firestore": {"port": 8080}, "ui": {"enabled": false}, "singleProjectMode": true}
 }

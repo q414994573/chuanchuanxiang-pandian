@@ -1,1 +1,11 @@
-{"enabled":false,"firebase":null}
+{
+  "enabled": false,
+  "firebase": {
+    "apiKey": "AIzaSyD3TD7o7WCs-6HsPfKehG2RIKXJs_t57U0",
+    "authDomain": "chuanchuanxiang-order.firebaseapp.com",
+    "projectId": "chuanchuanxiang-order",
+    "storageBucket": "chuanchuanxiang-order.firebasestorage.app",
+    "messagingSenderId": "981479838460",
+    "appId": "1:981479838460:web:12c8db27cd7821f9c6fd79"
+  }
+}

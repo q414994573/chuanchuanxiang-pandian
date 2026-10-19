@@ -1,6 +1,6 @@
 # Firebase 云端协同接入
 
-状态：开发分支，生产配置默认关闭（`firebase-config.json` 的 `enabled` 仍是 `false`）。没按下面的清单配好项目、规则、两个账号和成员之前，不能说云同步已经上线。不要把密码写进仓库，也不要发给任何聊天机器人。
+状态：开发分支。项目 `chuanchuanxiang-order` 已在 2026-10-20 建好，公开 Web 配置已写入 `firebase-config.json`，但 `enabled` 仍是 `false`。网页还不会连接云端。两个账号和成员文档还没有建。不能说云同步已经上线。不要把密码写进仓库，也不要发给任何聊天机器人。
 
 ## 账号（已定）
 
@@ -63,7 +63,7 @@
 
 代码只认两处：`enabled` 为真，并且 `firebase` 被原样传给 `initializeApp`。`measurementId` 可以不写。`authDomain` 必须是控制台片段里的 `xxxx.firebaseapp.com`，不要写成 `q414994573.github.io`。
 
-配成员、规则和索引之前，`enabled` 继续保持 `false`。改成 `true` 是最后一步，而且要等规则已经发布。
+2026-10-20 已把 Web 应用 `ccx-web` 的公开配置写入这个文件，`enabled` 仍是 `false`。`authDomain` 是 `chuanchuanxiang-order.firebaseapp.com`。改成 `true` 要等下面的隔离测试和成员授权都完成。
 
 ### 3. 建 Firestore，地区选首尔
 
@@ -140,7 +140,7 @@ firebase deploy --only firestore --project <你的项目ID>
 
 这条命令会同时发布 `firestore.rules` 和 `firestore.indexes.json`。不要把测试用的 `demo-ccx-collaboration` 写进这条命令。本地模拟器测试和正式项目无关。
 
-正式网页只读写集合 `orders`。`sandboxOrders` 只给本地模拟器用，页面不会打开它。不要往正式的 `orders` 里写练习数据。
+正式网页只读写集合 `orders`。`sandboxOrders` 只给本地模拟器用，页面不会打开它。2026-10-20 规则和 `snapshot` 索引例外已经发布到 `chuanchuanxiang-order`。隔离测试如果要在云端留一份订单，用单独的订单编号，测完由负责人在控制台删掉。不要改 10 月 18 日存档。
 
 ### 8. 确认没有开错开关
 
@@ -153,7 +153,20 @@ firebase deploy --only firestore --project <你的项目ID>
 
 ### 9. 最后才打开网页开关（现在先不要做）
 
-规则、索引例外、两个用户、两份成员文档都核对过之后，才把 `firebase-config.json` 的 `enabled` 改成 `true` 并填好 `firebase`。然后把这个分支合并进 `main`，等 GitHub Pages 更新，再用两部手机验收。验收步骤见下文。本说明写下来的时候，这些都还没做。
+`firebase` 配置已经填好。`enabled` 保持 `false`，这个分支不要合并。先做完控制台里还缺的四件事，再按下面的隔离测试走一遍。隔离测试通过之后，才把 `enabled` 改成 `true` 并合并到 `main`，然后做两部手机验收。
+
+## 隔离的真实云端测试（还没做）
+
+目的：在正式盘货之前，用一个单独的订单编号试通 `chuanchuanxiang-order`。已发布的网站保持 `enabled: false`，所以这一步在自己电脑上做，不要把 `true` 提交上去。
+
+先由负责人在控制台做完这四件还没做的事：添加授权网域 `q414994573.github.io`，关闭自行注册和自行删除账号，添加 `dawei` 与 `laobanniang` 两个用户，按 UID 写好两份 `members` 文档。本地测试还要确认授权网域里仍然有 `localhost`。
+
+1. 只在自己电脑上把 `firebase-config.json` 的 `enabled` 临时改成 `true`。用本地服务器打开这个分支，地址是 `http://localhost` 开头。不要提交这个改动。
+2. 用账号 `dawei` 登录。新建一份本机盘货，每一项都点「本次不订」，库存留空。不要把 10 月 18 日的数量当成新订单交上去。完成复核后提交。页面会产生 `count-` 开头的订单编号，把这个编号记下来。这就是隔离测试单，和以后的正式盘货不是同一份。
+3. 退出，改用 `laobanniang` 打开 `?order=那个编号#count`。改一个订货数量并保存。再换回 `dawei` 刷新，修改记录里应出现「老板娘」，数量与她保存的一致。
+4. 老板娘的页面上没有库存输入框。未登录时打开同一个链接，看不到这份云端订单。
+5. 网页规则不允许删除订单。测试结束后，负责人到 Firestore 控制台删掉 `orders/那个编号` 以及它下面的 `revisions`。不要删 `members`，不要改 `current-order.json`。
+6. 把本地的 `enabled` 改回 `false`，确认没有把 `true` 留在提交里。通过之后才考虑正式打开并做手机验收。
 
 ## 手机验收（还没做）
 
