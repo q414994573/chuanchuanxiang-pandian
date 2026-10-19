@@ -1,5 +1,5 @@
 {
-  "schema": 2,
+  "schema": 3,
   "source": "confirmed-order-archive",
   "date": "2026-10-18",
   "confirmed": true,
@@ -16,7 +16,6 @@
       "stock": null,
       "order": null,
       "unit": "통",
-      "min": null,
       "hasStock": true,
       "alias": "生菜"
     },
@@ -30,7 +29,6 @@
       "stock": 0.5,
       "order": 2,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "蒜"
     },
@@ -44,7 +42,6 @@
       "stock": null,
       "order": null,
       "unit": "통",
-      "min": null,
       "hasStock": true,
       "alias": "紫甘蓝"
     },
@@ -58,7 +55,6 @@
       "stock": null,
       "order": null,
       "unit": "개",
-      "min": null,
       "hasStock": true,
       "alias": "南瓜"
     },
@@ -72,7 +68,6 @@
       "stock": null,
       "order": 1,
       "unit": "단",
-      "min": null,
       "hasStock": true,
       "alias": "大葱"
     },
@@ -86,7 +81,6 @@
       "stock": null,
       "order": null,
       "unit": "개",
-      "min": null,
       "hasStock": true,
       "alias": "胡萝卜"
     },
@@ -100,7 +94,6 @@
       "stock": null,
       "order": 3,
       "unit": "개",
-      "min": null,
       "hasStock": true,
       "alias": "柠檬"
     },
@@ -114,7 +107,6 @@
       "stock": 1,
       "order": null,
       "unit": "박스",
-      "min": 0.5,
       "hasStock": true,
       "alias": "黄豆芽"
     },
@@ -128,7 +120,6 @@
       "stock": 3,
       "order": 3,
       "unit": "박스",
-      "min": 6,
       "hasStock": true,
       "alias": "绿豆芽"
     },
@@ -142,7 +133,6 @@
       "stock": null,
       "order": null,
       "unit": "팩",
-      "min": null,
       "hasStock": true,
       "alias": "蛋黄酱"
     },
@@ -156,7 +146,6 @@
       "stock": null,
       "order": null,
       "unit": "개",
-      "min": null,
       "hasStock": true,
       "alias": "黄瓜"
     },
@@ -170,7 +159,6 @@
       "stock": null,
       "order": null,
       "unit": "개",
-      "min": null,
       "hasStock": true,
       "alias": "钢丝球"
     },
@@ -184,7 +172,6 @@
       "stock": null,
       "order": null,
       "unit": "개",
-      "min": null,
       "hasStock": true,
       "alias": "银丝球"
     },
@@ -198,7 +185,6 @@
       "stock": null,
       "order": null,
       "unit": "개",
-      "min": null,
       "hasStock": true,
       "alias": "抹布"
     },
@@ -212,7 +198,6 @@
       "stock": null,
       "order": null,
       "unit": "포대",
-      "min": null,
       "hasStock": true,
       "alias": "大米"
     },
@@ -226,7 +211,6 @@
       "stock": null,
       "order": null,
       "unit": "통",
-      "min": null,
       "hasStock": true,
       "alias": "洗洁精"
     },
@@ -240,7 +224,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "花卷"
     },
@@ -254,7 +237,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": true,
       "alias": "盐渍海带"
     },
@@ -268,7 +250,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "味盐"
     },
@@ -282,7 +263,6 @@
       "stock": null,
       "order": 1,
       "unit": "판",
-      "min": null,
       "hasStock": true,
       "alias": "鸡蛋"
     },
@@ -296,7 +276,6 @@
       "stock": 5,
       "order": null,
       "unit": "개",
-      "min": 5,
       "hasStock": true,
       "alias": "火腿"
     },
@@ -310,7 +289,6 @@
       "stock": 3,
       "order": null,
       "unit": "봉",
-      "min": 2,
       "hasStock": true,
       "alias": "鹌鹑蛋"
     },
@@ -324,7 +302,6 @@
       "stock": 3,
       "order": null,
       "unit": "봉",
-      "min": 4,
       "hasStock": true,
       "alias": "小香肠"
     },
@@ -338,7 +315,6 @@
       "stock": "6 个",
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": true,
       "alias": "娃娃菜"
     },
@@ -352,7 +328,6 @@
       "stock": 1,
       "order": 2,
       "unit": "봉",
-      "min": 3,
       "hasStock": true,
       "alias": "莲藕"
     },
@@ -366,7 +341,6 @@
       "stock": 3,
       "order": 2,
       "unit": "봉",
-      "min": 5,
       "hasStock": true,
       "alias": "油豆腐"
     },
@@ -380,7 +354,6 @@
       "stock": null,
       "order": null,
       "unit": "판",
-      "min": null,
       "hasStock": true,
       "alias": "豆腐"
     },
@@ -394,7 +367,6 @@
       "stock": 2,
       "order": null,
       "unit": "봉",
-      "min": 1.5,
       "hasStock": true,
       "alias": "方形鱼饼"
     },
@@ -408,7 +380,6 @@
       "stock": 1,
       "order": null,
       "unit": "봉",
-      "min": 1.5,
       "hasStock": true,
       "alias": "圆鱼饼"
     },
@@ -422,7 +393,6 @@
       "stock": null,
       "order": 2,
       "unit": "봉",
-      "min": 1.5,
       "hasStock": true,
       "alias": "土豆面片"
     },
@@ -436,7 +406,6 @@
       "stock": null,
       "order": null,
       "unit": "캔",
-      "min": null,
       "hasStock": true,
       "alias": "香菇"
     },
@@ -450,7 +419,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "芝麻"
     },
@@ -464,7 +432,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "杏仁片"
     },
@@ -478,7 +445,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "土豆"
     },
@@ -492,7 +458,6 @@
       "stock": null,
       "order": null,
       "unit": "통",
-      "min": null,
       "hasStock": true,
       "alias": "洗碗机洗涤剂"
     },
@@ -506,7 +471,6 @@
       "stock": null,
       "order": null,
       "unit": "통",
-      "min": null,
       "hasStock": true,
       "alias": "洗碗机光亮剂"
     },
@@ -520,7 +484,6 @@
       "stock": null,
       "order": null,
       "unit": "병",
-      "min": null,
       "hasStock": true,
       "alias": "炼乳"
     },
@@ -534,7 +497,6 @@
       "stock": 1,
       "order": 1,
       "unit": "박스",
-      "min": 1.5,
       "hasStock": true,
       "alias": "油菜"
     },
@@ -548,7 +510,6 @@
       "stock": 1.5,
       "order": null,
       "unit": "박스",
-      "min": 1.5,
       "hasStock": true,
       "alias": "金针菇"
     },
@@ -562,7 +523,6 @@
       "stock": 1,
       "order": 1,
       "unit": "박스",
-      "min": 1.5,
       "hasStock": true,
       "alias": "杏鲍菇"
     },
@@ -576,7 +536,6 @@
       "stock": 1,
       "order": null,
       "unit": "박스",
-      "min": 1.5,
       "hasStock": true,
       "alias": "平菇"
     },
@@ -590,7 +549,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": true,
       "alias": "方便面"
     },
@@ -604,7 +562,6 @@
       "stock": 2,
       "order": 1,
       "unit": "단",
-      "min": 3,
       "hasStock": true,
       "alias": "香菜"
     },
@@ -618,7 +575,6 @@
       "stock": null,
       "order": null,
       "unit": "망",
-      "min": null,
       "hasStock": true,
       "alias": "洋葱"
     },
@@ -632,7 +588,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": true,
       "alias": "餐巾纸"
     },
@@ -646,7 +601,6 @@
       "stock": null,
       "order": null,
       "unit": "통",
-      "min": null,
       "hasStock": true,
       "alias": "香叶"
     },
@@ -660,7 +614,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "八角"
     },
@@ -674,7 +627,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "辣椒段"
     },
@@ -688,7 +640,6 @@
       "stock": null,
       "order": 1,
       "unit": "包",
-      "min": null,
       "hasStock": true,
       "alias": "特辣辣椒面"
     },
@@ -702,7 +653,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "细辣椒粉"
     },
@@ -716,7 +666,6 @@
       "stock": null,
       "order": null,
       "unit": "箱",
-      "min": null,
       "hasStock": true,
       "alias": "鸡精"
     },
@@ -730,7 +679,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "泡打粉"
     },
@@ -744,7 +692,6 @@
       "stock": 1,
       "order": null,
       "unit": "箱",
-      "min": null,
       "hasStock": true,
       "alias": "人造肉"
     },
@@ -758,7 +705,6 @@
       "stock": 1,
       "order": null,
       "unit": "箱",
-      "min": 0.75,
       "hasStock": true,
       "alias": "水晶豆皮"
     },
@@ -772,7 +718,6 @@
       "stock": 1,
       "order": null,
       "unit": "箱",
-      "min": null,
       "hasStock": true,
       "alias": "粉条"
     },
@@ -786,7 +731,6 @@
       "stock": null,
       "order": null,
       "unit": "포대",
-      "min": null,
       "hasStock": true,
       "alias": "土豆淀粉"
     },
@@ -800,7 +744,6 @@
       "stock": null,
       "order": null,
       "unit": "포",
-      "min": null,
       "hasStock": true,
       "alias": "白糖"
     },
@@ -814,7 +757,6 @@
       "stock": null,
       "order": null,
       "unit": "통",
-      "min": null,
       "hasStock": true,
       "alias": "食用油"
     },
@@ -828,7 +770,6 @@
       "stock": 4,
       "order": 2,
       "unit": "包",
-      "min": 7,
       "hasStock": true,
       "alias": "干豆腐"
     },
@@ -842,7 +783,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "虾仁"
     },
@@ -856,7 +796,6 @@
       "stock": null,
       "order": null,
       "unit": "箱",
-      "min": null,
       "hasStock": true,
       "alias": "水饺"
     },
@@ -870,7 +809,6 @@
       "stock": null,
       "order": null,
       "unit": "盒",
-      "min": null,
       "hasStock": true,
       "alias": "面包虾"
     },
@@ -884,7 +822,6 @@
       "stock": null,
       "order": 10,
       "unit": "키로",
-      "min": null,
       "hasStock": true,
       "alias": "里脊"
     },
@@ -898,7 +835,6 @@
       "stock": null,
       "order": 1,
       "unit": "박스",
-      "min": null,
       "hasStock": true,
       "alias": "芝麻酱"
     },
@@ -912,7 +848,6 @@
       "stock": null,
       "order": null,
       "unit": "罐",
-      "min": null,
       "hasStock": true,
       "alias": "绿豆"
     },
@@ -926,7 +861,6 @@
       "stock": null,
       "order": null,
       "unit": "팩",
-      "min": null,
       "hasStock": true,
       "alias": "番茄酱"
     },
@@ -940,7 +874,6 @@
       "stock": null,
       "order": null,
       "unit": "瓶",
-      "min": null,
       "hasStock": true,
       "alias": "辣椒精"
     },
@@ -954,7 +887,6 @@
       "stock": null,
       "order": null,
       "unit": "병",
-      "min": null,
       "hasStock": true,
       "alias": "苹果醋"
     },
@@ -968,7 +900,6 @@
       "stock": null,
       "order": null,
       "unit": "팩",
-      "min": null,
       "hasStock": true,
       "alias": "蚝油"
     },
@@ -982,7 +913,6 @@
       "stock": 2,
       "order": null,
       "unit": "瓶",
-      "min": 2,
       "hasStock": true,
       "alias": "陈醋"
     },
@@ -996,7 +926,6 @@
       "stock": 2,
       "order": null,
       "unit": "箱",
-      "min": null,
       "hasStock": true,
       "alias": "腐竹"
     },
@@ -1010,7 +939,6 @@
       "stock": 1,
       "order": 1,
       "unit": "包",
-      "min": 2,
       "hasStock": true,
       "alias": "银耳"
     },
@@ -1024,7 +952,6 @@
       "stock": 1.5,
       "order": null,
       "unit": "包",
-      "min": null,
       "hasStock": true,
       "alias": "木耳"
     },
@@ -1038,7 +965,6 @@
       "stock": 0.5,
       "order": 1,
       "unit": "박스",
-      "min": 1,
       "hasStock": true,
       "alias": "绿豆宽粉"
     },
@@ -1052,7 +978,6 @@
       "stock": 2,
       "order": null,
       "unit": "箱",
-      "min": null,
       "hasStock": true,
       "alias": "玉米面"
     },
@@ -1066,7 +991,6 @@
       "stock": 1.5,
       "order": null,
       "unit": "箱",
-      "min": null,
       "hasStock": true,
       "alias": "藤椒油"
     },
@@ -1080,7 +1004,6 @@
       "stock": null,
       "order": null,
       "unit": "瓶",
-      "min": null,
       "hasStock": true,
       "alias": "香油"
     },
@@ -1094,7 +1017,6 @@
       "stock": null,
       "order": null,
       "unit": "瓶",
-      "min": null,
       "hasStock": true,
       "alias": "海鲜酱油"
     },
@@ -1108,7 +1030,6 @@
       "stock": null,
       "order": null,
       "unit": "포대",
-      "min": null,
       "hasStock": true,
       "alias": "米粉"
     },
@@ -1122,7 +1043,6 @@
       "stock": 1,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": true,
       "alias": "粉耗子"
     },
@@ -1136,7 +1056,6 @@
       "stock": 1,
       "order": null,
       "unit": null,
-      "min": null,
       "hasStock": true,
       "alias": "莲藕粉耗子"
     },
@@ -1150,7 +1069,6 @@
       "stock": 0,
       "order": 1,
       "unit": "箱",
-      "min": null,
       "hasStock": true,
       "alias": "牛筋面"
     },
@@ -1164,7 +1082,6 @@
       "stock": 1,
       "order": null,
       "unit": "箱",
-      "min": null,
       "hasStock": true,
       "alias": "火锅粉"
     },
@@ -1178,7 +1095,6 @@
       "stock": 3,
       "order": null,
       "unit": "봉",
-      "min": 3,
       "hasStock": true,
       "alias": "笋"
     },
@@ -1192,7 +1108,6 @@
       "stock": 1,
       "order": 1,
       "unit": "봉",
-      "min": 2,
       "hasStock": true,
       "alias": "芝士球"
     },
@@ -1206,7 +1121,6 @@
       "stock": 1,
       "order": 1,
       "unit": "봉",
-      "min": 2,
       "hasStock": true,
       "alias": "海鞘籽鱼丸"
     },
@@ -1220,7 +1134,6 @@
       "stock": 1,
       "order": 1,
       "unit": "봉",
-      "min": 2,
       "hasStock": true,
       "alias": "龙虾鱼丸"
     },
@@ -1234,7 +1147,6 @@
       "stock": 1,
       "order": 1,
       "unit": "봉",
-      "min": 2,
       "hasStock": true,
       "alias": "飞鱼籽鱼丸"
     },
@@ -1248,7 +1160,6 @@
       "stock": 2,
       "order": null,
       "unit": "봉",
-      "min": 2,
       "hasStock": true,
       "alias": ""
     },
@@ -1262,7 +1173,6 @@
       "stock": 3,
       "order": 3,
       "unit": "包",
-      "min": 6,
       "hasStock": true,
       "alias": "木棉豆腐"
     },
@@ -1276,7 +1186,6 @@
       "stock": 7,
       "order": null,
       "unit": "봉",
-      "min": 5,
       "hasStock": true,
       "alias": "熊猫粉耗子"
     },
@@ -1290,7 +1199,6 @@
       "stock": 2,
       "order": null,
       "unit": "包",
-      "min": null,
       "hasStock": true,
       "alias": "手抓饼"
     },
@@ -1304,7 +1212,6 @@
       "stock": 3,
       "order": 3,
       "unit": "包",
-      "min": null,
       "hasStock": true,
       "alias": "大虾"
     },
@@ -1318,7 +1225,6 @@
       "stock": 3,
       "order": null,
       "unit": "봉",
-      "min": 3,
       "hasStock": true,
       "alias": "玉米芝士球"
     },
@@ -1332,7 +1238,6 @@
       "stock": 4,
       "order": null,
       "unit": "봉",
-      "min": 3,
       "hasStock": true,
       "alias": "玉米肠"
     },
@@ -1346,7 +1251,6 @@
       "stock": 3,
       "order": null,
       "unit": "包",
-      "min": 1.5,
       "hasStock": true,
       "alias": "章鱼丸"
     },
@@ -1360,7 +1264,6 @@
       "stock": 3,
       "order": null,
       "unit": "包",
-      "min": 1.5,
       "hasStock": true,
       "alias": "墨鱼丸"
     },
@@ -1374,7 +1277,6 @@
       "stock": 3,
       "order": null,
       "unit": "包",
-      "min": 1.5,
       "hasStock": true,
       "alias": "虾丸"
     },
@@ -1388,7 +1290,6 @@
       "stock": 3,
       "order": null,
       "unit": "包",
-      "min": 1.5,
       "hasStock": true,
       "alias": "蟹棒丸"
     },
@@ -1402,7 +1303,6 @@
       "stock": 2,
       "order": null,
       "unit": "包",
-      "min": 1.5,
       "hasStock": true,
       "alias": "豆腐丸"
     },
@@ -1416,7 +1316,6 @@
       "stock": null,
       "order": 15,
       "unit": "키로",
-      "min": null,
       "hasStock": true,
       "alias": "牛肉片"
     },
@@ -1430,7 +1329,6 @@
       "stock": null,
       "order": 5,
       "unit": "키로",
-      "min": null,
       "hasStock": true,
       "alias": "羊肉片"
     },
@@ -1444,7 +1342,6 @@
       "stock": 8,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "芝士年糕"
     },
@@ -1458,7 +1355,6 @@
       "stock": 4,
       "order": null,
       "unit": "봉",
-      "min": 3,
       "hasStock": true,
       "alias": "红薯年糕"
     },
@@ -1472,7 +1368,6 @@
       "stock": 1,
       "order": 2,
       "unit": "봉",
-      "min": 2,
       "hasStock": true,
       "alias": "南瓜年糕"
     },
@@ -1486,7 +1381,6 @@
       "stock": null,
       "order": 5,
       "unit": "包",
-      "min": null,
       "hasStock": true,
       "alias": "粉丝"
     },
@@ -1500,7 +1394,6 @@
       "stock": 1.5,
       "order": null,
       "unit": "箱",
-      "min": null,
       "hasStock": true,
       "alias": "炖粉"
     },
@@ -1514,7 +1407,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": true,
       "alias": "牛油"
     },
@@ -1528,7 +1420,6 @@
       "stock": null,
       "order": 1,
       "unit": "箱",
-      "min": null,
       "hasStock": true,
       "alias": "冰红茶"
     },
@@ -1542,7 +1433,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": true,
       "alias": "茶派"
     },
@@ -1556,7 +1446,6 @@
       "stock": null,
       "order": null,
       "unit": "盒",
-      "min": null,
       "hasStock": true,
       "alias": "咸鸭蛋"
     },
@@ -1570,7 +1459,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "炸粉"
     },
@@ -1584,7 +1472,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "橙汁浓缩液"
     },
@@ -1598,7 +1485,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "保鲜膜"
     },
@@ -1612,7 +1498,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "全脂奶粉"
     },
@@ -1626,7 +1511,6 @@
       "stock": null,
       "order": null,
       "unit": "통",
-      "min": null,
       "hasStock": false,
       "alias": "去油污洗洁剂"
     },
@@ -1640,7 +1524,6 @@
       "stock": null,
       "order": null,
       "unit": "봉",
-      "min": null,
       "hasStock": false,
       "alias": ""
     },
@@ -1654,7 +1537,6 @@
       "stock": null,
       "order": null,
       "unit": "세트",
-      "min": null,
       "hasStock": false,
       "alias": "方盒"
     },
@@ -1668,7 +1550,6 @@
       "stock": null,
       "order": null,
       "unit": null,
-      "min": null,
       "hasStock": false,
       "alias": "小汤碗"
     },
@@ -1682,7 +1563,6 @@
       "stock": null,
       "order": null,
       "unit": "세트",
-      "min": null,
       "hasStock": false,
       "alias": "中汤碗"
     },
@@ -1696,7 +1576,6 @@
       "stock": null,
       "order": null,
       "unit": "세트",
-      "min": null,
       "hasStock": false,
       "alias": "大汤碗"
     },
@@ -1710,7 +1589,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "纸杯"
     },
@@ -1724,7 +1602,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "1号酱料杯"
     },
@@ -1738,7 +1615,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "米饭盒"
     },
@@ -1752,7 +1628,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "雪碧"
     },
@@ -1766,7 +1641,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "零度雪碧"
     },
@@ -1780,7 +1654,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "可乐"
     },
@@ -1794,7 +1667,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "零度可乐"
     },
@@ -1808,7 +1680,6 @@
       "stock": null,
       "order": null,
       "unit": "박스",
-      "min": null,
       "hasStock": false,
       "alias": "芬达"
     }
