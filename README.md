@@ -47,4 +47,8 @@
 
 ## 谁在用
 
-老板娘现在可以用三星手机的 KakaoTalk 打开链接查看已发布的快照，不用登录 Google，也不用安装 App。她还不能和店里另一部手机改同一份正在填的盘货。登录方式和共同编辑还没做，见工作日志。
+老板娘可以用三星手机的 KakaoTalk 打开正式网址或分享链接。两人改同一份云端订单已在正式首页打开。登录是两个本站账号 `dawei` 和 `laobanniang`，不用 Gmail，也不用安装 App。密码不写在仓库里。没登录或没联网时，本机盘货仍保存在这部手机里。
+
+## 云端协同
+
+正式首页读取根目录 `firebase-config.json`，`enabled` 为 `true`。说明见 [docs/firebase-collaboration.md](docs/firebase-collaboration.md)。测试页 [cloud-test/](cloud-test/) 仍是「云端测试版·不是正式订单」，订单编号以 `test-` 开头。正式订单编号是 `count-`，正式页不打开 `test-` 订单。10 月 18 日已确认快照仍是存档，不是当天的实时库存。
