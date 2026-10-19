@@ -1,6 +1,6 @@
 # Firebase 云端协同接入
 
-状态：开发分支。项目 `chuanchuanxiang-order` 已在 2026-10-20 建好，公开 Web 配置已写入 `firebase-config.json`，但 `enabled` 仍是 `false`。正式网页还不会连接云端。2026-10-20 约 01:04（韩国时间）控制台里已经加上授权网域 `q414994573.github.io`，关闭了自行注册和自行删除，并建好 `dawei`（负责人）和 `laobanniang`（订单编辑者）两个账号及成员文档。不能说云同步已经上线。不要把密码写进仓库，也不要发给任何聊天机器人。手机上的隔离测试用单独页面，不把本分支合并，也不把根目录 `enabled` 改成 `true`。
+状态：2026-10-20 正式首页已打开云端。根目录 `firebase-config.json` 的 `enabled` 是 `true`。网址 https://q414994573.github.io/chuanchuanxiang-pandian/ 。测试页 https://q414994573.github.io/chuanchuanxiang-pandian/cloud-test/ 仍在，红字是「云端测试版·不是正式订单」，那边的订单编号以 `test-` 开头。正式订单编号是 `count-`，正式页不打开 `test-` 订单。项目 `chuanchuanxiang-order` 停在免费 Spark。2026-10-20 约 01:04（韩国时间）控制台里已经加上授权网域 `q414994573.github.io`，关闭了自行注册和自行删除，并建好 `dawei`（负责人）和 `laobanniang`（订单编辑者）两个账号及成员文档。不要把密码写进仓库，也不要发给任何聊天机器人。这次发布没有重新部署 Firestore 规则，也没有删除云端数据。
 
 ## 账号（已定）
 
@@ -63,7 +63,7 @@
 
 代码只认两处：`enabled` 为真，并且 `firebase` 被原样传给 `initializeApp`。`measurementId` 可以不写。`authDomain` 必须是控制台片段里的 `xxxx.firebaseapp.com`，不要写成 `q414994573.github.io`。
 
-2026-10-20 已把 Web 应用 `ccx-web` 的公开配置写入这个文件，`enabled` 仍是 `false`。`authDomain` 是 `chuanchuanxiang-order.firebaseapp.com`。改成 `true` 要等下面的隔离测试和成员授权都完成。
+2026-10-20 已把 Web 应用 `ccx-web` 的公开配置写入这个文件。正式发布时根目录 `enabled` 改为 `true`。`authDomain` 是 `chuanchuanxiang-order.firebaseapp.com`。
 
 ### 3. 建 Firestore，地区选首尔
 
@@ -151,17 +151,17 @@ firebase deploy --only firestore --project <你的项目ID>
 - 授权网域里有 `q414994573.github.io`。
 - 两个成员文档的 ID 是 UID，`name` 分别是 `大伟` 和 `老板娘`。
 
-### 9. 最后才打开网页开关（现在先不要做）
+### 9. 正式网页开关（2026-10-20 已打开）
 
-`firebase` 配置已经填好。根目录 `enabled` 保持 `false`，这个分支不要合并。控制台里的授权网域、关闭自行注册和删除、两个用户、两份成员文档已在 2026-10-20 完成。手机隔离测试走单独页面，不要在这个分支把 `enabled` 改成 `true`。测试通过并且确认要正式使用之后，才把根目录 `enabled` 改成 `true` 并合并本分支。
+根目录 `firebase-config.json` 的 `enabled` 已是 `true`，并合并进 `main`。测试页自己的配置仍是 `enabled: true`，两份文件互不影响。正式订单编号不以 `test-` 开头。测试页上的 `test-` 订单先留着，这次没有删除云端数据。临时关掉网页上的云端入口，把根目录 `enabled` 改回 `false` 再发布即可，数据库里的订单不删除。
 
-## 隔离的真实云端测试
+## 隔离的真实云端测试（测试页仍保留）
 
-目的：在正式盘货之前，用 `test-` 开头的订单编号试通 `chuanchuanxiang-order`。已发布的首页保持原来的行为，根目录 `firebase-config.json` 的 `enabled` 仍是 `false`。不要再用 localhost 做这次验收：店里只有手机，授权网域是 `q414994573.github.io`。
+这一节记的是正式打开之前的隔离测试。测试页继续留着。正式首页从 2026-10-20 起 `enabled` 为 `true`，正式订单编号是 `count-`，不读取 `test-` 订单。不要再用 localhost 做验收：店里只有手机，授权网域是 `q414994573.github.io`。
 
 测试页地址：`https://q414994573.github.io/chuanchuanxiang-pandian/cloud-test/`
 
-这一页只存在于单独合并到 `main` 的测试入口里。它加载本分支的协同代码，但只有这一页的配置是 `enabled: true`。页面顶部有红字「云端测试版·不是正式订单」。本机盘货编号仍是 `count-`（目录校验要求这个前缀）。提交到云端时，测试页把订单编号改成 `test-count-`。正式页面以后即使打开云端，也不打开 `test-` 订单，测试页也不打开没有 `test-` 的订单。
+测试页顶部有红字「云端测试版·不是正式订单」。本机盘货编号仍是 `count-`（目录校验要求这个前缀）。提交到云端时，测试页把订单编号改成 `test-count-`。正式页面不打开 `test-` 订单，测试页也不打开没有 `test-` 的订单。
 
 手机步骤、成员文档如果建错时的现象，以及测完如何在控制台删除 `orders/test-…` 和 `revisions`，写在 `docs/工作日志.md` 2026-10-20 那一条。不要删 `members`，不要改 `current-order.json`，不要改 10 月 18 日存档。不要清除 github.io 的全部网站数据，那会把正式盘货页存在手机里的本机记录一起清掉。测试页用的是另一组本机存储键。
 
@@ -191,7 +191,8 @@ firebase deploy --only firestore --project <你的项目ID>
 
 ## 回退
 
-- 接入前的版本：`70b9cb382c1dfe6157c9e9ba71a86fe07fe795f8`。远程备份分支 `backup/pre-firebase-20261019`。
+- 正式打开云端之前的 `main`：标签 `backup-before-firebase-2026-10-20`，指向 `62633734714a7f89dba35c95778e0428724e86f5`。当时的首页副本在 `backups/index-before-firebase-20261020.html`。
+- 更早的接入前版本：`70b9cb382c1dfe6157c9e9ba71a86fe07fe795f8`。远程备份分支 `backup/pre-firebase-20261019`。
 - 原来的 backups、archive、old-website-backup 和 2026-10-18 存档不要动。
-- 把 `enabled` 设回 `false` 会关掉网页上的云端入口，数据库里的订单不删除。
-- 回退页面时从备份提交恢复文件。不要为了回退而删除云端历史。
+- 把根目录 `enabled` 设回 `false` 会关掉正式网页上的云端入口，数据库里的订单不删除。
+- 整页退回时检出上面的标签再发布。不要为了回退而删除云端订单，包括 `test-` 开头的测试订单。

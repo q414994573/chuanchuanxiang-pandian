@@ -47,8 +47,8 @@
 
 ## 谁在用
 
-老板娘现在可以用三星手机的 KakaoTalk 打开链接查看已发布的快照，不用登录 Google，也不用安装 App。两人改同一份云端订单的代码在开发分支，尚未上线。登录定为两个本站账号，不用 Gmail，见工作日志。
+老板娘可以用三星手机的 KakaoTalk 打开正式网址或分享链接。两人改同一份云端订单已在正式首页打开。登录是两个本站账号 `dawei` 和 `laobanniang`，不用 Gmail，也不用安装 App。密码不写在仓库里。没登录或没联网时，本机盘货仍保存在这部手机里。
 
-## 云端协同开发状态
+## 云端协同
 
-Firebase 接入代码在开发分支准备中，部署与验收说明见 [docs/firebase-collaboration.md](docs/firebase-collaboration.md)。`firebase-config.json` 默认关闭；只有配置项目、安全规则、成员授权并完成验收后才启用。不要将当前正式快照或本地模拟器测试误认为已上线的云同步。
+正式首页读取根目录 `firebase-config.json`，`enabled` 为 `true`。说明见 [docs/firebase-collaboration.md](docs/firebase-collaboration.md)。测试页 [cloud-test/](cloud-test/) 仍是「云端测试版·不是正式订单」，订单编号以 `test-` 开头。正式订单编号是 `count-`，正式页不打开 `test-` 订单。10 月 18 日已确认快照仍是存档，不是当天的实时库存。
