@@ -1,9 +1,11 @@
-# Mobile inventory workflow
+# 手机上的总览和历史
 
-Compact list is default; the large-card preference is stored on the current browser. Details expose review decisions and original metadata. Official quantities stay read-only.
+紧凑列表是默认样子。大字卡片的选择保存在当前浏览器。点开一项可以看到订货单位、原表行号、订单日期、特殊提醒，以及这份已确认快照里的历史数字。已发布快照里的数量是只读的，这一页不能改订单。
 
-Review decisions are scoped to the date and snapshot fingerprint. A browser-local draft is supported alongside JSON export/import. Imports validate the exact snapshot, product identities, allowed statuses and supplier gates before replacing a draft. This is not cross-device cloud sync. Save an exported backup before changing browsers or clearing data. No orders are sent automatically.
+2026-10-19 已取消逐项「已确认」勾选。商品详情里不再有复核勾选，也不再按日期保存一套勾选草稿。更早的设计里有过这些勾选；旧备份里可能还在，正式页面不用。
 
-Confirmed history is stored as immutable dated JSON under order-archives/. Add only verified snapshots and update index.json; never invent missing weeks. Row matching uses ID plus name, and quantity comparison does not convert units. Initial verified archive: 2026-10-18 only. Source revisions are retained in Git commit history.
+已确认的历史订单放在 `order-archives/`，按日期一份 JSON，确认后不再改。只加入核对过的快照，并更新 `index.json`。缺的周次不编造。对比时用编号加名称对齐，数量不换算单位。目前核对过的存档只有 2026-10-18。网页改动记录在 Git 提交历史里。
 
-Tests: from repository root run `node tests/review.test.cjs`. Tests use a lightweight DOM stub and validate review transitions, snapshots, backup validation, search behavior, layout state and comparisons. They are not visual/browser tests. Real iPhone layout and touch QA remain outstanding.
+本机盘货草稿、自动保存和 JSON 备份在盘货页，见 `docs/direct-count-trial.md`。那是当前浏览器里的草稿，不是两部手机共用的云同步。换浏览器或清掉网站数据前，先导出备份。不会自动发送订单。
+
+测试：在仓库根目录运行 `node tests/review.test.cjs`。测试用简易页面替身，检查 129 种商品、没有星标和逐项确认、搜索、紧凑/大卡片切换，以及订货笔数是按数据算出来的。这不是真机测试。iPhone 上的排版和手感仍要单独看。
