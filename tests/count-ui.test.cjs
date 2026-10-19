@@ -1,0 +1,18 @@
+const vm=require('vm'),fs=require('fs'),path=require('path'),assert=require('assert/strict'),Core=require('../count-core.js');
+const source=JSON.parse(fs.readFileSync(path.join(__dirname,'../current-order.json'),'utf8'));
+const els=new Map();const make=id=>{if(els.has(id))return els.get(id);const el={id,value:'',innerHTML:'',textContent:'',className:'',hidden:false,dataset:{},listeners:{},addEventListener(k,f){this.listeners[k]=f},querySelector(s){return make(s)},querySelectorAll(){return []},scrollIntoView(){},focus(){},click(){}};els.set(id,el);return el;};
+const root=make('countRoot'),mem=new Map(),events={},created=[];let fail=false,backup=null,lastToast='';
+const storage={get length(){return mem.size},key:i=>[...mem.keys()][i],getItem:k=>mem.get(k)||null,setItem(k,v){if(fail)throw Error('Quota');mem.set(k,v)}};
+const ctx={window:{CountCore:Core,addEventListener:(k,f)=>events[k]=f},document:{getElementById:()=>root,createElement(){const el=make('created-'+created.length);created.push(el);return el},body:{appendChild(){}},activeElement:null},SOURCE:source,localStorage:storage,navigator:{onLine:true},Intl,Date,Math,JSON,Blob,console,confirm:()=>true,normalize:x=>x.toLowerCase(),downloadJSON:(value)=>{backup=Core.clone(value)},toast:x=>{lastToast=x},copyText:async()=>{}};vm.createContext(ctx);vm.runInContext(fs.readFileSync(path.join(__dirname,'../count-app.js'),'utf8'),ctx);
+const click=(action,extra={})=>root.listeners.click({target:{closest:()=>({dataset:{action,...extra}})}});
+const edit=(id,field,value)=>root.listeners.input({target:{tagName:'INPUT',type:'text',dataset:{id,countField:field},value}});
+(async()=>{
+assert(root.innerHTML.includes('开始一份新盘货'));make('#countDate').value='2026-10-19';await click('start');assert.equal((make('#countRows').innerHTML.match(/class="count-item"/g)||[]).length,129);
+const key=[...mem.keys()].find(k=>k.startsWith('ccx-count-session:')&&!k.endsWith('previous'));assert(key);let saved=JSON.parse(mem.get(key));assert.equal(saved.items['kr:4'].stock,'');edit('kr:4','stock','2.5');saved=JSON.parse(mem.get(key));assert.equal(saved.items['kr:4'].stock,'2.5');assert(make('#countSave').textContent.includes('已保存到本机'));
+await click('undo');assert.equal(JSON.parse(mem.get(key)).items['kr:4'].stock,'');
+fail=true;edit('kr:4','stock','7');assert(make('#countSave').textContent.includes('未能保存'));await click('export');assert.equal(backup.items['kr:4'].stock,'7');assert.notEqual(JSON.parse(mem.get(key)).items['kr:4'].stock,'7');fail=false;
+await click('reload');saved=JSON.parse(mem.get(key));saved.seq+=1;mem.set(key,JSON.stringify(saved));events.storage({key,newValue:JSON.stringify(saved)});assert(make('#countSave').textContent.includes('另一个页面'));edit('kr:4','stock','9');assert.notEqual(JSON.parse(mem.get(key)).items['kr:4'].stock,'9');await click('reload');assert(!make('#countSave').textContent.includes('另一个页面'));
+await click('finalize');assert.equal(JSON.parse(mem.get(key)).status,'draft');assert(lastToast.includes('全部商品'));
+await click('export');const importCopy=Core.clone(backup);const importer=created[0];importer.files=[new Blob([JSON.stringify(importCopy)])];await importer.listeners.change();const records=[...mem.keys()].filter(k=>k.startsWith('ccx-count-session:')&&!k.endsWith(':previous'));assert.equal(records.length,2);assert(mem.has(key));
+console.log('PASS: app start renders 129 compact rows; automatic save; undo; quota failure keeps exportable edits; concurrent-tab lock; unfinished finalization blocked; restoring backup preserves original session. DOM stub test, not browser QA.');
+})().catch(e=>{console.error(e);process.exit(1)});
