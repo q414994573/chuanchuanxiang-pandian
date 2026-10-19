@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-const Core=window.CountCore,root=document.getElementById('countRoot'),prefix='ccx-count-session:',activeKey='ccx-count-active';
+const Core=window.CountCore,root=document.getElementById('countRoot'),prefix=globalThis.CCX_COUNT_STORAGE_PREFIX||'ccx-count-session:',activeKey=globalThis.CCX_COUNT_ACTIVE_KEY||'ccx-count-active';
 let draft=null,saveState='none',stale=false,filter='all',query='',activeCat='kr',undoStack=[],lastBackupVersion=-1;
 const E=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const today=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());
@@ -53,5 +53,6 @@ if(action==='sent'){if(draft.status!=='reviewed')return;const cat=b.dataset.cat;
 window.addEventListener('storage',e=>{if(draft&&e.key===prefix+draft.id){try{if(!e.newValue||JSON.parse(e.newValue).seq!==draft.seq){stale=true;saveState='conflict';updateProgress();}}catch(err){stale=true;saveState='conflict';updateProgress();}}});
 window.addEventListener('online',updateProgress);window.addEventListener('offline',updateProgress);window.addEventListener('beforeunload',e=>{if(draft&&saveState!=='saved'){e.preventDefault();e.returnValue='';}});
 try{const id=localStorage.getItem(activeKey),raw=id&&localStorage.getItem(prefix+id);if(raw){const d=JSON.parse(raw);if(Core.validate(d,SOURCE)){draft=d;saveState='saved';}}}catch(e){saveState='failed';}
+window.CountBridge={getReviewed(){if(!draft||stale||saveState!=='saved')throw Error('请先可靠保存本机盘货，并完成最后检查');return Core.clone(draft);},source:()=>SOURCE,validate:d=>Core.validate(d,SOURCE),download,prepareTestCount(){if(globalThis.CCX_CLOUD_TEST!==true)throw Error('仅云端测试页可以把其余商品标成本次不订');if(!draft||draft.status!=='draft'||stale||saveState==='failed')throw Error('请先开始一份新盘货，并确认已保存到本机');const ordered=draft.catalog.filter(p=>{const r=draft.items[p.id];return r.decision==='order'||String(r.quantity).trim()!=='';});if(!ordered.length)throw Error('请先给至少一种有订货单位的商品填写订货数量，库存留空');for(const p of ordered){if(draft.items[p.id].decision!=='order')throw Error(p.name+' 还没有变成订货');if(!Core.complete(draft,p)){const result=Core.finish(draft,p.id,false);if(!result.completed)throw Error(p.name+' 还不能确认订货');}}for(const p of draft.catalog){if(Core.complete(draft,p))continue;const result=Core.finish(draft,p.id,true);if(!result.completed)throw Error(p.name+' 不能标成本次不订');}log('云端测试：已填写订货数量的商品保留，其余标成本次不订。库存未改。');if(!persist())throw Error('本机保存失败，不能继续');render();}};
 render();
 })();
