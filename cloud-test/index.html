@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
 <title>川川香 · 云端测试版</title>
-<link rel="stylesheet" href="../count-app.css?v=20261020-cloudtest">
-<link rel="stylesheet" href="../cloud-app.css?v=20261020-cloudtest">
+<link rel="stylesheet" href="../count-app.css?v=20261020-history">
+<link rel="stylesheet" href="../cloud-app.css?v=20261020-history">
 <style>
-:root{--red:#bb1827;--red2:#8f1121;--ink:#212027;--sub:#686775;--muted:#90909a;--bg:#f7f6f7;--paper:#fff;--line:#ebe7e8;--gold:#f0ba62;--green:#1c7a57;--mint:#eaf7ee;--warn:#a36115;--warnbg:#fff4e7}
+:root{--red:#bb1827;--red2:#8f1121;--ink:#212027;--sub:#686775;--muted:#90909a;--bg:#f7f6f7;--paper:#fff;--line:#ebe7e8;--gold:#f0ba62;--green:#1c7a57;--mint:#eaf7ee;--warn:#a36115;--warnbg:#fff4e7;--cloud-sticky-top:76px}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC",sans-serif}
 .test-banner{position:sticky;top:0;z-index:20;background:#bb1827;color:#fff;padding:14px 16px;text-align:center;font-size:22px;font-weight:800;letter-spacing:.02em}
 .test-banner small{display:block;margin-top:4px;font-size:14px;font-weight:500}
@@ -49,13 +49,13 @@ function loadScript(src){return new Promise((resolve,reject)=>{const s=document.
   if(!r.ok)throw Error('商品目录读取失败');
   window.SOURCE=await r.json();
   if(!SOURCE.products||SOURCE.products.length!==129)throw Error('商品目录不是129种');
-  await loadScript('../count-core.js?v=20261020-cloudtest');
-  await loadScript('../count-app.js?v=20261020-cloudtest');
+  await loadScript('../count-core.js?v=20261020-history');
+  await loadScript('../count-app.js?v=20261020-history');
   document.getElementById('testSkipRest').addEventListener('click',()=>{
    try{CountBridge.prepareTestCount();document.getElementById('testSkipStatus').textContent='已保留填写了订货数量的商品，其余标成本次不订，库存仍是空的。请点「检查并生成订单」，再点「确认复核完成并锁定数量」，然后回到上面点「提交本机盘货审核」。';}
    catch(e){document.getElementById('testSkipStatus').textContent=e.message||'操作失败';}
   });
-  await loadScript('../cloud-app.bundle.js?v=20261020-cloudtest');
+  await loadScript('../cloud-app.bundle.js?v=20261020-history');
  }catch(e){document.getElementById('cloudRoot').textContent='测试页没有载入成功：'+(e.message||e);}
 })();
 </script>
