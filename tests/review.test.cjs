@@ -10,4 +10,18 @@ assert.equal((el('#allRows').innerHTML.match(/class="product-record"/g)||[]).len
 assert(!el('body').classList.contains('card-layout'));el('#cardMode').fire('click');assert(el('body').classList.contains('card-layout'));el('#compactMode').fire('click');assert(!el('body').classList.contains('card-layout'));
 el('#find').fire('click');assert(el('#searchOverlay').classList.contains('open'));el('#searchEntry').value='고수';el('#searchEntry').fire('input');assert(el('#searchMatches').innerHTML.includes('고수'));el('#searchGo').fire('click');assert(!el('#searchOverlay').classList.contains('open'));assert.equal(ctx.window.lastScroll,540);assert(mem.get('ccx-search-history-v1').includes('고수'));el('#find').fire('click');quick[0].fire('click');assert.equal(run('itemsFiltered().length'),45);
 
-assert(!el('#allRows').innerHTML.includes('data-review'));assert(!el('#allRows').innerHTML.includes('★'));console.log('PASS: archive page initialization, 129 products, no star/review controls, layout and search.');
+assert(!el('#allRows').innerHTML.includes('data-review'));assert(!el('#allRows').innerHTML.includes('★'));
+const positive=list=>list.filter(p=>typeof p.order==='number'&&p.order>0);
+assert.equal(data.products.filter(p=>p.cat==='kr').length,45);
+assert.equal(data.products.filter(p=>p.cat==='cn').length,66);
+assert.equal(data.products.filter(p=>p.cat==='other').length,18);
+assert.equal(positive(data.products).length,29);
+assert.equal(positive(data.products.filter(p=>p.cat==='kr')).length,11);
+assert.equal(positive(data.products.filter(p=>p.cat==='cn')).length,18);
+assert.equal(positive(data.products.filter(p=>p.cat==='other')).length,0);
+const summary=el('#orderDate').textContent;
+assert.equal(summary,`订单日期：${data.date} · 共29种有订货（韩国食品11种，中国食品18种，其他商品0种）。某类为0表示该类没有大于0的订货。空白不等于0，也不等于已确认不订。`);
+const flipped=run(`(()=>{const p=P.find(x=>x.id==='other:3');p.order=2;renderStats();const up=document.querySelector('#orderDate').textContent;p.order=0;renderStats();const zero=document.querySelector('#orderDate').textContent;p.order=null;renderStats();return {up,zero,back:document.querySelector('#orderDate').textContent};})()`);
+assert.match(flipped.up,/其他商品1种/);assert.match(flipped.up,/共30种/);assert.match(flipped.zero,/其他商品0种/);assert.match(flipped.zero,/共29种/);assert.equal(flipped.back,summary);
+assert(!html.includes('本网站仅展示已同步数据'));assert(!html.includes('其他商品本次无已填订货量'));assert(!html.includes('查看旧网站备份'));assert(!html.includes('已同步的本次订货明细'));
+console.log('PASS: archive page initialization, 129 products, no star/review controls, layout, search, and computed category order summary.');
