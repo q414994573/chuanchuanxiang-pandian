@@ -1,0 +1,88 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>川川香 盘货订货</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,"PingFang SC","Apple SD Gothic Neo",sans-serif;background:#f2f2f6;color:#111;padding-bottom:110px}
+header{position:sticky;top:0;z-index:5;background:#c62828;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+header b{font-size:18px}#prog{font-size:16px;font-weight:600}
+.cat{background:#333;color:#fff;padding:10px 14px;font-size:18px;font-weight:700;margin-top:6px}
+.reg{padding:8px 14px;font-size:15px;color:#c62828;font-weight:700}
+.card{background:#fff;margin:6px 8px;border-radius:12px;padding:10px;border:2px solid transparent}
+.card.done{border-color:#43a047;background:#f1fbf2}
+.t{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.no{color:#888;font-size:14px}.ko{font-size:20px;font-weight:700}.zh{font-size:18px;color:#444}.u{font-size:14px;color:#fff;background:#777;border-radius:6px;padding:1px 7px}
+.row{margin-top:8px}.lab{font-size:14px;font-weight:700;margin-bottom:4px}.lab span{font-size:18px;color:#c62828;margin-left:6px}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+.btns button{min-width:44px;height:44px;font-size:18px;border:1px solid #bbb;border-radius:10px;background:#fafafa}
+.btns button.on{background:#1565c0;color:#fff;border-color:#1565c0}
+.btns button.z{min-width:64px}.btns button.z.on{background:#555;border-color:#555}
+.btns button.pm{background:#ffe0b2}
+.st .btns button.on{background:#2e7d32;border-color:#2e7d32}
+footer{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:10px 10px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -2px 8px #0002;display:flex;gap:8px;z-index:6}
+footer button{flex:1;height:54px;font-size:18px;font-weight:700;border:0;border-radius:12px}
+#gen{background:#c62828;color:#fff;flex:2}#jump{background:#eee}
+#out{display:none;position:fixed;inset:0;background:#fff;z-index:9;overflow:auto;padding:14px 14px 120px}
+#out h2{margin:4px 0 10px}#out table{width:100%;border-collapse:collapse;font-size:16px}
+#out td,#out th{border-bottom:1px solid #ddd;padding:7px 4px;text-align:left}
+#out .act{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+#out .act button{height:50px;font-size:17px;border-radius:10px;border:0;background:#1565c0;color:#fff}
+#out .act button.g{background:#888}#out .act button.r{background:#fff;color:#c62828;border:1px solid #c62828}
+textarea{width:100%;height:160px;font-size:13px}
+.tip{font-size:14px;color:#666}
+</style></head><body>
+<header><b>川川香 盘货订货</b><div id="prog">已过 0/129</div></header>
+<div id="list"></div>
+<footer><button id="jump" onclick="jumpNext()">下一个未填</button><button id="gen" onclick="gen()">生成订货单</button></footer>
+<div id="out"></div>
+<script>
+const D=[[1,"韩国食品",1,"양상추","生菜","통",0],[2,"韩国食品",1,"깐마늘","蒜","봉",0],[3,"韩国食品",1,"적채","紫甘蓝","통",0],[4,"韩国食品",1,"단호박","南瓜","개",0],[5,"韩国食品",1,"대파","大葱","단",0],[6,"韩国食品",1,"당근","胡萝卜","개",0],[7,"韩国食品",1,"레몬","柠檬","개",0],[8,"韩国食品",1,"콩나물","黄豆芽","박스",1],[9,"韩国食品",1,"숙주","绿豆芽","박스",1],[10,"韩国食品",1,"골드마요네즈","蛋黄酱","팩",0],[11,"韩国食品",1,"오이","黄瓜","개",0],[12,"韩国食品",2,"철수세미","钢丝球","개",0],[13,"韩国食品",2,"은수세미","银丝球","개",0],[14,"韩国食品",2,"행주","抹布","개",0],[15,"韩国食品",3,"쌀","大米","포대",1],[16,"韩国食品",3,"하이퐁","洗洁精","통",0],[17,"韩国食品",3,"꽃빵","花卷","봉",0],[18,"韩国食品",4,"염장다시마","盐渍海带","박스",0],[19,"韩国食品",5,"맛소금（2kg）","味盐","봉",0],[20,"韩国食品",5,"계란","鸡蛋","판",0],[21,"韩国食品",6,"스모크햄","火腿","개",0],[22,"韩国食品",6,"메추리알","鹌鹑蛋","봉",1],[23,"韩国食品",6,"비엔나","小香肠","봉",1],[24,"韩国食品",6,"알배기","娃娃菜","박스",1],[25,"韩国食品",6,"연근","莲藕","봉",1],[26,"韩国食品",6,"유부","油豆腐","봉",1],[27,"韩国食品",7,"두부","豆腐","판",0],[28,"韩国食品",7,"사각어묵","方形鱼饼","봉",0],[29,"韩国食品",7,"동그랑 어묵","圆鱼饼","봉",0],[30,"韩国食品",7,"감자수제비","土豆面片","봉",0],[31,"韩国食品",8,"표고","香菇","캔",0],[32,"韩国食品",8,"볶음깨","芝麻","봉",0],[33,"韩国食品",8,"슬라이스아몬드","杏仁片","봉",0],[34,"韩国食品",8,"감자","土豆","봉",1],[35,"韩国食品",8,"세척기 세제","洗碗机洗涤剂","통",0],[36,"韩国食品",8,"세척기 린스","洗碗机光亮剂","통",0],[37,"韩国食品",9,"연유","炼乳","병",0],[38,"韩国食品",9,"청경채","油菜","박스",1],[39,"韩国食品",9,"팽이","金针菇","박스",1],[40,"韩国食品",9,"새송이","杏鲍菇","박스",1],[41,"韩国食品",9,"느타리","平菇","박스",1],[42,"韩国食品",10,"라면사리","方便面","박스",0],[43,"韩国食品",10,"고수","香菜","단",1],[44,"韩国食品",11,"양파","洋葱","망",0],[45,"韩国食品",12,"내프킨","餐巾纸","박스",0],[46,"中国食品",1,"월계수잎","香叶","통",0],[47,"中国食品",1,"팔각","八角","봉",0],[48,"中国食品",1,"辣椒段","辣椒段","봉",0],[49,"中国食品",2,"特辣辣椒面","特辣辣椒面","包",0],[50,"中国食品",2,"细辣椒粉","细辣椒粉","봉",0],[51,"中国食品",2,"鸡精","鸡精","箱",0],[52,"中国食品",2,"双效泡打粉","泡打粉","봉",0],[53,"中国食品",3,"人造肉","人造肉","箱",1],[54,"中国食品",3,"水晶豆皮","水晶豆皮","箱",1],[55,"中国食品",3,"粉条","粉条","箱",1],[56,"中国食品",4,"감자전분","土豆淀粉","포대",0],[57,"中国食品",4,"설탕","白糖","포",0],[58,"中国食品",4,"식용유","食用油","통",0],[59,"中国食品",4,"干豆腐","干豆腐","包",1],[60,"中国食品",4,"炒饭虾仁","虾仁","봉",0],[61,"中国食品",4,"水饺","水饺","箱",0],[62,"中国食品",4,"面包虾","面包虾","盒",0],[63,"中国食品",4,"국내산등심","里脊","키로",0],[64,"中国食品",5,"芝麻酱","芝麻酱","박스",1],[65,"中国食品",5,"绿豆","绿豆","罐",0],[66,"中国食品",5,"케찹","番茄酱","팩",0],[67,"中国食品",5,"캡사이신","辣椒精","瓶",0],[68,"中国食品",5,"2배사과식초","苹果醋","병",0],[69,"中国食品",5,"굴소스","蚝油","팩",0],[70,"中国食品",5,"천추","陈醋","瓶",1],[71,"中国食品",6,"腐竹","腐竹","箱",1],[72,"中国食品",6,"银耳","银耳","包",1],[73,"中国食品",6,"木耳","木耳","包",1],[74,"中国食品",6,"녹두당면","绿豆宽粉","박스",1],[75,"中国食品",6,"옥수수 면","玉米面","箱",1],[76,"中国食品",7,"藤椒油","藤椒油","箱",1],[77,"中国食品",7,"참기름","香油","瓶",0],[78,"中国食品",7,"海鲜酱油","海鲜酱油","瓶",0],[79,"中国食品",7,"쌀국수","米粉","포대",0],[80,"中国食品",8,"분모자","粉耗子","박스",1],[81,"中国食品",8,"연근분모자","莲藕粉耗子","",1],[82,"中国食品",8,"牛筋面","牛筋面","箱",1],[83,"中国食品",8,"火锅粉","火锅粉","箱",1],[84,"中国食品",8,"죽순","笋","봉",1],[85,"中国食品",9,"모짜렐라치즈볼","芝士球","봉",0],[86,"中国食品",9,"멍게알피쉬볼","海鞘籽鱼丸","봉",0],[87,"中国食品",9,"랍스타피쉬볼","龙虾鱼丸","봉",0],[88,"中国食品",9,"날치알피쉬볼","飞鱼籽鱼丸","봉",0],[89,"中国食品",9,"갑오징어피쉬볼(大)","","봉",0],[90,"中国食品",9,"木棉豆腐","木棉豆腐","包",1],[91,"中国食品",9,"판다분모자","熊猫粉耗子","봉",1],[92,"中国食品",9,"手抓饼","手抓饼","包",0],[93,"中国食品",9,"去皮大虾","大虾","包",0],[94,"中国食品",9,"옥수수콘치즈볼","玉米芝士球","봉",0],[95,"中国食品",9,"玉米肠","玉米肠","봉",0],[96,"中国食品",10,"章鱼丸","章鱼丸","包",0],[97,"中国食品",10,"墨鱼丸","墨鱼丸","包",0],[98,"中国食品",10,"虾丸","虾丸","包",0],[99,"中国食品",10,"크래미완자","蟹棒丸","包",0],[100,"中国食品",10,"두부모양완자","豆腐丸","包",0],[101,"中国食品",11,"샤브용소고기","牛肉片","키로",0],[102,"中国食品",11,"샤브용양고기","羊肉片","키로",0],[103,"中国食品",12,"치즈떡","芝士年糕","봉",0],[104,"中国食品",12,"고구마떡","红薯年糕","봉",0],[105,"中国食品",12,"단호박떡","南瓜年糕","봉",0],[106,"中国食品",13,"粉丝","粉丝","包",0],[107,"中国食品",14,"火锅炖粉","炖粉","箱",0],[108,"中国食品",15,"牛油","牛油","봉",0],[109,"中国食品",16,"冰红茶","冰红茶","箱",0],[110,"中国食品",16,"차파이","茶派","박스",0],[111,"中国食品",17,"咸鸭蛋","咸鸭蛋","盒",0],[112,"其他商品",1,"튀김가루","炸粉","박스",0],[113,"其他商品",1,"오렌지 농축액","橙汁浓缩液","박스",0],[114,"其他商品",1,"유니랩","保鲜膜","박스",0],[115,"其他商品",1,"전지분유(20kg)","全脂奶粉","박스",0],[116,"其他商品",1,"pb","去油污洗洁剂","통",0],[117,"其他商品",1,"대나무 꼬치","竹签","봉",0],[118,"其他商品",2,"사각 용기","方盒","세트",0],[119,"其他商品",2,"탕용기(소)","小汤碗","세트",0],[120,"其他商品",2,"탕용기(중)","中汤碗","세트",0],[121,"其他商品",2,"탕용기(대)","大汤碗","세트",0],[122,"其他商品",2,"종이컵","纸杯","박스",0],[123,"其他商品",2,"소스 1호","1号酱料杯","박스",0],[124,"其他商品",2,"공깃밥 용기","米饭盒","박스",0],[125,"其他商品",3,"칠성사이다","雪碧","박스",0],[126,"其他商品",3,"(zero)칠성사이다","零度雪碧","박스",0],[127,"其他商品",3,"코카콜라","可乐","박스",0],[128,"其他商品",3,"(zero)코카콜라","零度可乐","박스",0],[129,"其他商品",3,"환타","芬达","박스",0]];
+const KEY='cxx_pandian_v1';
+let S={};try{S=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){S={}}
+function save(){localStorage.setItem(KEY,JSON.stringify(S));prog()}
+function g(id){return S[id]||(S[id]={s:null,o:null})}
+function esc(x){return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function render(){let h='',lc='',lr='';
+for(const [id,cat,reg,ko,zh,u,st] of D){
+ if(cat!==lc){h+=`<div class="cat">${cat}</div>`;lc=cat;lr=''}
+ if(cat+reg!==lr){h+=`<div class="reg">区域 ${reg}</div>`;lr=cat+reg}
+ h+=`<div class="card" id="c${id}"><div class="t"><span class="no">${id}.</span><span class="ko">${esc(ko)}</span>${zh?`<span class="zh">${esc(zh)}</span>`:''}${u?`<span class="u">${esc(u)}</span>`:''}</div>
+ <div class="row st"><div class="lab">库存<span id="sv${id}"></span></div><div class="btns" id="sb${id}"></div></div>
+ <div class="row od"><div class="lab">订货<span id="ov${id}"></span></div><div class="btns" id="ob${id}"></div></div></div>`}
+document.getElementById('list').innerHTML=h;D.forEach(d=>upd(d[0]));prog()}
+function btns(id,k){const v=g(id)[k];const zl=k==='o'?'不订':'没有';let h=`<button class="z${v===0?' on':''}" onclick="setv(${id},'${k}',0)">${zl}</button>`;
+for(let n=1;n<=10;n++)h+=`<button class="${v===n?'on':''}" onclick="setv(${id},'${k}',${n})">${n}</button>`;
+h+=`<button class="pm" onclick="step(${id},'${k}',-1)">−</button><button class="pm" onclick="step(${id},'${k}',1)">＋</button><button class="pm" onclick="step(${id},'${k}',0.5)">+½</button>`;
+if(v!==null)h+=`<button onclick="setv(${id},'${k}',null)">清空</button>`;return h}
+function upd(id){const x=g(id),u=(D[id-1][5]||'');
+document.getElementById('sb'+id).innerHTML=btns(id,'s');document.getElementById('ob'+id).innerHTML=btns(id,'o');
+document.getElementById('sv'+id).textContent=x.s===null?'':x.s+' '+u;
+document.getElementById('ov'+id).textContent=x.o===null?'':(x.o===0?'不订':x.o+' '+u);
+document.getElementById('c'+id).classList.toggle('done',x.o!==null||x.s!==null)}
+function setv(id,k,v){g(id)[k]=v;upd(id);save()}
+function step(id,k,d){let v=g(id)[k]||0;v=Math.max(0,Math.round((v+(d===0.5?0.5:d))*10)/10);setv(id,k,v)}
+function prog(){const n=D.filter(d=>{const x=S[d[0]];return x&&(x.o!==null||x.s!==null)}).length;document.getElementById('prog').textContent=`已过 ${n}/129`}
+function jumpNext(){const d=D.find(d=>{const x=S[d[0]];return !x||(x.o===null&&x.s===null)});if(d)document.getElementById('c'+d[0]).scrollIntoView({behavior:'smooth',block:'center'});else alert('129 项全部过完了')}
+function today(){const t=new Date();return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')}
+function csvCell(x){x=x==null?'':String(x);return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x}
+function buildCSV(all){const r=[['序号','类别','区域','韩文','中文','单位','库存','订货量']];
+for(const [id,cat,reg,ko,zh,u] of D){const x=S[id]||{s:null,o:null};if(!all&&!(x.o>0)&&x.s===null)continue;r.push([id,cat,'区域'+reg,ko,zh,u,x.s??'',x.o??''])}
+return r.map(a=>a.map(csvCell).join(',')).join('\n')}
+function gen(){const ord=D.filter(d=>(S[d[0]]||{}).o>0),so=D.filter(d=>{const x=S[d[0]];return x&&x.s!==null&&!(x.o>0)});
+const miss=D.filter(d=>{const x=S[d[0]];return !x||(x.o===null&&x.s===null)});
+let h=`<h2>${today()} 订货单</h2><p class="tip">要订 ${ord.length} 项 · 只填库存 ${so.length} 项 · 没填 ${miss.length} 项</p>`;
+if(ord.length){h+='<table><tr><th>#</th><th>商品</th><th>库存</th><th>订货</th></tr>';for(const [id,c,r,ko,zh,u] of ord){const x=S[id];h+=`<tr><td>${id}</td><td><b>${esc(ko)}</b> ${esc(zh)}</td><td>${x.s??''}</td><td><b>${x.o} ${esc(u)}</b></td></tr>`}h+='</table>'}else h+='<p>还没有要订的货。</p>';
+if(so.length){h+='<h3>只填了库存</h3><table>';for(const [id,c,r,ko,zh,u] of so)h+=`<tr><td>${id}</td><td>${esc(ko)} ${esc(zh)}</td><td>库存 ${S[id].s} ${esc(u)}</td></tr>`;h+='</table>'}
+h+=`<div class="act"><button onclick="copyText()">复制订货清单（发给别人）</button><button onclick="dl(false)">下载 CSV（只含填过的）</button><button onclick="dl(true)">下载 CSV（全部 129 项）</button><button onclick="copyCSV()">复制 CSV 文字</button><button class="g" onclick="closeOut()">返回继续改</button><button class="r" onclick="resetAll()">清空全部，重新盘</button></div>
+<p class="tip">CSV 可以在 Google 表格里「导入」，或发给秘书长帮你生成表格。</p><textarea id="csv" readonly>${esc(buildCSV(false))}</textarea>`;
+const o=document.getElementById('out');o.innerHTML=h;o.style.display='block';o.scrollTop=0}
+function txt(){let t=today()+' 川川香订货\n';for(const [id,c,r,ko,zh,u] of D){const x=S[id];if(x&&x.o>0)t+=`${id}. ${ko}/${zh} 库存${x.s??'-'} 订货${x.o}${u}\n`}return t}
+function cp(t){if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>alert('已复制'),()=>fb(t));else fb(t)}
+function fb(t){const a=document.getElementById('csv');a.value=t;a.select();document.execCommand('copy');alert('已复制')}
+function copyText(){cp(txt())}function copyCSV(){cp(buildCSV(false))}
+function dl(all){const b=new Blob(['\ufeff'+buildCSV(all)],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=today()+'_盘货订货单.csv';document.body.appendChild(a);a.click();a.remove()}
+function closeOut(){document.getElementById('out').style.display='none'}
+function resetAll(){if(confirm('确定清空全部记录？')){S={};save();closeOut();render();scrollTo(0,0)}}
+render();
+</script></body></html>
