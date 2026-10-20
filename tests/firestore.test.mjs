@@ -25,6 +25,23 @@ await assertFails(updateDoc(doc(chef,'sandboxOrders','test-order','revisions','m
 assert.equal((await a.history('test-order')).length,2);
 const race=await Promise.allSettled([a.save('test-order',v2,{...v2.quantities,'test:a':4000},'mutation-race-chef'),b.save('test-order',v2,{...v2.quantities,'test:a':6000},'mutation-race-boss')]);assert.equal(race.filter(x=>x.status==='fulfilled').length,1);
 console.log('PASS simulated three-product chain, reread, duplicate, audit, permissions and simultaneous conflict');
+// Workflow uses isolated simulated products, including old documents without a stage.
+const pending=await a.create('test-workflow',p,'workflow-create-001');
+await assert.rejects(a.finalize(pending.id,pending,'workflow-owner-denied'),e=>e.code==='permission-denied');
+const changed=await b.save(pending.id,pending,{...pending.quantities,'test:a':2000},'workflow-boss-edit');
+await assert.rejects(b.finalize(pending.id,pending,'workflow-stale-final'),/较新版本/);
+const final=await b.finalize(pending.id,changed,'workflow-boss-final');
+assert.equal(final.orderStage,'finalized');assert.equal(final.snapshot,p.snapshot);
+assert.equal((await a.read(final.id)).orderStage,'finalized');
+assert.equal((await b.finalize(final.id,changed,'workflow-boss-final')).revision,final.revision);
+await assert.rejects(a.save(final.id,final,final.quantities,'workflow-owner-edit'),e=>e.code==='permission-denied');
+await assert.rejects(b.save(final.id,final,final.quantities,'workflow-boss-locked'),e=>e.code==='permission-denied');
+await assert.rejects(a.finalize(final.id,final,'workflow-owner-reopen','pending'),e=>e.code==='permission-denied');
+const reopened=await b.finalize(final.id,final,'workflow-boss-reopen','pending');
+assert.equal(reopened.orderStage,'pending');
+await b.save(reopened.id,reopened,{...reopened.quantities,'test:a':1000},'workflow-edit-again');
+assert.equal((await b.history(reopened.id)).length,5);
+console.log('PASS boss-only finalization, immutable final quantities, audit, stale rejection, idempotent retry and reopen');
 // Only after the isolated three-product chain passes, exercise catalog-sized documents in the LOCAL emulator.
 const products=JSON.parse(readFileSync('current-order.json')).products;
 const full={...p,quantities:Object.fromEntries(products.map(x=>[x.id,1000])),units:Object.fromEntries(products.map(x=>[x.id,x.unit||'']))};

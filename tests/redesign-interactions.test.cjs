@@ -17,6 +17,25 @@ function harness(){
  run(`source=fixture;draft=Core().create(source,'2026-10-20','count-test-interactions');draft.seen={};draft.ackWrong={};screen='order';render=()=>{};scrollActive=()=>{};toast=t=>globalThis.lastToast=t;`);
  return {handlers,ctx,run,saved,find,document,window};
 }
+test('cloud order URL uses browser history even when audit history is an array',()=>{
+ const h=harness();let path;
+ h.window.history={replaceState(a,b,p){path=p;}};
+ h.run(`history=[];historyReplace(new URL('https://example.test/redesign-preview/?order=test-count-one'))`);
+ assert.equal(path,'/redesign-preview/?order=test-count-one');
+});
+test('finalization requires saved edits, boss role and a successful server response',async()=>{
+ const h=harness();h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'workflow-test-mutation'};
+ h.run(`member={role:'editor'};order={id:'test-count-one',revision:2,quantities:{},units:{}};dirtyCount=()=>1;api={finalize:async()=>{throw Error('断网')}};`);
+ await assert.rejects(h.run(`changeOrderStage('finalized')`),/先保存/);
+ h.run('dirtyCount=()=>0');await assert.rejects(h.run(`changeOrderStage('finalized')`),/断网/);
+ assert.equal(h.run('order.orderStage'),undefined);
+ h.run(`member={role:'owner'}`);await assert.rejects(h.run(`changeOrderStage('finalized')`),/老板娘/);
+ h.run(`member={role:'editor'};api={finalize:async()=>({...order,orderStage:'finalized',revision:3}),history:async()=>[]};`);
+ await h.run(`changeOrderStage('finalized')`);
+ assert.equal(h.run('order.orderStage'),'finalized');assert.match(h.run('dockHtml()'),/重新修改/);
+ assert.throws(()=>h.run(`applyQty('cn:9','3')`),/已定稿/);
+ h.run(`openOrderKey('cn:9')`);assert.equal(h.run('keypad'),false);
+});
 test('search gestures: drag/cancel never edit; tap opens once; ordinary click works',async()=>{
  const h=harness();h.run('globalThis.opens=0;openFromRow=()=>{opens++};');
  const row={dataset:{act:'edit',id:'cn:9',search:'true',field:'qty'}};
