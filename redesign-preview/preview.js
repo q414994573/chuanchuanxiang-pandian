@@ -5,13 +5,15 @@ import {store} from '../cloud/store.js';
 import C from '../cloud/core.cjs';
 import A from '../cloud/account.cjs';
 import S from './search.cjs';
+import Flow from './count-flow.cjs';
 
 const Core=()=>window.CountCore;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CATS=[['kr','韩国','韩国食品'],['cn','中国','中国食品'],['other','其他','其他商品']];
 const KEY='ccx-redesign-draft-v2';
 const app=document.getElementById('app');
-let source,aliasById=new Map(),draft,pos=0,field='stock',screen='count',keypad=false,entered=null;
+let source,aliasById=new Map(),draft,pos=0,field='stock',screen='count',keypad=false,textMode=false,viewCat='kr',orderCat='kr',moduleEnd=false,entered=null;
+let catScroll={kr:0,cn:0,other:0},orderScroll={kr:0,cn:0,other:0};
 let user=null,member=null,auth,db,api=null,order=null,baseQty={},stocks={},stockBase={},history=[];
 let query='',status='正在准备…',sample=false,demoRole=null,busy=false,orderDirty=false,editId=null,editSnap=null,editRaw=null;
 let undo=null,heldPrev={},ack={},yellowOn=true,yellowOnly=false,archives=[],cloudTimer=null,cloudPending=false,morePane='';
@@ -21,7 +23,6 @@ function today(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'})
 function uid(){return 'count-'+(crypto.randomUUID?crypto.randomUUID():Date.now());}
 function isOwner(){if(demoRole)return demoRole==='owner';if(member)return member.role==='owner';return true;}
 function canCount(){return isOwner();}
-function showName(p){return p.alias&&p.alias!==p.name?p.alias:p.name;}
 function aliasesOf(p){return aliasById.get(p.id)||[];}
 function catalog(){if(order)return JSON.parse(order.snapshot).catalog;if(draft)return draft.catalog;return source.products.map(p=>({id:p.id,name:p.name,alias:p.alias||'',cat:p.cat,category:p.category,hasStock:!!p.hasStock,unit:p.unit||'',referenceStock:p.stock,referenceOrder:p.order}));}
 function product(id){return catalog().find(p=>p.id===id);}
@@ -47,6 +48,7 @@ function loadLocal(){
   draft=data.draft;draft.seen=draft.seen||{};draft.ackWrong=draft.ackWrong||{};
   pos=Math.max(0,Math.min(data.pos||0,draft.catalog.length-1));
   field=data.field==='qty'?'qty':'stock';
+  viewCat=draft.catalog[pos]?.cat||'kr';
  }catch(e){}
 }
 function scheduleCloud(){clearTimeout(cloudTimer);cloudTimer=setTimeout(()=>flushCloud(),1500);}
@@ -83,15 +85,29 @@ function ensureDraft(){
 }
 function guardTest(id){C.assertCloudOrderId(id,true);if(!String(id).startsWith('test-'))throw Error('预览不能打开正式订单');}
 
-function lastStockText(p){if(!p.hasStock)return '无此项';if(p.referenceStock==null||p.referenceStock==='')return '没填';return String(p.referenceStock);}
-function lastQtyText(p){return typeof p.referenceOrder==='number'&&p.referenceOrder>0?String(p.referenceOrder):'没订';}
+function stockShown(p){
+ if(order)return String(stocks[p.id]??'');
+ if(!draft)return '';
+ const cur=draft.items[p.id]?.stock??'';
+ if(String(cur).trim())return cur;
+ return draft.stockText?.[p.id]||'';
+}
+function cellRaw(p,which){
+ if(which==='stock')return p.hasStock?stockShown(p):'';
+ return draft.items[p.id].quantity||'';
+}
 function cellText(p,which){
- const r=draft.items[p.id];
- if(which==='stock'){if(!p.hasStock)return '无';return r.stock===''?'空':r.stock;}
- return r.quantity===''?'空':r.quantity;
+ if(which==='stock'){if(!p.hasStock)return '无';const v=stockShown(p);return v===''?'空':v;}
+ const q=draft.items[p.id].quantity;
+ return q===''?'空':q;
+}
+function reviveStock(p){
+ if(!draft?.stockText?.[p.id])return;
+ if(String(draft.items[p.id].stock||'').trim())return;
+ try{Core().edit(draft,p.id,'stock',draft.stockText[p.id]);delete draft.stockText[p.id];}catch(e){}
 }
 function labelFor(p,which,now){
- const name=showName(p);
+ const name=Flow.largeName(p);
  if(which==='stock')return `${name} 库存 ${now===''?'空':now}`;
  return `${name} 订 ${now===''?'不订':now}`;
 }
@@ -113,14 +129,16 @@ function captureEntered(){
 }
 function openCount(i,which){
  if(!draft)return;
- if(draft.status==='reviewed'){toast('已经提交。要改数量，去今日订单');screen='order';keypad=false;render();return;}
+ if(draft.status==='reviewed'){toast('已经提交。要改数量，去今日订单');screen='order';keypad=false;textMode=false;render();return;}
  const prev=pos;
  if(!(keypad&&pos===i&&field===which))leaveCountCell();
  pos=i;
  const p=draft.catalog[i];
+ viewCat=p.cat||viewCat;
  field=which||(p.hasStock?'stock':'qty');
  if(field==='stock'&&!p.hasStock)field='qty';
- keypad=true;screen='count';captureEntered();persistLocal();
+ if(field==='stock')reviveStock(p);
+ moduleEnd=false;keypad=true;textMode=false;screen='count';captureEntered();persistLocal();
  if(prev!==pos)flushCloud();
  render();scrollActive();
 }
@@ -130,7 +148,8 @@ function typeKey(key){
  if(field==='stock'&&!p.hasStock){field='qty';captureEntered();render();return;}
  const cur=field==='stock'?r.stock:r.quantity;
  let next=cur;
- if(key==='del')next=cur.slice(0,-1);
+ if(!Flow.numericFragment(cur)&&key!=='del')next=key==='.'?'0.':key;
+ else if(key==='del')next=cur.slice(0,-1);
  else if(key==='.'){if(cur.includes('.'))return;next=cur===''?'0.':cur+'.';}
  else next=cur+key;
  if(next.length>12)return;
@@ -138,6 +157,17 @@ function typeKey(key){
  try{Core().edit(draft,p.id,field==='stock'?'stock':'quantity',next);}catch(e){toast(e.message);return;}
  if(next&&!next.endsWith('.'))markSeen(p.id);
  persistLocal();render();scrollActive();
+}
+function writeCell(value){
+ if(!draft||draft.status==='reviewed')return;
+ const p=draft.catalog[pos];
+ const next=String(value??'').slice(0,40);
+ const cur=field==='stock'?draft.items[p.id].stock:draft.items[p.id].quantity;
+ if(cur===next)return;
+ if(field==='stock'&&!p.hasStock){toast('这项不用填库存');return;}
+ try{Core().edit(draft,p.id,field==='stock'?'stock':'quantity',next);}catch(e){toast(e.message);return;}
+ if(next.trim())markSeen(p.id);
+ persistLocal();
 }
 function finishTyping(){
  const p=draft.catalog[pos],r=draft.items[p.id];
@@ -148,40 +178,26 @@ function finishTyping(){
 }
 function nextCell(){
  if(!draft)return;
- if(!finishTyping())return;
- if(field==='stock'){leaveCountCell();field='qty';captureEntered();persistLocal();render();scrollActive();return;}
+ if(!finishTyping()){textMode=false;keypad=true;render();scrollActive();return;}
+ if(field==='stock'){leaveCountCell();field='qty';moduleEnd=false;captureEntered();persistLocal();render();scrollActive();return;}
  leaveCountCell();
  const prev=pos;markSeen(draft.catalog[pos].id);
- if(pos<draft.catalog.length-1){pos++;field=draft.catalog[pos].hasStock?'stock':'qty';}
- else toast('已经是最后一项');
+ const step=Flow.advance(draft.catalog,pos);
+ if(step.stay){moduleEnd=true;captureEntered();persistLocal();render();scrollActive();return;}
+ pos=step.index;field=draft.catalog[pos].hasStock?'stock':'qty';moduleEnd=false;
  captureEntered();persistLocal();if(prev!==pos)flushCloud();render();scrollActive();
 }
-function sameAsLast(){
- const p=draft.catalog[pos];
- if(field!=='qty'){field='qty';captureEntered();}
- if(typeof p.referenceOrder==='number'&&p.referenceOrder>0){
-  if(!String(p.unit||'').trim()){toast('这项单位还是空的，不能订');return;}
-  Core().edit(draft,p.id,'quantity',String(p.referenceOrder));
- }else Core().edit(draft,p.id,'quantity','');
- markSeen(p.id);leaveCountCell();
- const prev=pos;
- if(pos<draft.catalog.length-1){pos++;field=draft.catalog[pos].hasStock?'stock':'qty';}
- captureEntered();persistLocal();if(prev!==pos)flushCloud();render();scrollActive();
-}
-function fillLast(i,which){
- if(draft?.status==='reviewed'){openCount(i,which);return;}
- openCount(i,which);
- const p=draft.catalog[i];
-  if(which==='stock'){
-  if(!p.hasStock){toast('这项不用填库存');return;}
-  const v=p.referenceStock;
-  if(typeof v==='number'||(typeof v==='string'&&/^\d+(?:\.\d{1,3})?$/.test(v.trim())))Core().edit(draft,p.id,'stock',String(v).trim());
-  else{toast(v?'上次库存不是纯数字，请手填':'上次没填库存');return;}
- }else if(typeof p.referenceOrder==='number'&&p.referenceOrder>0){
-  if(!String(p.unit||'').trim()){toast('这项单位还是空的，不能订');return;}
-  Core().edit(draft,p.id,'quantity',String(p.referenceOrder));
- }else Core().edit(draft,p.id,'quantity','');
- markSeen(p.id);persistLocal();render();scrollActive();
+function showCat(cat){
+ if(!draft||!cat)return;
+ readPlain();
+ leaveCountCell();
+ keypad=false;textMode=false;
+ if(cat===viewCat){moduleEnd=false;render();return;}
+ catScroll[viewCat]=window.scrollY;
+ viewCat=cat;moduleEnd=false;
+ render();
+ const y=catScroll[cat]||0;
+ requestAnimationFrame(()=>window.scrollTo(0,y));
 }
 function doUndo(){
  if(!undo)return;
@@ -189,7 +205,7 @@ function doUndo(){
  if(info.where==='count'&&draft){
   try{Core().edit(draft,info.id,info.field==='stock'?'stock':'quantity',info.value);}catch(e){toast(e.message);return;}
   const i=draft.catalog.findIndex(p=>p.id===info.id);
-  pos=i;field=info.field;keypad=true;screen='count';captureEntered();persistLocal();
+  pos=i;viewCat=draft.catalog[i]?.cat||viewCat;field=info.field;keypad=true;textMode=false;screen='count';captureEntered();persistLocal();
  }else if(info.where==='order'){
   applyQty(info.id,info.value);
   editId=info.id;editSnap=info.value;editRaw=info.value;keypad=true;screen='order';
@@ -208,7 +224,11 @@ function applyQty(id,text){
  else delete heldPrev[id];
  if(order){
   if(!String(text||'').trim())order.quantities[id]=0;
-  else{if(!String(order.units[id]||'').trim())throw Error('这项单位还是空的，不能订');order.quantities[id]=C.quantity(text);}
+  else{
+   if(!Flow.isNumericQty(String(text).trim()))throw Error('云端订货只能存数字。文字写在盘货的库存格，或把这里改成数字。');
+   if(!String(order.units[id]||'').trim())throw Error('这项单位还是空的，不能订');
+   order.quantities[id]=C.quantity(String(text).trim());
+  }
   if(!sample)orderDirty=true;
  }else if(draft){
   if(!String(text||'').trim())Core().edit(draft,id,'quantity','');
@@ -218,7 +238,7 @@ function applyQty(id,text){
 }
 function openOrderKey(id){
  if(editId&&editId!==id)commitOrderEdit();
- editId=id;editSnap=qtyOf(id);editRaw=editSnap;keypad=true;screen='order';render();scrollActive();
+ editId=id;editSnap=qtyOf(id);editRaw=editSnap;keypad=true;textMode=false;screen='order';render();scrollActive();
 }
 function commitOrderEdit(){
  if(!editId)return;
@@ -229,6 +249,7 @@ function commitOrderEdit(){
 }
 function stepQty(delta){
  const cur=editRaw&&!/[.]$/.test(editRaw)?editRaw:qtyOf(editId);
+ if(cur&&!Flow.numericFragment(cur)){toast('这格是文字。要加减请先改成数字，或点本次不订。');return;}
  const n=cur===''?0:Number(cur);
  const next=Math.round((n+delta)*1000)/1000;
  if(next<=0){cancelLine(editId);return;}
@@ -236,7 +257,8 @@ function stepQty(delta){
 }
 function typeOrderKey(key){
  let next=editRaw||'';
- if(key==='del')next=next.slice(0,-1);
+ if(!Flow.numericFragment(next)&&key!=='del')next=key==='.'?'0.':key;
+ else if(key==='del')next=next.slice(0,-1);
  else if(key==='.'){if(next.includes('.'))return;next=next===''?'0.':next+'.';}
  else next=next+key;
  if(next.length>12)return;
@@ -251,7 +273,7 @@ function cancelLine(id){
  const cur=qtyOf(id);
  if(cur)heldPrev[id]=cur;
  applyQty(id,'');
- showUndo({where:'order',id,value:cur,label:`${showName(product(id))} 改为不订`});
+ showUndo({where:'order',id,value:cur,label:`${Flow.largeName(product(id))} 改为不订`});
  editId=null;editRaw=null;editSnap=null;keypad=false;render();
 }
 function restoreLine(id){applyQty(id,heldPrev[id]||'1');delete heldPrev[id];render();}
@@ -279,12 +301,10 @@ function changeNote(c){
 }
 function stockLine(p){
  if(!p.hasStock)return '这项没有库存';
- let text='';
- if(order){text=stocks[p.id]??'';}
- else if(draft)text=draft.items[p.id].stock;
+ const text=order?String(stocks[p.id]??''):stockShown(p);
  return String(text).trim()?`库存 ${text}`:'库存没填';
 }
-function orderedCount(cat){return catalog().filter(p=>p.cat===cat&&Number(qtyOf(p.id))>0).length;}
+function orderedCount(cat){return catalog().filter(p=>p.cat===cat&&Flow.showsOnOrder(qtyOf(p.id))&&Flow.isNumericQty(String(qtyOf(p.id)))).length;}
 function shareUrl(){
  const url=new URL(location.href);url.hash='';url.search='';
  if(sample){url.searchParams.set('sample','order');}
@@ -298,12 +318,13 @@ async function shareOrCopy(text){
 }
 function rowsOf(cat){
  const changes=new Map(bossChanges().map(c=>[c.id,c]));
- const list=catalog().filter(p=>p.cat===cat&&S.matches(p,yellowOnly?'':query,aliasesOf(p)));
+ const list=catalog().filter(p=>p.cat===cat);
  const active=[],gray=[];
  for(const p of list){
   const qty=qtyOf(p.id);const changed=changes.get(p.id);
-  if(yellowOnly&&!changed)continue;
-  if(Number(qty)>0)active.push(p);
+  const typing=editId===p.id;
+  if(yellowOnly&&!changed&&!typing)continue;
+  if(Flow.showsOnOrder(qty)||typing)active.push(p);
   else if(heldPrev[p.id]||(changed&&!changed.after))gray.push(p);
  }
  return {active,gray,changes};
@@ -314,18 +335,37 @@ function keysHtml(){
  return `<div class="keys">${row(['1','2','3'])}${row(['4','5','6'])}${row(['7','8','9'])}${row(['.','0','del'])}</div>`;
 }
 function undoHtml(){return undo?`<div class="undo"><span>${E(undo.label)} ·</span><button type="button" data-act="undo">撤销</button></div>`:'';}
+function padBar(){return `<div class="padbar"><button type="button" data-act="mode" data-mode="text">文字</button><button class="fold" type="button" data-act="close">⌄ 收起</button></div>`;}
+function textBar(){return textMode?`<div class="textbar"><button type="button" data-act="mode" data-mode="num">123</button><span>点完成保存并到下一格</span><button class="fold" type="button" data-act="close">⌄ 收起</button></div>`:'';}
+function endNote(where){
+ if(!moduleEnd||!draft)return '';
+ if(where==='pad'&&(!keypad||textMode))return '';
+ if(where==='list'&&keypad&&!textMode)return '';
+ const cat=draft.catalog[pos]?.cat||viewCat;
+ return `<button class="endgo" type="button" data-act="endgo">${E(Flow.endLabel(cat))}</button>`;
+}
 function countPad(){
- const p=draft.catalog[pos];
- const same=field==='qty'?(typeof p.referenceOrder==='number'&&p.referenceOrder>0?`<button class="same" type="button" data-act="same">同上次 ${E(p.referenceOrder)}</button>`:`<button class="same" type="button" data-act="same">上次没订</button>`):'';
- return `<div class="pad">${undoHtml()}${same}${keysHtml()}<button class="go" type="button" data-act="next">下一格</button></div>`;
+ return `<div class="pad">${padBar()}${undoHtml()}${endNote('pad')}${keysHtml()}<button class="go" type="button" data-act="next">下一格</button></div>`;
 }
 function orderPad(){
- return `<div class="pad">${undoHtml()}<div class="step"><button type="button" data-act="minus">−1</button><button type="button" data-act="plus">+1</button><button type="button" data-act="zero">本次不订</button></div>${keysHtml()}<button class="go" type="button" data-act="order-next">下一格</button></div>`;
+ return `<div class="pad">${padBar()}${undoHtml()}<div class="step"><button type="button" data-act="minus">−1</button><button type="button" data-act="plus">+1</button><button type="button" data-act="zero">本次不订</button></div>${keysHtml()}<button class="go" type="button" data-act="order-next">下一格</button></div>`;
 }
 function scrollActive(){
- const row=document.querySelector('.line.on, .order.on');
- const pad=document.querySelector('.pad');if(!row)return;
- const topLimit=(document.querySelector('.bar')||document.querySelector('.banner')).getBoundingClientRect().bottom+4;
+ const row=document.querySelector('.line.on, .order.on');if(!row)return;
+ const anchor=document.querySelector('.bar')||document.querySelector('.textbar')||document.querySelector('.banner');
+ const topLimit=anchor.getBoundingClientRect().bottom+6;
+ if(textMode){
+  const vv=window.visualViewport;
+  const visibleBottom=(vv?vv.offsetTop+vv.height:innerHeight)-12;
+  const r=row.getBoundingClientRect();
+  if(r.top>topLimit+2)window.scrollBy(0,r.top-topLimit);
+  const r2=row.getBoundingClientRect();
+  if(r2.bottom>visibleBottom)window.scrollBy(0,r2.bottom-visibleBottom);
+  const r3=row.getBoundingClientRect();
+  if(r3.top<topLimit)window.scrollBy(0,r3.top-topLimit);
+  return;
+ }
+ const pad=document.querySelector('.pad');
  const bottomLimit=pad?pad.getBoundingClientRect().top-8:innerHeight-70;
  const r=row.getBoundingClientRect();
  if(r.bottom>bottomLimit)window.scrollBy(0,r.bottom-bottomLimit);
@@ -334,61 +374,110 @@ function scrollActive(){
 }
 
 function render(){
- document.body.classList.toggle('key-open',keypad);
+ document.body.classList.toggle('key-open',keypad&&!textMode);
+ document.body.classList.toggle('text-mode',!!textMode);
  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===screen));
  if(screen==='count')app.innerHTML=countHtml();
  else if(screen==='order')app.innerHTML=orderHtml();
  else app.innerHTML=moreHtml();
- if(keypad)scrollActive();
+ if(textMode){
+  const input=document.querySelector('input.plain');
+  if(input){input.focus({preventScroll:true});const n=input.value.length;try{input.setSelectionRange(n,n);}catch(e){}}
+ }
+ if(keypad||textMode)scrollActive();
 }
 function countHtml(){
  if(!canCount())return `<div class="card"><h1>盘货由大伟来做</h1><p>你打开他发来的链接，直接改今日订单。库存可以看，不能改。</p><button class="primary" type="button" data-act="goto-order">去今日订单</button></div>`;
  ensureDraft();
- const onCat=draft.catalog[pos]?.cat;
- return `<div class="bar"><div class="cats">${CATS.map(([cat,short])=>`<button type="button" data-act="jumpcat" data-cat="${cat}" class="${onCat===cat?'on':''}">${short} ${seenIn(cat)}/${totalIn(cat)}</button>`).join('')}</div><button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看今日订单':'下一个没盘的'}</button></div><input class="find" id="find" placeholder="搜中文、韩文，或韩文开头辅音" value="${E(query)}"><div id="rows">${countRows()}</div>${keypad?countPad():''}`;
+ return `<div class="bar"><div class="cats">${CATS.map(([cat,short])=>`<button type="button" data-act="jumpcat" data-cat="${cat}" class="${viewCat===cat?'on':''}">${short} ${seenIn(cat)}/${totalIn(cat)}</button>`).join('')}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看今日订单':'下一个没盘的'}</button></div><input class="find" id="find" placeholder="搜这一类的中文、韩文，或开头辅音" value="${E(query)}"><div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
+}
+function countCell(p,i,which){
+ const on=keypad&&pos===i&&field===which;
+ const inner=on&&textMode?`<input class="plain" value="${E(cellRaw(p,which))}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<b>${E(cellText(p,which))}</b>`;
+ return `<div class="cell ${on?'on':''}" data-act="open" data-i="${i}" data-field="${which}" role="button">${inner}</div>`;
 }
 function countRows(){
- let html='',last='';
+ let html='',n=0;
  draft.catalog.forEach((p,i)=>{
-  if(!S.matches(p,query,aliasesOf(p)))return;
-  if(p.cat!==last){html+=`<h2 id="cat-${p.cat}">${E(CATS.find(c=>c[0]===p.cat)[2])}</h2>`;last=p.cat;}
+  if(p.cat!==viewCat||!S.matches(p,query,aliasesOf(p)))return;
+  n++;
   const on=keypad&&pos===i;
-  const other=p.alias&&p.alias!==p.name?p.name:'';
   const hint=p.name==='고수'?'<p class="warn">香菜：再看一次冰箱。</p>':String(p.name).startsWith('감자수제비')?'<p class="warn">土豆面片按大包记，1大包＝2小包。</p>':'';
-  html+=`<div class="line ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-i="${i}"><b><i class="dot"></i>${E(showName(p))}</b><small>${E(other?other+' · ':'')}${E(p.unit||'单位未定')}</small></button><div class="cell ${on&&field==='stock'?'on':''}" data-act="open" data-i="${i}" data-field="stock" role="button"><b>${E(cellText(p,'stock'))}</b><span class="last" data-act="last" data-i="${i}" data-field="stock">上次${E(lastStockText(p))}</span></div><div class="cell ${on&&field==='qty'?'on':''}" data-act="open" data-i="${i}" data-field="qty" role="button"><b>${E(cellText(p,'qty'))}</b><span class="last" data-act="last" data-i="${i}" data-field="qty">上次${E(lastQtyText(p))}</span></div></div>${hint}`;
+  html+=`<div class="line ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-i="${i}">${Flow.countTitleHtml(p,E)}</button>${countCell(p,i,'stock')}${countCell(p,i,'qty')}</div>${hint}`;
  });
- return html||'<p class="muted">没有匹配的商品。</p>';
+ if(!n){
+  const elseHits=query?draft.catalog.filter(p=>p.cat!==viewCat&&S.matches(p,query,aliasesOf(p))).length:0;
+  html=`<p class="muted">这一类没有。${elseHits?`另外 ${elseHits} 样在别的类里，点上面切换。`:''}</p>`;
+ }
+ return html+endNote('list');
 }
 function orderHtml(){
  const link=new URLSearchParams(location.search).get('order');
  if(link&&!order&&!sample)return `<div class="card"><h1>登录后看这份订单</h1><p>${E(status)}</p><button class="primary" type="button" data-act="tab" data-tab="more">去登录</button></div>`;
  if(!order&&!draft)return `<div class="card"><h1>今日还没有订单</h1><p>${canCount()?'先在盘货里过一遍。':'请用大伟发来的链接打开。'}</p></div>`;
  if(!order&&draft)return draftOrderHtml();
- const warn=warnings();const changes=bossChanges();
  const head=sample?'样例 · 不会写入云端':`${E(order.date)} · ${E(order.updatedByName||'')} · 第 ${order.revision} 版`;
- return `${changes.length?`<div class="alert"><strong>老板娘改了 ${changes.length} 样</strong><div class="pair"><button class="ghost" type="button" data-act="yellow-only">${yellowOnly?'看全部':'只看她改的'}</button><button class="ghost" type="button" data-act="yellow-ok">知道了</button></div></div>`:''}${warn.length?warnHtml(warn):''}<p class="muted">${head}</p><input class="find" id="find" placeholder="搜全部129种，用来补订或看库存" value="${E(query)}"><div id="rows">${query?searchHits():CATS.map(([cat])=>blockHtml(cat)).join('')}</div>${keypad&&editId?orderPad():''}${dockHtml()}`;
+ return orderShell(head,dockHtml());
 }
 function draftOrderHtml(){
- const warn=warnings();
- return `${warn.length?warnHtml(warn):''}<p class="muted">${E(draft.date)} · 还在本机，确认后才发给老板娘</p><input class="find" id="find" placeholder="搜全部129种，用来补订或看库存" value="${E(query)}"><div id="rows">${query?searchHits():CATS.map(([cat])=>blockHtml(cat)).join('')}</div>${keypad&&editId?orderPad():''}${canCount()?`<div class="dock"><button class="primary" type="button" data-act="confirm">确认并分享给老板娘</button></div>`:''}`;
+ const head=`${E(draft.date)} · 还在本机，确认后才发给老板娘`;
+ const dock=canCount()?'<div class="dock"><button class="primary" type="button" data-act="confirm">确认并分享给老板娘</button></div>':'';
+ return orderShell(head,dock);
+}
+function yellowBanner(){
+ const changes=bossChanges();if(!changes.length)return '';
+ return `<div class="alert"><strong>老板娘改了 ${changes.length} 样</strong><div class="pair"><button class="ghost" type="button" data-act="yellow-only">${yellowOnly?'看全部':'只看她改的'}</button><button class="ghost" type="button" data-act="yellow-ok">知道了</button></div></div>`;
+}
+function orderCats(){
+ const warn=warnings(),changes=bossChanges();
+ return `<div class="cats">${CATS.map(([cat,short])=>{
+  const n=catalog().filter(p=>p.cat===cat&&Flow.showsOnOrder(qtyOf(p.id))).length;
+  const red=warn.some(p=>p.cat===cat);
+  const yellow=changes.some(c=>product(c.id)?.cat===cat);
+  return `<button type="button" data-act="ordercat" data-cat="${cat}" class="${orderCat===cat?'on':''}">${short} ${n}样${red?'<i class="mark red"></i>':''}${yellow?'<i class="mark yellow"></i>':''}</button>`;
+ }).join('')}</div>`;
+}
+function orderShell(head,dock){
+ return `${textBar()}<div class="bar">${yellowBanner()}${orderCats()}</div><p class="muted">${head}</p><input class="find" id="find" placeholder="搜全部129种，用来补订或看库存" value="${E(query)}"><div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
+}
+function orderPane(){
+ const mine=warnings().filter(p=>p.cat===orderCat);
+ return `${warnHtml(mine)}${blockHtml(orderCat)}`;
+}
+function showOrderCat(cat){
+ if(!cat)return;
+ if(textMode&&readPlain()===false)return;
+ if(commitOrderEdit()===false)return;
+ keypad=false;textMode=false;query='';
+ if(cat===orderCat){render();return;}
+ orderScroll[orderCat]=window.scrollY;
+ orderCat=cat;
+ render();
+ const y=orderScroll[cat]||0;
+ requestAnimationFrame(()=>window.scrollTo(0,y));
 }
 function warnHtml(list){
- return `<div class="card"><strong>请核对数量</strong><p class="muted">跟上次差了大约十倍，或是多写了一个 0。这只是提醒按错。</p>${list.slice(0,6).map(p=>`<button class="ghost" style="width:100%;margin-top:6px" type="button" data-act="warn" data-id="${E(p.id)}">${E(p.name)}：订 ${E(qtyOf(p.id))}，上次订 ${E(p.referenceOrder)}</button><button class="ghost" type="button" data-act="ack" data-id="${E(p.id)}">没问题</button>`).join('')}</div>`;
+ if(!list.length)return '';
+ return `<div class="card"><strong>请核对数量</strong><p class="muted">跟上次差了大约十倍，或是多写了一个 0。这只是提醒按错。</p>${list.slice(0,8).map(p=>`<button class="ghost" style="width:100%;margin-top:6px" type="button" data-act="warn" data-id="${E(p.id)}">${E(p.name)}：订 ${E(qtyOf(p.id))}，上次订 ${E(p.referenceOrder)}</button><button class="ghost" type="button" data-act="ack" data-id="${E(p.id)}">没问题</button>`).join('')}</div>`;
 }
 function blockHtml(cat){
- const name=CATS.find(c=>c[0]===cat)[2];
  const {active,gray,changes}=rowsOf(cat);
  const row=p=>{
-  const c=changes.get(p.id);const dead=!Number(qtyOf(p.id));
+  const c=changes.get(p.id);const dead=!Flow.showsOnOrder(qtyOf(p.id))&&editId!==p.id;
   const tags=[!dead&&order&&!(baseQty[p.id]>0)?'<span class="tag">新加</span>':'',!dead&&!order&&draft?.added?.[p.id]?'<span class="tag">新加</span>':''].join('');
   const shown=editId===p.id&&editRaw!=null?editRaw:qtyOf(p.id);
-  return `<div class="order ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div><b>${E(p.name)}</b> ${tags}<div class="muted">${E(p.alias&&p.alias!==p.name?p.alias+' · ':'')}${E(stockLine(p))}${c?` · ${E(changeNote(c))}`:''}</div></div><div>${dead?`<button class="ghost" type="button" data-act="restore" data-id="${E(p.id)}">恢复</button>`:`<button class="num" type="button" data-act="edit" data-id="${E(p.id)}">${E(shown)}${E((order?order.units[p.id]:p.unit)||'')}</button>`}</div></div>`;
+  const editor=dead?`<button class="ghost" type="button" data-act="restore" data-id="${E(p.id)}">恢复</button>`:(textMode&&editId===p.id?`<input class="plain" value="${E(shown)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<button class="num" type="button" data-act="edit" data-id="${E(p.id)}">${E(shown)}${E((order?order.units[p.id]:p.unit)||'')}</button>`);
+  return `<div class="order ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${Flow.smallName(p)?E(Flow.smallName(p))+' · ':''}${E(stockLine(p))}${c?` · ${E(changeNote(c))}`:''}</div></div><div>${editor}</div></div>`;
  };
  const body=active.map(row).join('')+gray.map(row).join('');
- return `<div class="card"><h2>${name}</h2>${body||'<p class="muted">这一家这次不订。</p>'}<div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}">复制</button><button class="ghost" type="button" data-act="share" data-cat="${cat}">分享</button></div></div>`;
+ const empty=yellowOnly?'这一块没有她改的。':'这一家这次不订。';
+ return `<div class="card"><div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}">复制</button><button class="ghost" type="button" data-act="share" data-cat="${cat}">分享</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
 }
 function searchHits(){
- return catalog().filter(p=>S.matches(p,query,aliasesOf(p))).map(p=>`<button class="hit" type="button" data-act="edit" data-id="${E(p.id)}"><b>${E(p.name)}</b> ${p.alias&&p.alias!==p.name?`<small>${E(p.alias)}</small>`:''}<div class="muted">${E(stockLine(p))}${Number(qtyOf(p.id))>0?' · 已订 '+E(qtyOf(p.id)):' · 未订'}</div></button>`).join('')||'<p>没有匹配的商品。</p>';
+ return catalog().filter(p=>S.matches(p,query,aliasesOf(p))).map(p=>{
+  const cat=CATS.find(c=>c[0]===p.cat);
+  return `<button class="hit" type="button" data-act="edit" data-id="${E(p.id)}">${Flow.boldName(p,E)} <small>${E(cat?cat[2]:'')}</small>${Flow.smallName(p)?`<small> · ${E(Flow.smallName(p))}</small>`:''}<div class="muted">${E(stockLine(p))}${Flow.showsOnOrder(qtyOf(p.id))?' · 已订 '+E(qtyOf(p.id)):' · 未订'}</div></button>`;
+ }).join('')||'<p>没有匹配的商品。</p>';
 }
 function dockHtml(){
  if(!order)return '';
@@ -406,14 +495,15 @@ function moreHtml(){
  return `${who}${date}<div class="card"><button class="ghost" style="width:100%" type="button" data-act="pane" data-pane="archive">10月18日存档</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="pane" data-pane="history">历史订单</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="pane" data-pane="log">修改记录</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="sample">看一张样例订单（不写入云端）</button><div id="cloudList"></div><p class="muted">${E(status)}</p></div><div class="card"><h2>放到主屏幕</h2><p>用 Safari 打开这个预览，点底部或顶部的分享，再点「添加到主屏幕」。名字是「천천향 盘货」。若现在在 KakaoTalk 里，先在浏览器里打开，再添加。</p></div>${morePaneHtml()}`;
 }
 function morePaneHtml(){
- if(morePane==='archive')return `<div class="card"><h2>${E(source.date)} 存档</h2><p class="muted">只看已经确认的旧单。空白不是 0。</p><div class="hero" style="background-image:linear-gradient(#0008,#0004),url('../assets/storefront.jpg')"><img src="./logo.jpg" alt="川川香门头LOGO"></div>${source.products.filter(p=>p.order).map(p=>`<p>${E(p.alias||p.name)} ${E(p.order)}${E(p.unit||'')}</p>`).join('')}</div>`;
- if(morePane==='history')return archives.length?archives.map(block=>`<div class="card"><h2>${E(block.date)}</h2>${block.products.filter(p=>p.order).map(p=>`<p>${E(p.alias||p.name)} ${E(p.order)}${E(p.unit||'')}</p>`).join('')||'<p>这一天没有订货数字。</p>'}</div>`).join(''):'<p>历史还在读取。</p>';
+ if(morePane==='archive')return `<div class="card"><h2>${E(source.date)} 存档</h2><p class="muted">只看已经确认的旧单。空白不是 0。</p><div class="hero" style="background-image:linear-gradient(#0008,#0004),url('../assets/storefront.jpg')"><img src="./logo.jpg" alt="川川香门头LOGO"></div>${source.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')}</div>`;
+ if(morePane==='history')return archives.length?archives.map(block=>`<div class="card"><h2>${E(block.date)}</h2>${block.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')||'<p>这一天没有订货数字。</p>'}</div>`).join(''):'<p>历史还在读取。</p>';
  if(morePane==='log')return `<div class="card"><h2>修改记录</h2>${order?C.historyHtml(catalog(),history,isOwner()&&!sample).replaceAll('data-cloud="restore"','data-act="restore-rev"'):'<p>先打开一份订单。</p>'}</div>`;
  return '';
 }
 function rememberStocks(){
  const d=JSON.parse(order.snapshot);
- stocks=Object.fromEntries(d.catalog.map(p=>[p.id,String(d.items[p.id]?.stock??'')]));
+ const notes=d.stockText||{};
+ stocks=Object.fromEntries(d.catalog.map(p=>[p.id,String(notes[p.id]??d.items[p.id]?.stock??'')]));
  stockBase={...stocks};
 }
 function buildSample(kind){
@@ -433,11 +523,11 @@ function buildSample(kind){
  baseQty={...now};
  if(kind!=='yellow'){baseQty['kr:26']=1000;heldPrev['kr:26']='1';}
  history=kind==='yellow'?[{revision:2,updatedByName:'老板娘',updatedAt:new Date().toISOString(),quantities:now,units},{revision:1,updatedByName:'大伟',updatedAt:new Date(Date.now()-3600000).toISOString(),quantities:prev,units}]:[{revision:1,updatedByName:'大伟',updatedAt:new Date().toISOString(),quantities:now,units}];
- rememberStocks();orderDirty=false;editId=null;keypad=false;screen='order';query='';
+ rememberStocks();orderDirty=false;editId=null;keypad=false;textMode=false;orderCat='kr';screen='order';query='';
 }
 
 function blockText(cat){
- const rows=catalog().filter(p=>p.cat===cat&&Number(qtyOf(p.id))>0).map(p=>({name:p.name,qty:qtyOf(p.id),unit:(order?order.units[p.id]:p.unit)||''}));
+ const rows=catalog().filter(p=>p.cat===cat&&Flow.showsOnOrder(qtyOf(p.id))).map(p=>({name:p.name,qty:String(qtyOf(p.id)),unit:(order?order.units[p.id]:p.unit)||''}));
  const date=order?order.date:draft.date;
  return S.supplierText(date,rows)+(rows.length?'':'\n这次不订');
 }
@@ -449,8 +539,16 @@ async function confirmShare(){
  if(!canCount()){toast('请用大伟的账号');screen='more';render();return;}
  if(!member||member.role!=='owner'){toast('登录 dawei 后再发给老板娘');screen='more';render();return;}
  const gap=firstGap();
- if(gap>=0){toast('还有没盘的');screen='count';openCount(gap,'stock');return;}
+ if(gap>=0){toast('还有没盘的');screen='count';query='';viewCat=draft.catalog[gap].cat;openCount(gap,'stock');return;}
+ const bad=Flow.textOrderIds(draft,Core().number);
+ if(bad.length){
+  const i=draft.catalog.findIndex(p=>p.id===bad[0]);
+  const p=draft.catalog[i];
+  toast(`${p.name} 的订货是文字。云端只能存数字，请改成数字，或留空表示不订。`);
+  screen='count';viewCat=p.cat;openCount(i,'qty');return;
+ }
  if(draft.status!=='reviewed'){
+  Flow.parkTextStocks(draft,Core());
   for(const p of draft.catalog){
    const r=draft.items[p.id];
    if(r.decision==='order'){if(!String(p.unit||'').trim())throw Error(p.name+' 单位还是空的，不能订');Core().finish(draft,p.id,false);}
@@ -478,41 +576,95 @@ async function saveOrder(){
 }
 async function openOrder(id){
  guardTest(id);sample=false;demoRole=null;
- const data=await api.read(id);order=data;rememberStocks();baseQty={...data.quantities};heldPrev={};ack={};orderDirty=false;history=[];screen='order';keypad=false;
+ const data=await api.read(id);order=data;rememberStocks();baseQty={...data.quantities};heldPrev={};ack={};orderDirty=false;history=[];screen='order';keypad=false;textMode=false;
  const url=new URL(location.href);url.searchParams.set('order',id);url.searchParams.delete('sample');historyReplace(url);
  render();
  try{history=await api.history(id);}catch(e){toast('修改记录没读到');}
  render();
 }
 function historyReplace(url){history.replaceState(null,'',url.pathname+url.search);}
+function readPlain(){
+ const input=document.querySelector('input.plain');if(!input)return true;
+ const value=input.value.slice(0,40).trim();
+ if(screen==='order'&&editId){
+  editRaw=value;
+  try{
+   if(value==='0'){editRaw='';applyQty(editId,'');toast('订货写 0 不算订，留空就是不订');}
+   else applyQty(editId,value);
+  }catch(e){toast(e.message);return false;}
+  return true;
+ }
+ if(draft&&keypad){
+  if(field==='qty'&&value==='0'){writeCell('');toast('订货写 0 不算订，留空就是不订');}
+  else writeCell(value);
+ }
+ return true;
+}
+function closePad(){
+ if(screen==='order'&&order&&textMode){
+  const input=document.querySelector('input.plain');
+  const value=(input?.value||'').trim();
+  if(value&&!Flow.isNumericQty(value)){editRaw=qtyOf(editId);toast('这段文字没有写进订单。云端订货只能是数字。');}
+  else if(readPlain()===false)return;
+ }else if(readPlain()===false)return;
+ if(screen==='count')leaveCountCell();
+ else commitOrderEdit();
+ keypad=false;textMode=false;render();
+}
+function advanceOrder(){
+ const ids=[...document.querySelectorAll('.order')].filter(row=>row.querySelector('.num, input.plain')).map(row=>row.dataset.id);
+ const at=ids.indexOf(editId);
+ if(commitOrderEdit()===false){textMode=false;keypad=true;render();return;}
+ textMode=false;
+ if(ids[at+1])openOrderKey(ids[at+1]);
+ else{keypad=false;render();}
+}
 function tryLeave(next){
  if(orderDirty&&next!=='order'&&!confirm('还有改动没保存，离开吗？'))return;
- if(next!=='order'){commitOrderEdit();keypad=false;editId=null;}
+ readPlain();
+ if(screen==='count')leaveCountCell();
+ else commitOrderEdit();
+ keypad=false;textMode=false;
+ if(next!=='order')editId=null;
  screen=next;if(next!=='count')query='';render();
  if(next==='more'&&api)loadList();
 }
 
 document.body.addEventListener('click',async e=>{
- const b=e.target.closest('[data-act]');if(!b||busy)return;
+ if(e.target.closest('input.plain'))return;
+ const b=e.target.closest('[data-act]');
+ if(!b){if((keypad||textMode)&&!e.target.closest('.pad')&&!e.target.closest('input,button,a,label'))closePad();return;}
+ if(busy)return;
  const act=b.dataset.act;
  try{
   if(act==='tab'){tryLeave(b.dataset.tab);return;}
   if(act==='open'){openCount(Number(b.dataset.i),b.dataset.field);return;}
-  if(act==='last'){e.stopPropagation();fillLast(Number(b.dataset.i),b.dataset.field);return;}
   if(act==='key'){if(screen==='order'&&editId){typeOrderKey(b.dataset.key);return;}typeKey(b.dataset.key);return;}
   if(act==='next'){nextCell();return;}
-  if(act==='same'){sameAsLast();return;}
+  if(act==='close'){closePad();return;}
+  if(act==='mode'){
+   if(b.dataset.mode==='num'){if(readPlain()===false)return;textMode=false;keypad=true;render();scrollActive();}
+   else{textMode=true;keypad=true;render();}
+   return;
+  }
+  if(act==='endgo'){
+   const step=Flow.advance(draft.catalog,pos);
+   moduleEnd=false;keypad=false;textMode=false;
+   if(step.nextCat)showCat(step.nextCat);else tryLeave('order');
+   return;
+  }
   if(act==='undo'){doUndo();return;}
-  if(act==='jumpcat'){const el=document.getElementById('cat-'+b.dataset.cat);if(el){const bar=document.querySelector('.bar').getBoundingClientRect().bottom;window.scrollBy(0,el.getBoundingClientRect().top-bar-4);}return;}
-  if(act==='next-gap'){if(allSeen()){tryLeave('order');return;}const i=firstGap();if(i>=0)openCount(i,'stock');return;}
+  if(act==='jumpcat'){showCat(b.dataset.cat);return;}
+  if(act==='ordercat'){showOrderCat(b.dataset.cat);return;}
+  if(act==='next-gap'){if(allSeen()){tryLeave('order');return;}const i=firstGap();if(i<0)return;query='';const cat=draft.catalog[i].cat;if(cat!==viewCat){catScroll[viewCat]=window.scrollY;viewCat=cat;}moduleEnd=false;openCount(i,'stock');return;}
   if(act==='goto-order'){tryLeave('order');return;}
-  if(act==='edit'){if(draft&&!order&&!Number(qtyOf(b.dataset.id)))draft.added={...draft.added,[b.dataset.id]:true};openOrderKey(b.dataset.id);return;}
+  if(act==='edit'){const id=b.dataset.id;const p=product(id);if(p)orderCat=p.cat;query='';if(draft&&!order&&!Flow.showsOnOrder(qtyOf(id)))draft.added={...draft.added,[id]:true};openOrderKey(id);return;}
   if(act==='minus'){stepQty(-1);return;}
   if(act==='plus'){stepQty(1);return;}
   if(act==='zero'){cancelLine(editId);return;}
-  if(act==='order-next'){const ids=[...document.querySelectorAll('.order .num')].map(n=>n.dataset.id);const at=ids.indexOf(editId);if(commitOrderEdit()===false)return;if(ids[at+1])openOrderKey(ids[at+1]);else{keypad=false;render();}return;}
+  if(act==='order-next'){advanceOrder();return;}
   if(act==='restore'){restoreLine(b.dataset.id);return;}
-  if(act==='warn'){query='';openOrderKey(b.dataset.id);return;}
+  if(act==='warn'){query='';const p=product(b.dataset.id);if(p)orderCat=p.cat;openOrderKey(b.dataset.id);return;}
   if(act==='ack'){const id=b.dataset.id;const qty=qtyOf(id);if(order)ack[id]=qty;else{draft.ackWrong[id]=qty;persistLocal();}render();return;}
   if(act==='yellow-only'){yellowOnly=!yellowOnly;query='';render();return;}
   if(act==='yellow-ok'){yellowOn=false;yellowOnly=false;if(order)localStorage.setItem(`ccx-redesign-yellow:${order.id}:${history[0]?.revision||0}`,'1');render();return;}
@@ -522,7 +674,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='save'){busy=true;await saveOrder();return;}
   if(act==='sample'){buildSample('order');render();return;}
   if(act==='pane'){morePane=morePane===b.dataset.pane?'':b.dataset.pane;render();return;}
-  if(act==='fresh'){if(!confirm('放弃这部手机上的这份盘货？'))return;localStorage.removeItem(KEY);draft=null;pos=0;field='stock';keypad=false;ensureDraft();flushCloud();screen='count';render();return;}
+  if(act==='fresh'){if(!confirm('放弃这部手机上的这份盘货？'))return;localStorage.removeItem(KEY);draft=null;pos=0;field='stock';viewCat='kr';moduleEnd=false;keypad=false;textMode=false;catScroll={kr:0,cn:0,other:0};ensureDraft();flushCloud();screen='count';render();return;}
   if(act==='set-date'){const v=document.getElementById('countDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('请选日期');return;}if(draft.status==='reviewed'){toast('已经提交，日期不能改');return;}draft.date=v;persistLocal();toast('日期已改');return;}
   if(act==='logout'){await signOut(auth);order=null;return;}
   if(act==='open-cloud'){busy=true;await openOrder(b.dataset.id);return;}
@@ -531,8 +683,29 @@ document.body.addEventListener('click',async e=>{
  finally{busy=false;}
 });
 document.body.addEventListener('input',e=>{
- if(e.target.id==='find'){query=e.target.value;const box=document.getElementById('rows');if(box)box.innerHTML=screen==='count'?countRows():(query?searchHits():CATS.map(([cat])=>blockHtml(cat)).join(''));}
+ if(e.target.classList.contains('plain')){
+  const value=e.target.value.slice(0,40);
+  if(screen==='order'&&editId){
+   editRaw=value;
+   if(!order&&draft){try{applyQty(editId,value.trim()==='0'?'':value);}catch(err){}}
+   else if(order&&(!value.trim()||Flow.isNumericQty(value.trim()))){try{applyQty(editId,value.trim());}catch(err){}}
+   return;
+  }
+  writeCell(value);
+  return;
+ }
+ if(e.target.id==='find'){query=e.target.value;const box=document.getElementById('rows');if(box)box.innerHTML=screen==='count'?countRows():(query?searchHits():orderPane());}
 });
+document.body.addEventListener('keydown',e=>{
+ if(!e.target.classList.contains('plain')||e.key!=='Enter')return;
+ e.preventDefault();
+ if(readPlain()===false)return;
+ textMode=false;
+ if(screen==='count')nextCell();
+ else advanceOrder();
+});
+document.body.addEventListener('focusin',e=>{if(e.target.id==='find'&&(keypad||textMode))closePad();});
+if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{if(textMode)scrollActive();});
 document.body.addEventListener('submit',async e=>{
  if(e.target.id==='login'){e.preventDefault();const form=e.target;try{await signInWithEmailAndPassword(auth,A.accountEmail(form.elements.account.value),form.elements.password.value);}catch(err){toast(A.authErrorText(err.code,err.message)||err.message||'登录失败');}finally{form.elements.password.value='';}}
  if(e.target.id==='pass'){e.preventDefault();const form=e.target;const problem=A.passwordChangeError(form.elements.current.value,form.elements.next.value,form.elements.confirm.value);if(problem){toast(problem);return;}try{await reauthenticateWithCredential(user,EmailAuthProvider.credential(user.email,form.elements.current.value));await updatePassword(user,form.elements.next.value);toast('密码已改');}catch(err){toast(A.authErrorText(err.code,err.message,'password')||err.message);}finally{form.reset();}}

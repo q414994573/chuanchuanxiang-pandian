@@ -22,10 +22,11 @@ function matches(product,query,aliases){
  return needle.length>0&&folded.includes(needle);
 }
 function typoRisk(current,last){
- const c=Number(current),l=Number(last);
+ const cs=String(current??'').trim(),ls=String(last??'').trim();
+ if(!/^\d+(?:\.\d+)?$/.test(cs)||!/^\d+(?:\.\d+)?$/.test(ls)) return false;
+ const c=Number(cs),l=Number(ls);
  if(!(c>0)||!(l>0)||!Number.isFinite(c)||!Number.isFinite(l)) return false;
  if(c>=l*8||l>=c*8) return true;
- const cs=String(current),ls=String(last);
  return cs===ls+'0'||ls===cs+'0';
 }
 function supplierText(date,rows){

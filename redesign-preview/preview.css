@@ -6,15 +6,20 @@ button{cursor:pointer}
 img{max-width:100%}
 .banner{position:sticky;top:0;z-index:40;background:var(--red);color:#fff;text-align:center;padding:7px 12px 8px;font-size:16px;font-weight:800}
 .banner small{display:block;margin-top:2px;font-size:12px;font-weight:500}
-#app{padding:8px 12px calc(var(--tabs) + 76px + env(safe-area-inset-bottom))}
-body.key-open #app{padding-bottom:calc(var(--tabs) + 360px + env(safe-area-inset-bottom))}
+#app{padding:8px 12px calc(var(--tabs) + 120px + env(safe-area-inset-bottom))}
+body.key-open #app{padding-bottom:calc(var(--tabs) + 430px + env(safe-area-inset-bottom))}
+body.text-mode #app{padding-bottom:calc(var(--tabs) + 52vh + env(safe-area-inset-bottom))}
+body.text-mode .dock{display:none}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px 8px calc(4px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}
 .tabs button{min-height:48px;border:0;background:transparent;color:var(--muted);border-radius:12px;font-size:16px;font-weight:800}
 .tabs button.on{background:#fdecef;color:var(--red)}
 .bar{position:sticky;top:var(--banner);z-index:16;background:var(--bg);padding:8px 0 6px}
 .cats,.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.cats button,.gap{min-height:42px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:800}
-.cats button.on{border-color:var(--red);color:var(--red)}
+.cats button,.gap{min-height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:800;line-height:1.15;padding:4px 2px}
+.cats button.on{border-color:var(--red);color:var(--red);background:#fff}
+.mark{display:inline-block;width:8px;height:8px;border-radius:99px;margin-left:3px;vertical-align:middle}
+.mark.red{background:#bb1827}
+.mark.yellow{background:#e6a100}
 .gap{width:100%;margin-top:6px}
 .gap.primary,.primary{background:var(--red);color:#fff;border:0}
 .find{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:#fff;font-size:16px;margin:8px 0}
@@ -28,8 +33,15 @@ h1{font-size:22px;margin:4px 0 8px}
 .who small,.cell small{display:block;color:var(--muted);font-size:11px;font-weight:500}
 .cell{border:1px solid var(--line);background:#fff;border-radius:10px;padding:4px 4px 3px;text-align:center}
 .cell.on{border-color:var(--red);background:#fff}
-.cell b{display:block;font-size:18px;line-height:1.1}
-.cell small{font-size:10px}
+.cell b{display:block;font-size:18px;line-height:1.15;word-break:break-all}
+.plain{width:100%;min-height:32px;border:0;background:transparent;text-align:center;font-size:16px;font-weight:800;padding:0;color:var(--ink)}
+.padbar,.textbar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.textbar span{flex:1;color:var(--muted);font-size:13px;font-weight:700}
+.padbar button,.textbar button{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:16px;font-weight:800}
+.fold{margin-left:auto;background:#1c1917 !important;color:#fff !important;border:0 !important;min-width:108px}
+.endgo{display:block;width:100%;min-height:52px;margin:8px 0;border:0;border-radius:12px;background:#1c1917;color:#fff;font-size:16px;font-weight:800}
+#app>.textbar{position:sticky;top:var(--banner);z-index:18;background:var(--bg);padding:8px 0;margin:0}
+.bar .textbar{position:static;background:transparent;padding:0;margin-top:6px}
 .dot{display:inline-block;width:6px;height:6px;border-radius:99px;background:#d8cfc9;margin-right:4px;vertical-align:middle}
 .line.seen .dot{background:var(--red)}
 .note{background:#fff8e8;border-radius:12px;padding:8px 10px;font-size:13px;margin:8px 0}
@@ -58,6 +70,7 @@ body.key-open .dock{display:none}
 .order.dead b{text-decoration:line-through}
 .tag{color:var(--red);font-size:12px;font-weight:800}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card>.pair{margin-bottom:8px}
 .ghost{border:1px solid var(--line);background:#fff}
 .alert{background:#ffe58a;border-radius:14px;padding:10px 12px;margin:0 0 10px}
 .alert button{margin-top:6px}
