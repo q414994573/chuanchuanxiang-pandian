@@ -3,6 +3,13 @@ const Flow=require('../redesign-preview/count-flow.cjs');
 const Core=require('../count-core.js');
 const products=require('../current-order.json').products;
 
+test('other products have an order cell and no stock cell',()=>{
+ assert.deepEqual(Flow.countFields({hasStock:true}),['stock','qty']);
+ assert.deepEqual(Flow.countFields({hasStock:false}),['qty']);
+ assert.equal(products.filter(p=>p.cat==='other'&&p.hasStock).length,0);
+ assert.equal(products.filter(p=>p.cat==='other').length,18);
+});
+
 test('zebra stripe follows the rows on screen and starts over at each block',()=>{
  assert.deepEqual([0,1,2,3].map(Flow.stripe),['','band','','band']);
  const visible=[0,2,5];
