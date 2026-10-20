@@ -1,11 +1,12 @@
 import {initializeApp} from 'firebase/app';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,EmailAuthProvider,reauthenticateWithCredential,updatePassword} from 'firebase/auth';
-import {getFirestore,doc,getDocFromServer,setDoc,serverTimestamp} from 'firebase/firestore';
+import {getFirestore,doc,getDocFromServer,runTransaction,serverTimestamp} from 'firebase/firestore';
 import {store} from '../cloud/store.js';
 import C from '../cloud/core.cjs';
 import A from '../cloud/account.cjs';
 import S from './search.cjs';
 import Flow from './count-flow.cjs';
+import Backup from './draft-backup.cjs';
 
 const Core=()=>window.CountCore;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -21,6 +22,9 @@ let searchScroll=null,searchCat=null,wantFind=false,skipActUntil=0;
 let rowTap=null;
 let editField='qty';
 let localSaveFailed=false;
+let lastLocalRaw=null,localSerial=0,localBlocked=false,localConflict=false;
+let backupUid=null,cloudBase,cloudReady=false,cloudReading=false,cloudWriting=false,cloudConflict=false;
+let cloudPhase='waiting',cloudAt=null,retryDelay=5000,sessionEpoch=0;
 
 function toast(text){const t=document.getElementById('toast');t.textContent=text;t.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>{t.style.display='none';},2200);}
 function today(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());}
@@ -39,53 +43,126 @@ function firstGap(){return draft?draft.catalog.findIndex(p=>!seen(p.id)):-1;}
 
 function persistLocal(){
  if(!draft||sample)return;
+ if(screen==='order'&&!order&&editId){const i=draft.catalog.findIndex(p=>p.id===editId);if(i>=0){pos=i;field=editField==='stock'?'stock':'qty';}}
  draft.savedAt=Date.now();
- try{localStorage.setItem(KEY,JSON.stringify({draft,pos,field,savedAt:draft.savedAt}));localSaveFailed=false;}
- catch(e){localSaveFailed=true;throw Error('本机保存失败，请先保留当前页面并重试');}
+ localSerial++;cloudPending=true;
+ if(!cloudWriting&&!cloudConflict)cloudPhase='waiting';
+ saveLocalEnvelope();
  scheduleCloud();
+}
+function saveLocalEnvelope(){
+ if(sample)return;
+ try{
+  if(localBlocked)throw Error('原草稿读取失败，已停止覆盖');
+  if(localStorage.getItem(KEY)!==lastLocalRaw){localConflict=true;throw Error('另一页面已修改本机草稿，已停止覆盖');}
+  const raw=JSON.stringify({draft,pos,field,savedAt:draft?.savedAt,backupUid,cloudBase,cloudAt});
+  localStorage.setItem(KEY,raw);lastLocalRaw=raw;localSaveFailed=false;
+ }catch(e){localSaveFailed=true;paintBackupStatus();throw Error(localConflict?'另一页面已修改草稿，请先下载当前内容':'本机保存失败，请保留页面、下载备份并重试');}
+ paintBackupStatus();
 }
 function loadLocal(){
  try{
   const raw=localStorage.getItem(KEY);
+  lastLocalRaw=raw;
   if(!raw)return;
   const data=JSON.parse(raw);
-  if(!Core().validate(data.draft,source))return;
+  if(!Core().validate(data.draft,source))throw Error('草稿格式不匹配');
   draft=data.draft;draft.seen=draft.seen||{};draft.ackWrong=draft.ackWrong||{};
   pos=Math.max(0,Math.min(data.pos||0,draft.catalog.length-1));
   field=data.field==='qty'?'qty':'stock';
   if(draft.catalog[pos]&&!draft.catalog[pos].hasStock)field='qty';
   viewCat=draft.catalog[pos]?.cat||'kr';
- }catch(e){}
+  backupUid=data.backupUid||null;cloudBase=data.cloudBase;cloudAt=data.cloudAt||null;cloudPending=true;
+ }catch(e){localBlocked=true;localSaveFailed=true;}
 }
 function scheduleCloud(){clearTimeout(cloudTimer);cloudTimer=setTimeout(()=>flushCloud(),1500);}
+function draftRecord(){return draft?{schema:'ccx-draft-1',date:draft.date,localId:draft.id,pos,field,body:JSON.stringify({draft,savedAt:draft.savedAt})}:null;}
+function backupMessage(){
+ if(localBlocked)return '原草稿读取失败，已保留原内容，请先下载备份';
+ if(localConflict)return '另一页面修改了草稿，已暂停覆盖，请先下载当前备份';
+ if(localSaveFailed)return '本机保存失败！请保留页面、下载备份并重试';
+ if(cloudConflict)return '本机已保存 · 两份草稿不同，云端备份已暂停';
+ if(!user||member?.role!=='owner')return '本机已保存 · 登录大伟账号后备份云端';
+ if(typeof navigator!=='undefined'&&navigator.onLine===false)return '本机已保存 · 当前离线，联网后重试';
+ if(cloudPhase==='reading')return '本机已保存 · 正在核对云端草稿';
+ if(cloudPhase==='saving')return '本机已保存 · 正在备份云端';
+ if(cloudPhase==='failed')return '本机已保存 · 云端备份失败，将重试';
+ if(cloudPending||!cloudReady)return '本机已保存 · 等待备份云端';
+ return '本机已保存 · 云端已备份'+(cloudAt?' '+new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(cloudAt)):'');
+}
+function backupStatusHtml(){
+ if(sample||order||!canCount())return '';
+ const trouble=localSaveFailed||cloudConflict||cloudPhase==='failed';
+ return `<div class="backup-status" data-backup-status role="status"><span>${E(backupMessage())}</span>${trouble?'<button type="button" data-act="backup-retry">重试</button><button type="button" data-act="backup-export">下载本机备份</button>':''}${cloudConflict?'<button type="button" data-act="backup-local">用本机这份备份</button><button type="button" data-act="backup-remote">读取云端草稿</button>':''}</div>`;
+}
+function paintBackupStatus(){document.querySelectorAll('[data-backup-status]').forEach(el=>{el.outerHTML=backupStatusHtml();});}
+function backupRecovery(){
+ const value=localBlocked?lastLocalRaw:JSON.stringify({draft,pos,field,savedAt:draft?.savedAt});
+ const blob=new Blob([value||''],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='川川香-本机草稿备份-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function retryCloud(){
+ cloudPending=true;cloudPhase='failed';paintBackupStatus();
+ clearTimeout(cloudTimer);cloudTimer=setTimeout(()=>flushCloud(),retryDelay);retryDelay=Math.min(retryDelay*2,60000);
+}
 async function flushCloud(){
  clearTimeout(cloudTimer);
- if(sample||!draft||!user||member?.role!=='owner'||!db)return;
- if(typeof navigator!=='undefined'&&navigator.onLine===false){cloudPending=true;return;}
+ if(sample||!draft||!user||member?.role!=='owner'||!db||localSaveFailed||localConflict||localBlocked||cloudConflict)return;
+ if(typeof navigator!=='undefined'&&navigator.onLine===false){cloudPending=true;paintBackupStatus();return;}
+ if(cloudWriting||cloudReading)return;
+ if(!cloudReady){await pullDraft();return;}
+ const record=draftRecord(),nextToken=Backup.token(record),expected=cloudBase,epoch=sessionEpoch;
+ if(nextToken===cloudBase){cloudPending=false;cloudPhase='saved';paintBackupStatus();return;}
+ const ref=doc(db,'countDrafts',user.uid);
+ cloudWriting=true;cloudPhase='saving';paintBackupStatus();
  try{
-  await setDoc(doc(db,'countDrafts',user.uid),{schema:'ccx-draft-1',date:draft.date,localId:draft.id,pos,field,body:JSON.stringify({draft,savedAt:draft.savedAt||Date.now()}),updatedAt:serverTimestamp()});
-  cloudPending=false;
- }catch(e){cloudPending=true;}
+  await runTransaction(db,tx=>Backup.compareAndSave(tx,ref,expected,{...record,updatedAt:serverTimestamp()}));
+  if(epoch!==sessionEpoch)return;
+  cloudBase=nextToken;cloudAt=Date.now();retryDelay=5000;
+  cloudPending=Backup.token(draftRecord())!==nextToken;cloudPhase=cloudPending?'waiting':'saved';
+  saveLocalEnvelope();
+ }catch(e){
+  if(epoch!==sessionEpoch)return;
+  if(e.code==='draft/conflict'){cloudConflict=true;cloudReady=false;cloudPending=true;}
+  else retryCloud();
+ }finally{cloudWriting=false;paintBackupStatus();if(epoch!==sessionEpoch||cloudPending&&cloudPhase==='waiting')scheduleCloud();}
 }
-async function pullDraft(){
- if(!user||member?.role!=='owner'||!db||sample)return;
+async function pullDraft(forceRemote=false,preferLocal=false){
+ if(!user||member?.role!=='owner'||!db||sample||cloudReading||cloudWriting||localBlocked||localConflict)return;
+ const epoch=sessionEpoch,serial=localSerial;
+ cloudReading=true;cloudPhase='reading';paintBackupStatus();
  try{
   const snap=await getDocFromServer(doc(db,'countDrafts',user.uid));
-  if(!snap.exists()){if(cloudPending)flushCloud();return;}
-  const remote=JSON.parse(snap.data().body);
-  if(!remote?.draft||!Core().validate(remote.draft,source)){toast('云端草稿对不上，仍用本机这份');return;}
-  if(!draft||(remote.savedAt||0)>(draft.savedAt||0)){
-   draft=remote.draft;draft.seen=draft.seen||{};draft.ackWrong=draft.ackWrong||{};
-   pos=Math.max(0,Math.min(snap.data().pos||0,draft.catalog.length-1));
-   field=snap.data().field==='qty'?'qty':'stock';
-   if(draft.catalog[pos]&&!draft.catalog[pos].hasStock)field='qty';
-   localStorage.setItem(KEY,JSON.stringify({draft,pos,field,savedAt:draft.savedAt||remote.savedAt||0}));
+  if(epoch!==sessionEpoch)return;
+  const record=snap.exists()?snap.data():null,remote=Backup.body(record);
+  if(record&&(!remote?.draft||!Core().validate(remote.draft,source)))throw Error('云端草稿格式不匹配');
+  let choice=Backup.choose(draftRecord(),record,cloudBase);
+  if(forceRemote&&record)choice='remote';
+  if(preferLocal&&serial===localSerial){if(record)localStorage.setItem(KEY+':recovery-cloud:'+Date.now(),JSON.stringify(record));choice='local';}
+  if(choice==='remote'&&serial!==localSerial)choice='conflict';
+  if(choice==='conflict'){cloudConflict=true;cloudReady=false;cloudPending=true;return;}
+  if(choice==='remote'){
+   // Preserve the old local copy before any replacement; quota failure aborts recovery.
+   if(localStorage.getItem(KEY)!==lastLocalRaw){localConflict=true;throw Error('另一页面已修改草稿');}
+   if(draft)localStorage.setItem(KEY+':recovery:'+Date.now(),JSON.stringify({draft,pos,field}));
+   const nextDraft=remote.draft,nextPos=Math.max(0,Math.min(record.pos||0,nextDraft.catalog.length-1));
+   const nextField=nextDraft.catalog[nextPos]?.hasStock&&record.field==='stock'?'stock':'qty';
+   const raw=JSON.stringify({draft:nextDraft,pos:nextPos,field:nextField,savedAt:nextDraft.savedAt,backupUid:user.uid,cloudBase:Backup.token(record),cloudAt:null});
+   localStorage.setItem(KEY,raw);lastLocalRaw=raw;
+   draft=nextDraft;draft.seen=draft.seen||{};draft.ackWrong=draft.ackWrong||{};pos=nextPos;field=nextField;viewCat=draft.catalog[pos]?.cat||'kr';cloudAt=null;
+   editId=null;entered=null;keypad=false;textMode=false;query='';
    toast('已从云端恢复上次盘到的地方');
+   render();
   }
- }catch(e){status='云端草稿没读到，本机这份还在';}
+  cloudBase=Backup.token(record);backupUid=user.uid;cloudReady=true;cloudConflict=false;
+  if(record?.updatedAt?.toMillis)cloudAt=record.updatedAt.toMillis();
+  cloudPending=Backup.token(draftRecord())!==cloudBase;cloudPhase=cloudPending?'waiting':'saved';
+  if(draft)saveLocalEnvelope();
+ }catch(e){if(epoch===sessionEpoch)retryCloud();}
+ finally{cloudReading=false;paintBackupStatus();if(epoch!==sessionEpoch||cloudReady&&cloudPending&&!cloudConflict)scheduleCloud();}
 }
 function ensureDraft(){
- if(draft||!canCount())return;
+ if(draft||!canCount()||localBlocked)return;
  draft=Core().create(source,today(),uid());
  draft.seen={};draft.ackWrong={};draft.savedAt=Date.now();
  pos=0;field='stock';persistLocal();
@@ -294,7 +371,7 @@ function typeOrderKey(key){
  if(next.length>12)return;
  const parts=next.split('.');if(parts[1]&&parts[1].length>3)return;
  if(next==='0'&&editField==='qty'){applyQty(editId,'');editRaw='';toast('订货写 0 不算订，留空就是不订');render();return;}
- if(next===''||(next!=='.'&&!/^\d+\.$/.test(next)))applyOrderValue(editId,editField,next);
+ if(!order||next===''||(next!=='.'&&!/^\d+\.$/.test(next)))applyOrderValue(editId,editField,next);
  editRaw=next;
  render();scrollActive();
 }
@@ -505,8 +582,9 @@ function render(){
 }
 function countHtml(){
  if(!canCount())return `<div class="card"><h1>盘货由大伟来做</h1><p>你打开他发来的链接，直接改今日订单。库存可以看，不能改。</p><button class="primary" type="button" data-act="goto-order">去今日订单</button></div>`;
- ensureDraft();
- return `<div class="bar"><div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看今日订单':'下一个没盘的'}</button></div>${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
+ try{ensureDraft();}catch(e){toast(e.message);}
+ if(!draft)return `<div class="card">${backupStatusHtml()}<p>原内容仍保留。请下载备份后再处理，不要清除网站数据。</p></div>`;
+ return `<div class="bar">${backupStatusHtml()}<div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看今日订单':'下一个没盘的'}</button></div>${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
 }
 function catButtonsHtml(){
  const counts=query&&draft?Flow.searchHitCounts(draft.catalog,p=>S.matches(p,query,aliasesOf(p))):null;
@@ -562,7 +640,7 @@ function orderCats(){
  }).join('')}</div>`;
 }
 function orderShell(head,dock){
- return `${textBar()}<div class="bar">${yellowBanner()}${orderCats()}</div><p class="muted">${head}</p>${searchBar('搜全部129种，用来补订或看库存')}<div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
+ return `${textBar()}<div class="bar">${backupStatusHtml()}${yellowBanner()}${orderCats()}</div><p class="muted">${head}</p>${searchBar('搜全部129种，用来补订或看库存')}<div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
 }
 function orderPane(){
  const mine=warnings().filter(p=>p.cat===orderCat);
@@ -792,6 +870,10 @@ document.body.addEventListener('click',async e=>{
  if(busy)return;
  const act=b.dataset.act;
  try{
+  if(act==='backup-export'){backupRecovery();return;}
+  if(act==='backup-retry'){if(localBlocked||localConflict){toast('请先下载备份，再重新打开页面读取已保存版本');return;}saveLocalEnvelope();cloudReady=false;await pullDraft();return;}
+  if(act==='backup-remote'){if(!confirm('将先保留一份本机恢复副本，再读取云端草稿。继续吗？'))return;await pullDraft(true);return;}
+  if(act==='backup-local'){if(!confirm('将先在这部手机保留云端草稿副本，再用本机这份内容备份。继续吗？'))return;await pullDraft(false,true);await flushCloud();return;}
   if(act==='tab'){tryLeave(b.dataset.tab);return;}
   if(actSkipped()&&(act==='open'||act==='edit'||act==='clear-find'||act==='cancel-find'))return;
   if(act==='open'||act==='edit'){openFromRow(b);return;}
@@ -831,7 +913,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='save'){busy=true;await saveOrder();return;}
   if(act==='sample'){buildSample('order');render();return;}
   if(act==='pane'){morePane=morePane===b.dataset.pane?'':b.dataset.pane;render();return;}
-  if(act==='fresh'){if(!confirm('放弃这部手机上的这份盘货？'))return;localStorage.removeItem(KEY);draft=null;pos=0;field='stock';viewCat='kr';moduleEnd=false;keypad=false;textMode=false;catScroll={kr:0,cn:0,other:0};ensureDraft();flushCloud();screen='count';render();return;}
+  if(act==='fresh'){if(!confirm('放弃这部手机上的这份盘货？'))return;if(localBlocked||localConflict)throw Error('请先下载备份并重新打开页面');if(draft)localStorage.setItem(KEY+':recovery:'+Date.now(),JSON.stringify({draft,pos,field}));draft=null;editId=null;pos=0;field='stock';viewCat='kr';moduleEnd=false;keypad=false;textMode=false;catScroll={kr:0,cn:0,other:0};ensureDraft();flushCloud();screen='count';render();return;}
   if(act==='set-date'){const v=document.getElementById('countDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('请选日期');return;}if(draft.status==='reviewed'){toast('已经提交，日期不能改');return;}draft.date=v;persistLocal();toast('日期已改');return;}
   if(act==='logout'){await signOut(auth);order=null;return;}
   if(act==='open-cloud'){busy=true;await openOrder(b.dataset.id);return;}
@@ -910,7 +992,10 @@ document.body.addEventListener('submit',async e=>{
 window.addEventListener('beforeunload',e=>{if(localSaveFailed||orderDirty||editId&&editRaw!==orderValue(editId,editField)){e.preventDefault();e.returnValue='';}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushCloud();});
 window.addEventListener('pagehide',()=>flushCloud());
-window.addEventListener('online',()=>{if(cloudPending)flushCloud();});
+window.addEventListener('online',()=>{if(cloudPending)flushCloud();paintBackupStatus();});
+window.addEventListener('offline',()=>{cloudPending=true;paintBackupStatus();});
+window.addEventListener('storage',e=>{if(e.key===KEY&&e.newValue!==lastLocalRaw){localConflict=true;clearTimeout(cloudTimer);paintBackupStatus();}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&cloudPending)flushCloud();});
 
 async function loadList(){
  const box=document.getElementById('cloudList');if(!box||!api)return;
@@ -935,6 +1020,8 @@ async function boot(){
   if(!cfg.enabled){status='云端没打开。本机照样能盘货。';render();return;}
   const firebaseApp=initializeApp(cfg.firebase);auth=getAuth(firebaseApp);db=getFirestore(firebaseApp);
   onAuthStateChanged(auth,async u=>{
+   sessionEpoch++;cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
+   if(u&&backupUid!==u.uid){cloudBase=undefined;cloudAt=null;backupUid=u.uid;}
    user=u;member=null;api=null;
    if(!u){status='还没登录。本机盘货可以用，云端备份要等大伟登录。';if(!sample)order=null;if(params.get('order')&&!sample){screen='order';status='登录后才能看这份测试订单。';}render();return;}
    try{
