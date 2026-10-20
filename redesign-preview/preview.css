@@ -97,6 +97,14 @@ label input{display:block;width:100%;min-height:48px;margin-top:4px;border:1px s
 #toast{position:fixed;left:12px;right:12px;top:64px;z-index:50;background:#1c1917;color:#fff;border-radius:12px;padding:10px 12px;display:none}
 .hit{width:100%;text-align:left;background:#fff;border:0;border-radius:10px;min-height:56px;padding:8px;margin:0 -8px}
 .hit.band{background:var(--band)}
+.search-hit{touch-action:pan-y pinch-zoom}
+.search-hit .who{align-self:center;overflow-wrap:anywhere}
+.search-cell{margin:0;min-width:0;text-align:center;font-size:11px;color:var(--muted)}
+.search-cell input{width:100%;min-height:44px;margin:2px 0 0;padding:4px;border:1px solid #9e9288;border-radius:10px;background:#fff;text-align:center;font-size:16px;color:var(--ink)}
+.search-cell input:focus{outline:2px solid var(--red);outline-offset:0}
+.search-cell input[readonly]{background:transparent;border-color:transparent}
+.search-cell input[aria-invalid="true"]{border:2px solid var(--red);background:#fff0f0}
+.search-cell small{display:block;overflow-wrap:anywhere}
 .warnrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;margin-top:6px;padding:6px;border-radius:10px;background:#ffe7c2}
 .warnrow.band{background:#ffd09a}
 .warnrow .ghost{background:transparent}
