@@ -98,7 +98,11 @@ function boldName(p, esc) {
   return `<b>${e(largeName(p))}</b>`;
 }
 
+function stripe(index) {
+  return index % 2 ? 'band' : '';
+}
+
 module.exports = {
   isNumericQty, showsOnOrder, numericFragment, advance, endLabel, textOrderIds, parkTextStocks, NAMES,
-  largeName, smallName, sheetRows, countTitleHtml, boldName
+  largeName, smallName, sheetRows, countTitleHtml, boldName, stripe
 };
