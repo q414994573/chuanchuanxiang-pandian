@@ -97,9 +97,13 @@ function cellRaw(p,which){
  return draft.items[p.id].quantity||'';
 }
 function cellText(p,which){
- if(which==='stock'){if(!p.hasStock)return '无';const v=stockShown(p);return v===''?'空':v;}
- const q=draft.items[p.id].quantity;
- return q===''?'空':q;
+ if(which==='stock'){if(!p.hasStock)return '无';return stockShown(p);}
+ return draft.items[p.id].quantity||'';
+}
+function cellLabel(p,which){
+ const v=cellText(p,which);
+ if(which==='stock')return p.hasStock?(v?`库存 ${v}`:'库存，还没填'):'这项不用填库存';
+ return v?`订货 ${v}`:'订货，还没填';
 }
 function reviveStock(p){
  if(!draft?.stockText?.[p.id])return;
@@ -394,7 +398,7 @@ function countHtml(){
 function countCell(p,i,which){
  const on=keypad&&pos===i&&field===which;
  const inner=on&&textMode?`<input class="plain" value="${E(cellRaw(p,which))}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<b>${E(cellText(p,which))}</b>`;
- return `<div class="cell ${on?'on':''}" data-act="open" data-i="${i}" data-field="${which}" role="button">${inner}</div>`;
+ return `<div class="cell ${on?'on':''}" data-act="open" data-i="${i}" data-field="${which}" role="button" aria-label="${E(cellLabel(p,which))}">${inner}</div>`;
 }
 function countRows(){
  let html='',n=0;
