@@ -3,6 +3,12 @@ const Flow=require('../redesign-preview/count-flow.cjs');
 const Core=require('../count-core.js');
 const products=require('../current-order.json').products;
 
+test('zebra stripe follows the rows on screen and starts over at each block',()=>{
+ assert.deepEqual([0,1,2,3].map(Flow.stripe),['','band','','band']);
+ const visible=[0,2,5];
+ assert.deepEqual(visible.map((_,i)=>Flow.stripe(i)),['','band','']);
+});
+
 test('next item stays inside the current supplier block',()=>{
  const catalog=products.map(p=>({id:p.id,cat:p.cat,name:p.name}));
  assert.equal(catalog.filter(p=>p.cat==='kr').length,45);

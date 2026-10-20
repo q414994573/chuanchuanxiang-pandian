@@ -403,7 +403,7 @@ function countRows(){
   n++;
   const on=keypad&&pos===i;
   const hint=p.name==='고수'?'<p class="warn">香菜：再看一次冰箱。</p>':String(p.name).startsWith('감자수제비')?'<p class="warn">土豆面片按大包记，1大包＝2小包。</p>':'';
-  html+=`<div class="line ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-i="${i}">${Flow.countTitleHtml(p,E)}</button>${countCell(p,i,'stock')}${countCell(p,i,'qty')}</div>${hint}`;
+  html+=`<div class="line ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-i="${i}">${Flow.countTitleHtml(p,E)}</button>${countCell(p,i,'stock')}${countCell(p,i,'qty')}</div>${hint}`;
  });
  if(!n){
   const elseHits=query?draft.catalog.filter(p=>p.cat!==viewCat&&S.matches(p,query,aliasesOf(p))).length:0;
@@ -458,25 +458,26 @@ function showOrderCat(cat){
 }
 function warnHtml(list){
  if(!list.length)return '';
- return `<div class="card"><strong>请核对数量</strong><p class="muted">跟上次差了大约十倍，或是多写了一个 0。这只是提醒按错。</p>${list.slice(0,8).map(p=>`<button class="ghost" style="width:100%;margin-top:6px" type="button" data-act="warn" data-id="${E(p.id)}">${E(p.name)}：订 ${E(qtyOf(p.id))}，上次订 ${E(p.referenceOrder)}</button><button class="ghost" type="button" data-act="ack" data-id="${E(p.id)}">没问题</button>`).join('')}</div>`;
+  const rows=list.slice(0,8).map((p,i)=>`<div class="warnrow ${Flow.stripe(i)}"><button class="ghost" type="button" data-act="warn" data-id="${E(p.id)}">${E(p.name)}：订 ${E(qtyOf(p.id))}，上次订 ${E(p.referenceOrder)}</button><button class="ghost" type="button" data-act="ack" data-id="${E(p.id)}">没问题</button></div>`).join('');
+  return `<div class="card"><strong>请核对数量</strong><p class="muted">跟上次差了大约十倍，或是多写了一个 0。这只是提醒按错。</p>${rows}</div>`;
 }
 function blockHtml(cat){
  const {active,gray,changes}=rowsOf(cat);
- const row=p=>{
+ const row=(p,i)=>{
   const c=changes.get(p.id);const dead=!Flow.showsOnOrder(qtyOf(p.id))&&editId!==p.id;
   const tags=[!dead&&order&&!(baseQty[p.id]>0)?'<span class="tag">新加</span>':'',!dead&&!order&&draft?.added?.[p.id]?'<span class="tag">新加</span>':''].join('');
   const shown=editId===p.id&&editRaw!=null?editRaw:qtyOf(p.id);
   const editor=dead?`<button class="ghost" type="button" data-act="restore" data-id="${E(p.id)}">恢复</button>`:(textMode&&editId===p.id?`<input class="plain" value="${E(shown)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<button class="num" type="button" data-act="edit" data-id="${E(p.id)}">${E(shown)}${E((order?order.units[p.id]:p.unit)||'')}</button>`);
-  return `<div class="order ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${Flow.smallName(p)?E(Flow.smallName(p))+' · ':''}${E(stockLine(p))}${c?` · ${E(changeNote(c))}`:''}</div></div><div>${editor}</div></div>`;
+  return `<div class="order ${Flow.stripe(i)} ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${Flow.smallName(p)?E(Flow.smallName(p))+' · ':''}${E(stockLine(p))}${c?` · ${E(changeNote(c))}`:''}</div></div><div>${editor}</div></div>`;
  };
- const body=active.map(row).join('')+gray.map(row).join('');
+ const body=[...active,...gray].map(row).join('');
  const empty=yellowOnly?'这一块没有她改的。':'这一家这次不订。';
  return `<div class="card"><div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}">复制</button><button class="ghost" type="button" data-act="share" data-cat="${cat}">分享</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
 }
 function searchHits(){
- return catalog().filter(p=>S.matches(p,query,aliasesOf(p))).map(p=>{
+ return catalog().filter(p=>S.matches(p,query,aliasesOf(p))).map((p,i)=>{
   const cat=CATS.find(c=>c[0]===p.cat);
-  return `<button class="hit" type="button" data-act="edit" data-id="${E(p.id)}">${Flow.boldName(p,E)} <small>${E(cat?cat[2]:'')}</small>${Flow.smallName(p)?`<small> · ${E(Flow.smallName(p))}</small>`:''}<div class="muted">${E(stockLine(p))}${Flow.showsOnOrder(qtyOf(p.id))?' · 已订 '+E(qtyOf(p.id)):' · 未订'}</div></button>`;
+  return `<button class="hit ${Flow.stripe(i)}" type="button" data-act="edit" data-id="${E(p.id)}">${Flow.boldName(p,E)} <small>${E(cat?cat[2]:'')}</small>${Flow.smallName(p)?`<small> · ${E(Flow.smallName(p))}</small>`:''}<div class="muted">${E(stockLine(p))}${Flow.showsOnOrder(qtyOf(p.id))?' · 已订 '+E(qtyOf(p.id)):' · 未订'}</div></button>`;
  }).join('')||'<p>没有匹配的商品。</p>';
 }
 function dockHtml(){
