@@ -70,6 +70,17 @@ test('redesign preview stays off the production pages and only writes test order
  assert.match(js,/>123</);
  assert.match(js,/viewCat===cat/);
  assert.match(js,/p\.cat!==viewCat/);
+ assert.match(js,/Flow\.indexById/);
+ assert.match(js,/Flow\.visibleCountIndexes/);
+ assert.match(js,/data-id="/);
+ assert.match(js,/data-act="cancel-find"/);
+ assert.match(js,/data-act="clear-find"/);
+ assert.match(js,/class="caret"/);
+ assert.match(js,/activeElement!==find/);
+ assert.match(css,/\.cell\.on\{border:3px solid var\(--red\)/);
+ assert.match(css,/\.order \.num\.on\{[^}]*border:3px solid var\(--red\)/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(css,/@keyframes caret-blink/);
  assert.match(js,/data-act="ordercat"/);
  assert.match(js,/\$\{n\}样/);
  assert.match(js,/mark red/);
@@ -77,6 +88,8 @@ test('redesign preview stays off the production pages and only writes test order
  assert.equal(js.includes('同上次'),false);
  assert.equal(js.includes('上次没订'),false);
  assert.match(bundle,/\\u6536\\u8D77/);
+ assert.match(bundle,/\\u53D6\\u6D88/);
+ assert.match(bundle,/caret/);
  assert.equal(bundle.includes('\\u540C\\u4E0A\\u6B21'),false);
  assert.equal(bundle.includes('\\u4E0A\\u6B21\\u6CA1\\u8BA2'),false);
  assert.equal(read('firestore.rules').includes('countDrafts'),true);
