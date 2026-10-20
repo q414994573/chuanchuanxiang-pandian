@@ -106,7 +106,22 @@ function countFields(product) {
   return product && product.hasStock ? ['stock', 'qty'] : ['qty'];
 }
 
+function indexById(catalog, id) {
+  if (!catalog || id == null || id === '') return -1;
+  return catalog.findIndex(p => p && p.id === id);
+}
+
+function visibleCountIndexes(catalog, cat, matches, activeIndex) {
+  const out = [];
+  (catalog || []).forEach((p, i) => {
+    if (!p || p.cat !== cat) return;
+    if (i !== activeIndex && !(typeof matches === 'function' && matches(p))) return;
+    out.push(i);
+  });
+  return out;
+}
+
 module.exports = {
   isNumericQty, showsOnOrder, numericFragment, advance, endLabel, textOrderIds, parkTextStocks, NAMES,
-  largeName, smallName, sheetRows, countTitleHtml, boldName, stripe, countFields
+  largeName, smallName, sheetRows, countTitleHtml, boldName, stripe, countFields, indexById, visibleCountIndexes
 };

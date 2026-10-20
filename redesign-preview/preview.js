@@ -17,6 +17,7 @@ let catScroll={kr:0,cn:0,other:0},orderScroll={kr:0,cn:0,other:0};
 let user=null,member=null,auth,db,api=null,order=null,baseQty={},stocks={},stockBase={},history=[];
 let query='',status='正在准备…',sample=false,demoRole=null,busy=false,orderDirty=false,editId=null,editSnap=null,editRaw=null;
 let undo=null,heldPrev={},ack={},yellowOn=true,yellowOnly=false,archives=[],cloudTimer=null,cloudPending=false,morePane='';
+let searchScroll=null,wantFind=false,skipActUntil=0;
 
 function toast(text){const t=document.getElementById('toast');t.textContent=text;t.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>{t.style.display='none';},2200);}
 function today(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());}
@@ -136,6 +137,7 @@ function captureEntered(){
 function openCount(i,which){
  if(!draft)return;
  if(draft.status==='reviewed'){toast('已经提交。要改数量，去今日订单');screen='order';keypad=false;textMode=false;render();return;}
+ blurFind();
  const prev=pos;
  if(!(keypad&&pos===i&&field===which))leaveCountCell();
  pos=i;
@@ -197,7 +199,7 @@ function showCat(cat){
  if(!draft||!cat)return;
  readPlain();
  leaveCountCell();
- keypad=false;textMode=false;
+ keypad=false;textMode=false;searchScroll=null;
  if(cat===viewCat){moduleEnd=false;render();return;}
  catScroll[viewCat]=window.scrollY;
  viewCat=cat;moduleEnd=false;
@@ -244,6 +246,7 @@ function applyQty(id,text){
 }
 function openOrderKey(id){
  if(editId&&editId!==id)commitOrderEdit();
+ blurFind();
  editId=id;editSnap=qtyOf(id);editRaw=editSnap;keypad=true;textMode=false;screen='order';render();scrollActive();
 }
 function commitOrderEdit(){
@@ -388,6 +391,54 @@ function scrollActive(){
  if(r2.top<topLimit)window.scrollBy(0,r2.top-topLimit);
 }
 
+function blurFind(){
+ const find=document.getElementById('find');
+ if(find&&document.activeElement===find)find.blur();
+}
+function skipAct(){skipActUntil=Date.now()+450;}
+function actSkipped(){return Date.now()<skipActUntil;}
+function searchBar(placeholder){
+ return `<div class="search${query?' hasq':''}"><div class="findwrap"><input class="find" id="find" placeholder="${placeholder}" value="${E(query)}" enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off"><button class="clear" type="button" data-act="clear-find" aria-label="清空" tabindex="-1">✕</button></div><button class="cancel" type="button" data-act="cancel-find">取消</button></div>`;
+}
+function paintRows(){
+ const box=document.getElementById('rows');
+ if(box)box.innerHTML=screen==='count'?countRows():(query?searchHits():orderPane());
+ const wrap=document.querySelector('.search');
+ if(wrap)wrap.classList.toggle('hasq',!!query);
+}
+function clearFind(){
+ query='';
+ const find=document.getElementById('find');
+ if(find)find.value='';
+ paintRows();
+ wantFind=true;
+ if(find)find.focus({preventScroll:true});
+}
+function cancelFind(){
+ const y=searchScroll;
+ searchScroll=null;query='';wantFind=false;
+ if(textMode)readPlain();
+ if(screen==='count')leaveCountCell();
+ else commitOrderEdit();
+ keypad=false;textMode=false;editId=null;editSnap=null;editRaw=null;
+ blurFind();
+ render();
+ if(y!=null)requestAnimationFrame(()=>window.scrollTo(0,y));
+}
+function openFromRow(b){
+ if(b.dataset.act==='open'){
+  const id=b.dataset.id;
+  const i=id&&draft?Flow.indexById(draft.catalog,id):Number(b.dataset.i);
+  if(!(i>=0))return;
+  openCount(i,b.dataset.field);
+  return;
+ }
+ const id=b.dataset.id;
+ const p=product(id);if(p)orderCat=p.cat;
+ query='';searchScroll=null;
+ if(draft&&!order&&!Flow.showsOnOrder(qtyOf(id)))draft.added={...draft.added,[id]:true};
+ openOrderKey(id);
+}
 function render(){
  document.body.classList.toggle('key-open',keypad&&!textMode);
  document.body.classList.toggle('text-mode',!!textMode);
@@ -404,23 +455,25 @@ function render(){
 function countHtml(){
  if(!canCount())return `<div class="card"><h1>盘货由大伟来做</h1><p>你打开他发来的链接，直接改今日订单。库存可以看，不能改。</p><button class="primary" type="button" data-act="goto-order">去今日订单</button></div>`;
  ensureDraft();
- return `<div class="bar"><div class="cats">${CATS.map(([cat,short])=>`<button type="button" data-act="jumpcat" data-cat="${cat}" class="${viewCat===cat?'on':''}">${short} ${seenIn(cat)}/${totalIn(cat)}</button>`).join('')}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看今日订单':'下一个没盘的'}</button></div><input class="find" id="find" placeholder="搜这一类的中文、韩文，或开头辅音" value="${E(query)}"><div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
+ return `<div class="bar"><div class="cats">${CATS.map(([cat,short])=>`<button type="button" data-act="jumpcat" data-cat="${cat}" class="${viewCat===cat?'on':''}">${short} ${seenIn(cat)}/${totalIn(cat)}</button>`).join('')}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看今日订单':'下一个没盘的'}</button></div>${searchBar('搜这一类的中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
 }
 function countCell(p,i,which){
  const on=keypad&&pos===i&&field===which;
- const inner=on&&textMode?`<input class="plain" value="${E(cellRaw(p,which))}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<b>${E(cellText(p,which))}</b>`;
- return `<div class="cell ${on?'on':''}" data-act="open" data-i="${i}" data-field="${which}" role="button" aria-label="${E(cellLabel(p,which))}">${inner}</div>`;
+ const caret=on&&!textMode?'<i class="caret" aria-hidden="true"></i>':'';
+ const inner=on&&textMode?`<input class="plain" value="${E(cellRaw(p,which))}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<b>${E(cellText(p,which))}${caret}</b>`;
+ return `<div class="cell ${on?'on':''}" data-act="open" data-id="${E(p.id)}" data-i="${i}" data-field="${which}" role="button" aria-label="${E(cellLabel(p,which))}">${inner}</div>`;
 }
 function countRows(){
  let html='',n=0;
- draft.catalog.forEach((p,i)=>{
-  if(p.cat!==viewCat||!S.matches(p,query,aliasesOf(p)))return;
+ const shown=Flow.visibleCountIndexes(draft.catalog,viewCat,p=>S.matches(p,query,aliasesOf(p)),keypad?pos:-1);
+ for(const i of shown){
+  const p=draft.catalog[i];
   n++;
   const on=keypad&&pos===i;
   const hint=p.name==='고수'?'<p class="warn">香菜：再看一次冰箱。</p>':String(p.name).startsWith('감자수제비')?'<p class="warn">土豆面片按大包记，1大包＝2小包。</p>':'';
   const fields=Flow.countFields(p);
-  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-i="${i}">${Flow.countTitleHtml(p,E)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
- });
+  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml(p,E)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
+ }
  if(!n){
   const elseHits=query?draft.catalog.filter(p=>p.cat!==viewCat&&S.matches(p,query,aliasesOf(p))).length:0;
   html=`<p class="muted">这一类没有。${elseHits?`另外 ${elseHits} 样在别的类里，点上面切换。`:''}</p>`;
@@ -454,7 +507,7 @@ function orderCats(){
  }).join('')}</div>`;
 }
 function orderShell(head,dock){
- return `${textBar()}<div class="bar">${yellowBanner()}${orderCats()}</div><p class="muted">${head}</p><input class="find" id="find" placeholder="搜全部129种，用来补订或看库存" value="${E(query)}"><div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
+ return `${textBar()}<div class="bar">${yellowBanner()}${orderCats()}</div><p class="muted">${head}</p>${searchBar('搜全部129种，用来补订或看库存')}<div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
 }
 function orderPane(){
  const mine=warnings().filter(p=>p.cat===orderCat);
@@ -464,7 +517,7 @@ function showOrderCat(cat){
  if(!cat)return;
  if(textMode&&readPlain()===false)return;
  if(commitOrderEdit()===false)return;
- keypad=false;textMode=false;query='';
+ keypad=false;textMode=false;query='';searchScroll=null;
  if(cat===orderCat){render();return;}
  orderScroll[orderCat]=window.scrollY;
  orderCat=cat;
@@ -483,7 +536,10 @@ function blockHtml(cat){
   const c=changes.get(p.id);const dead=!Flow.showsOnOrder(qtyOf(p.id))&&editId!==p.id;
   const tags=[!dead&&order&&!(baseQty[p.id]>0)?'<span class="tag">新加</span>':'',!dead&&!order&&draft?.added?.[p.id]?'<span class="tag">新加</span>':''].join('');
   const shown=editId===p.id&&editRaw!=null?editRaw:qtyOf(p.id);
-  const editor=dead?`<button class="ghost" type="button" data-act="restore" data-id="${E(p.id)}">恢复</button>`:(textMode&&editId===p.id?`<input class="plain" value="${E(shown)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<button class="num" type="button" data-act="edit" data-id="${E(p.id)}">${E(shown)}${E((order?order.units[p.id]:p.unit)||'')}</button>`);
+  const picking=editId===p.id&&!dead;
+  const caret=picking&&!textMode?'<i class="caret" aria-hidden="true"></i>':'';
+  const unit=E((order?order.units[p.id]:p.unit)||'');
+  const editor=dead?`<button class="ghost" type="button" data-act="restore" data-id="${E(p.id)}">恢复</button>`:(picking&&textMode?`<input class="plain on" value="${E(shown)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<button class="num${picking?' on':''}" type="button" data-act="edit" data-id="${E(p.id)}">${picking?`<b>${E(shown)}${caret}</b>${unit}`:`${E(shown)}${unit}`}</button>`);
   return `<div class="order ${Flow.stripe(i)} ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${E(detailLine(p,c?changeNote(c):''))}</div></div><div>${editor}</div></div>`;
  };
  const body=[...active,...gray].map(row).join('');
@@ -644,7 +700,7 @@ function tryLeave(next){
  else commitOrderEdit();
  keypad=false;textMode=false;
  if(next!=='order')editId=null;
- screen=next;if(next!=='count')query='';render();
+ screen=next;searchScroll=null;if(next!=='count')query='';render();
  if(next==='more'&&api)loadList();
 }
 
@@ -656,7 +712,10 @@ document.body.addEventListener('click',async e=>{
  const act=b.dataset.act;
  try{
   if(act==='tab'){tryLeave(b.dataset.tab);return;}
-  if(act==='open'){openCount(Number(b.dataset.i),b.dataset.field);return;}
+  if(actSkipped()&&(act==='open'||act==='edit'||act==='clear-find'||act==='cancel-find'))return;
+  if(act==='open'||act==='edit'){openFromRow(b);return;}
+  if(act==='clear-find'){clearFind();return;}
+  if(act==='cancel-find'){cancelFind();return;}
   if(act==='key'){if(screen==='order'&&editId){typeOrderKey(b.dataset.key);return;}typeKey(b.dataset.key);return;}
   if(act==='next'){nextCell();return;}
   if(act==='close'){closePad();return;}
@@ -676,7 +735,6 @@ document.body.addEventListener('click',async e=>{
   if(act==='ordercat'){showOrderCat(b.dataset.cat);return;}
   if(act==='next-gap'){if(allSeen()){tryLeave('order');return;}const i=firstGap();if(i<0)return;query='';const cat=draft.catalog[i].cat;if(cat!==viewCat){catScroll[viewCat]=window.scrollY;viewCat=cat;}moduleEnd=false;openCount(i,'stock');return;}
   if(act==='goto-order'){tryLeave('order');return;}
-  if(act==='edit'){const id=b.dataset.id;const p=product(id);if(p)orderCat=p.cat;query='';if(draft&&!order&&!Flow.showsOnOrder(qtyOf(id)))draft.added={...draft.added,[id]:true};openOrderKey(id);return;}
   if(act==='minus'){stepQty(-1);return;}
   if(act==='plus'){stepQty(1);return;}
   if(act==='zero'){cancelLine(editId);return;}
@@ -712,7 +770,7 @@ document.body.addEventListener('input',e=>{
   writeCell(value);
   return;
  }
- if(e.target.id==='find'){query=e.target.value;const box=document.getElementById('rows');if(box)box.innerHTML=screen==='count'?countRows():(query?searchHits():orderPane());}
+ if(e.target.id==='find'){query=e.target.value;paintRows();}
 });
 document.body.addEventListener('keydown',e=>{
  if(!e.target.classList.contains('plain')||e.key!=='Enter')return;
@@ -722,7 +780,27 @@ document.body.addEventListener('keydown',e=>{
  if(screen==='count')nextCell();
  else advanceOrder();
 });
-document.body.addEventListener('focusin',e=>{if(e.target.id==='find'&&(keypad||textMode))closePad();});
+document.body.addEventListener('pointerdown',e=>{
+ if(e.target.closest('#find')){wantFind=true;if(searchScroll==null)searchScroll=window.scrollY;return;}
+ wantFind=false;
+ if(e.target.closest('[data-act="clear-find"]')){e.preventDefault();clearFind();skipAct();return;}
+ if(e.target.closest('[data-act="cancel-find"]')){e.preventDefault();cancelFind();skipAct();return;}
+ const find=document.getElementById('find');
+ const row=e.target.closest('[data-act="open"],[data-act="edit"]');
+ if(!row||!find||document.activeElement!==find)return;
+ e.preventDefault();
+ skipAct();
+ openFromRow(row);
+});
+document.body.addEventListener('focusin',e=>{
+ if(e.target.id!=='find')return;
+ if(searchScroll==null)searchScroll=window.scrollY;
+ if(!(keypad||textMode)){wantFind=false;return;}
+ if(!wantFind){e.target.blur();return;}
+ wantFind=false;
+ const y=searchScroll;
+ setTimeout(()=>{closePad();searchScroll=y;const f=document.getElementById('find');if(f)f.focus({preventScroll:true});},0);
+});
 if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{if(textMode)scrollActive();});
 document.body.addEventListener('submit',async e=>{
  if(e.target.id==='login'){e.preventDefault();const form=e.target;try{await signInWithEmailAndPassword(auth,A.accountEmail(form.elements.account.value),form.elements.password.value);}catch(err){toast(A.authErrorText(err.code,err.message)||err.message||'登录失败');}finally{form.elements.password.value='';}}

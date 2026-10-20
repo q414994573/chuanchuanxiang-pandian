@@ -28,6 +28,24 @@ test('next item stays inside the current supplier block',()=>{
  assert.equal(Flow.endLabel('other'),'其他商品盘完了 · 看今日订单');
 });
 
+test('a filtered count row is edited by product id, not by its row number on screen',()=>{
+ const catalog=products.map(p=>({id:p.id,cat:p.cat,name:p.name,alias:p.alias||''}));
+ const matches=p=>String(p.name).includes('鸡精')||String(p.alias).includes('鸡精');
+ const visible=Flow.visibleCountIndexes(catalog,'cn',matches,-1);
+ assert.equal(catalog[visible[0]].id,'cn:9');
+ assert.equal(catalog[visible[0]].name,'鸡精');
+ assert.notEqual(visible[0],0);
+ assert.equal(Flow.indexById(catalog,'cn:9'),visible[0]);
+ assert.equal(Flow.indexById(catalog,'missing'),-1);
+ const kept=Flow.visibleCountIndexes(catalog,'cn',()=>false,visible[0]);
+ assert.deepEqual(kept,[visible[0]]);
+ const draft=Core.create({date:'2026-10-18',products},'2026-10-20','count-search-id');
+ Core.edit(draft,'cn:9','stock','12');
+ assert.equal(draft.items['cn:9'].stock,'12');
+ assert.equal(draft.items[catalog[0].id].stock,'');
+ assert.equal(draft.items[catalog[visible[0]].id].stock,'12');
+});
+
 test('text stock is kept aside and text orders are blocked before a cloud submit',()=>{
  const source={date:'2026-10-18',products};
  const draft=Core.create(source,'2026-10-20','count-flow-preview');
