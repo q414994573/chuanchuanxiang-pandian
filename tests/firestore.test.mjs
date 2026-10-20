@@ -1,8 +1,9 @@
 import {initializeTestEnvironment,assertFails,assertSucceeds} from '@firebase/rules-unit-testing';
 import {readFileSync} from 'node:fs';
-import {doc,setDoc,getDoc,getDocs,updateDoc,deleteDoc,writeBatch,serverTimestamp,collection} from 'firebase/firestore';
+import {doc,setDoc,getDoc,getDocs,updateDoc,deleteDoc,writeBatch,serverTimestamp,collection,runTransaction} from 'firebase/firestore';
 import assert from 'node:assert/strict';
 import {store} from '../cloud/store.js';
+import Backup from '../redesign-preview/draft-backup.cjs';
 const env=await initializeTestEnvironment({projectId:'demo-ccx-collaboration',firestore:{rules:readFileSync('firestore.rules','utf8'),host:'127.0.0.1',port:8080}});
 try{
 await env.withSecurityRulesDisabled(async c=>{await setDoc(doc(c.firestore(),'members','chef'),{role:'owner',active:true,name:'大伟',account:'dawei'});await setDoc(doc(c.firestore(),'members','boss'),{role:'editor',active:true,name:'老板娘',account:'laobanniang'});await setDoc(doc(c.firestore(),'members','paused'),{role:'editor',active:false,name:'停用'});});
@@ -62,5 +63,12 @@ await assertFails(setDoc(doc(stranger,'countDrafts','stranger'),{...draftDoc,upd
 await assertFails(deleteDoc(doc(chef,'countDrafts','chef')));
 await assertFails(setDoc(doc(chef,'countDrafts','chef'),{...draftDoc,schema:'ccx-cloud-1',updatedAt:serverTimestamp()}));
 await assertFails(getDocs(collection(boss,'countDrafts')));
+const draftRef=doc(chef,'countDrafts','chef');
+const draftBase=Backup.token((await getDoc(draftRef)).data());
+const draftWrites=await Promise.allSettled(['first','second'].map(value=>runTransaction(chef,tx=>Backup.compareAndSave(tx,draftRef,draftBase,{...draftDoc,body:JSON.stringify({test:true,value,stock:'',qty:12}),updatedAt:serverTimestamp()}))));
+assert.equal(draftWrites.filter(x=>x.status==='fulfilled').length,1);
+const latestDraft=(await getDoc(draftRef)).data();
+await assertSucceeds(runTransaction(chef,tx=>Backup.compareAndSave(tx,draftRef,draftBase,latestDraft)));
+console.log('PASS draft backup transaction: one winner, stale writer blocked, lost-ack retry idempotent');
 console.log('PASS owner-only count draft; editor and strangers cannot read it');
 }finally{await env.cleanup();}
