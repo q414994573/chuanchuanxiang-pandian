@@ -17,7 +17,7 @@ let catScroll={kr:0,cn:0,other:0},orderScroll={kr:0,cn:0,other:0};
 let user=null,member=null,auth,db,api=null,order=null,baseQty={},stocks={},stockBase={},history=[];
 let query='',status='正在准备…',sample=false,demoRole=null,busy=false,orderDirty=false,editId=null,editSnap=null,editRaw=null;
 let undo=null,heldPrev={},ack={},yellowOn=true,yellowOnly=false,archives=[],cloudTimer=null,cloudPending=false,morePane='';
-let searchScroll=null,wantFind=false,skipActUntil=0;
+let searchScroll=null,searchCat=null,wantFind=false,skipActUntil=0;
 
 function toast(text){const t=document.getElementById('toast');t.textContent=text;t.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>{t.style.display='none';},2200);}
 function today(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());}
@@ -199,12 +199,13 @@ function showCat(cat){
  if(!draft||!cat)return;
  readPlain();
  leaveCountCell();
- keypad=false;textMode=false;searchScroll=null;
+ keypad=false;textMode=false;
+ if(!query){searchScroll=null;searchCat=null;}
  if(cat===viewCat){moduleEnd=false;render();return;}
- catScroll[viewCat]=window.scrollY;
+ if(!query) catScroll[viewCat]=window.scrollY;
  viewCat=cat;moduleEnd=false;
  render();
- const y=catScroll[cat]||0;
+ const y=query?0:(catScroll[cat]||0);
  requestAnimationFrame(()=>window.scrollTo(0,y));
 }
 function doUndo(){
@@ -400,9 +401,32 @@ function actSkipped(){return Date.now()<skipActUntil;}
 function searchBar(placeholder){
  return `<div class="search${query?' hasq':''}"><div class="findwrap"><input class="find" id="find" placeholder="${placeholder}" value="${E(query)}" enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off"><button class="clear" type="button" data-act="clear-find" aria-label="清空" tabindex="-1">✕</button></div><button class="cancel" type="button" data-act="cancel-find">取消</button></div>`;
 }
+function rememberSearchOrigin(){
+ if(searchCat==null)searchCat=viewCat;
+ if(searchScroll==null)searchScroll=window.scrollY;
+}
+function followSearchCat(){
+ if(screen!=='count'||!draft||!query)return;
+ const next=Flow.searchCatChoice(Flow.searchHitCounts(draft.catalog,p=>S.matches(p,query,aliasesOf(p))),viewCat);
+ if(next===viewCat)return;
+ if(keypad||textMode){
+  if(textMode)readPlain();
+  leaveCountCell();
+  keypad=false;textMode=false;
+  document.body.classList.remove('key-open','text-mode');
+  document.querySelector('.pad')?.remove();
+ }
+ viewCat=next;moduleEnd=false;
+}
+function syncCatButtons(){
+ const box=document.querySelector('.bar .cats');
+ if(box&&screen==='count')box.innerHTML=catButtonsHtml();
+}
 function paintRows(){
+ if(screen==='count')followSearchCat();
  const box=document.getElementById('rows');
  if(box)box.innerHTML=screen==='count'?countRows():(query?searchHits():orderPane());
+ if(screen==='count')syncCatButtons();
  const wrap=document.querySelector('.search');
  if(wrap)wrap.classList.toggle('hasq',!!query);
 }
@@ -416,11 +440,13 @@ function clearFind(){
 }
 function cancelFind(){
  const y=searchScroll;
- searchScroll=null;query='';wantFind=false;
+ const cat=searchCat;
+ searchScroll=null;searchCat=null;query='';wantFind=false;
  if(textMode)readPlain();
  if(screen==='count')leaveCountCell();
  else commitOrderEdit();
  keypad=false;textMode=false;editId=null;editSnap=null;editRaw=null;
+ if(cat)viewCat=cat;
  blurFind();
  render();
  if(y!=null)requestAnimationFrame(()=>window.scrollTo(0,y));
@@ -435,7 +461,7 @@ function openFromRow(b){
  }
  const id=b.dataset.id;
  const p=product(id);if(p)orderCat=p.cat;
- query='';searchScroll=null;
+ query='';searchScroll=null;searchCat=null;
  if(draft&&!order&&!Flow.showsOnOrder(qtyOf(id)))draft.added={...draft.added,[id]:true};
  openOrderKey(id);
 }
@@ -455,7 +481,14 @@ function render(){
 function countHtml(){
  if(!canCount())return `<div class="card"><h1>盘货由大伟来做</h1><p>你打开他发来的链接，直接改今日订单。库存可以看，不能改。</p><button class="primary" type="button" data-act="goto-order">去今日订单</button></div>`;
  ensureDraft();
- return `<div class="bar"><div class="cats">${CATS.map(([cat,short])=>`<button type="button" data-act="jumpcat" data-cat="${cat}" class="${viewCat===cat?'on':''}">${short} ${seenIn(cat)}/${totalIn(cat)}</button>`).join('')}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看今日订单':'下一个没盘的'}</button></div>${searchBar('搜这一类的中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
+ return `<div class="bar"><div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看今日订单':'下一个没盘的'}</button></div>${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
+}
+function catButtonsHtml(){
+ const counts=query&&draft?Flow.searchHitCounts(draft.catalog,p=>S.matches(p,query,aliasesOf(p))):null;
+ return CATS.map(([cat,short])=>{
+  const n=counts&&cat!==viewCat?(counts[cat]||0):0;
+  return `<button type="button" data-act="jumpcat" data-cat="${cat}" class="${viewCat===cat?'on':''}">${short} ${seenIn(cat)}/${totalIn(cat)}${n?`<small class="found">搜到${n}</small>`:''}</button>`;
+ }).join('');
 }
 function countCell(p,i,which){
  const on=keypad&&pos===i&&field===which;
@@ -474,10 +507,7 @@ function countRows(){
   const fields=Flow.countFields(p);
   html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml(p,E)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
  }
- if(!n){
-  const elseHits=query?draft.catalog.filter(p=>p.cat!==viewCat&&S.matches(p,query,aliasesOf(p))).length:0;
-  html=`<p class="muted">这一类没有。${elseHits?`另外 ${elseHits} 样在别的类里，点上面切换。`:''}</p>`;
- }
+ if(!n) html='<p class="muted">没有匹配的商品。</p>';
  return html+endNote('list');
 }
 function orderHtml(){
@@ -700,7 +730,7 @@ function tryLeave(next){
  else commitOrderEdit();
  keypad=false;textMode=false;
  if(next!=='order')editId=null;
- screen=next;searchScroll=null;if(next!=='count')query='';render();
+ screen=next;searchScroll=null;searchCat=null;if(next!=='count')query='';render();
  if(next==='more'&&api)loadList();
 }
 
@@ -770,7 +800,7 @@ document.body.addEventListener('input',e=>{
   writeCell(value);
   return;
  }
- if(e.target.id==='find'){query=e.target.value;paintRows();}
+ if(e.target.id==='find'){if(screen==='count')rememberSearchOrigin();query=e.target.value;paintRows();}
 });
 document.body.addEventListener('keydown',e=>{
  if(!e.target.classList.contains('plain')||e.key!=='Enter')return;
@@ -781,7 +811,7 @@ document.body.addEventListener('keydown',e=>{
  else advanceOrder();
 });
 document.body.addEventListener('pointerdown',e=>{
- if(e.target.closest('#find')){wantFind=true;if(searchScroll==null)searchScroll=window.scrollY;return;}
+ if(e.target.closest('#find')){wantFind=true;rememberSearchOrigin();return;}
  wantFind=false;
  if(e.target.closest('[data-act="clear-find"]')){e.preventDefault();clearFind();skipAct();return;}
  if(e.target.closest('[data-act="cancel-find"]')){e.preventDefault();cancelFind();skipAct();return;}
@@ -794,12 +824,13 @@ document.body.addEventListener('pointerdown',e=>{
 });
 document.body.addEventListener('focusin',e=>{
  if(e.target.id!=='find')return;
- if(searchScroll==null)searchScroll=window.scrollY;
+ rememberSearchOrigin();
  if(!(keypad||textMode)){wantFind=false;return;}
  if(!wantFind){e.target.blur();return;}
  wantFind=false;
  const y=searchScroll;
- setTimeout(()=>{closePad();searchScroll=y;const f=document.getElementById('find');if(f)f.focus({preventScroll:true});},0);
+ const cat=searchCat;
+ setTimeout(()=>{closePad();searchScroll=y;searchCat=cat;const f=document.getElementById('find');if(f)f.focus({preventScroll:true});},0);
 });
 if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{if(textMode)scrollActive();});
 document.body.addEventListener('submit',async e=>{

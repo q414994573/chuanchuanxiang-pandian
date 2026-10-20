@@ -121,7 +121,34 @@ function visibleCountIndexes(catalog, cat, matches, activeIndex) {
   return out;
 }
 
+const SEARCH_CATS = ['kr', 'cn', 'other'];
+
+function searchHitCounts(catalog, matches) {
+  const counts = {kr: 0, cn: 0, other: 0};
+  (catalog || []).forEach(p => {
+    if (!p || counts[p.cat] == null || typeof matches !== 'function' || !matches(p)) return;
+    counts[p.cat]++;
+  });
+  return counts;
+}
+
+function searchCatChoice(counts, current) {
+  const here = counts && counts[current] || 0;
+  if (here > 0) return current;
+  let best = current;
+  let bestN = 0;
+  for (const cat of SEARCH_CATS) {
+    const n = counts && counts[cat] || 0;
+    if (n > bestN) {
+      best = cat;
+      bestN = n;
+    }
+  }
+  return bestN > 0 ? best : current;
+}
+
 module.exports = {
   isNumericQty, showsOnOrder, numericFragment, advance, endLabel, textOrderIds, parkTextStocks, NAMES,
-  largeName, smallName, sheetRows, countTitleHtml, boldName, stripe, countFields, indexById, visibleCountIndexes
+  largeName, smallName, sheetRows, countTitleHtml, boldName, stripe, countFields, indexById, visibleCountIndexes,
+  searchHitCounts, searchCatChoice
 };
