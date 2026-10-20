@@ -53,6 +53,12 @@ test('redesign preview stays off the production pages and only writes test order
  assert.ok(css.indexOf('.order.band')<css.indexOf('.order.yellow'));
  assert.ok(css.indexOf('.order.yellow')<css.indexOf('.order.dead'));
  assert.ok(css.indexOf('.order.dead')<css.indexOf('.order.on'));
+ assert.match(js,/return stockShown\(p\);/);
+ assert.match(js,/quantity\|\|''/);
+ assert.equal(js.includes("'空':v"),false);
+ assert.equal(js.includes("'空':q"),false);
+ assert.match(js,/aria-label=/);
+ assert.match(css,/\.cell b\{[^}]*min-height:1\.15em/);
  assert.match(js,/data-act="close"/);
  assert.match(js,/>文字</);
  assert.match(js,/>123</);
