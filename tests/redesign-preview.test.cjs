@@ -53,7 +53,13 @@ test('redesign preview stays off the production pages and only writes test order
  assert.ok(css.indexOf('.order.band')<css.indexOf('.order.yellow'));
  assert.ok(css.indexOf('.order.yellow')<css.indexOf('.order.dead'));
  assert.ok(css.indexOf('.order.dead')<css.indexOf('.order.on'));
- assert.match(js,/return stockShown\(p\);/);
+ assert.match(js,/Flow\.countFields\(p\)/);
+ assert.match(js,/nostock/);
+ assert.match(css,/\.line\.nostock\{grid-template-columns:minmax\(0,1fr\) 74px\}/);
+ assert.equal(js.includes('这项没有库存'),false);
+ assert.equal(js.includes("return '无'"),false);
+ assert.match(js,/if\(!p\.hasStock\)return ''/);
+ assert.match(js,/p\.hasStock\?stockShown\(p\):''/);
  assert.match(js,/quantity\|\|''/);
  assert.equal(js.includes("'空':v"),false);
  assert.equal(js.includes("'空':q"),false);

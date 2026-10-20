@@ -48,6 +48,7 @@ function loadLocal(){
   draft=data.draft;draft.seen=draft.seen||{};draft.ackWrong=draft.ackWrong||{};
   pos=Math.max(0,Math.min(data.pos||0,draft.catalog.length-1));
   field=data.field==='qty'?'qty':'stock';
+  if(draft.catalog[pos]&&!draft.catalog[pos].hasStock)field='qty';
   viewCat=draft.catalog[pos]?.cat||'kr';
  }catch(e){}
 }
@@ -72,6 +73,7 @@ async function pullDraft(){
    draft=remote.draft;draft.seen=draft.seen||{};draft.ackWrong=draft.ackWrong||{};
    pos=Math.max(0,Math.min(snap.data().pos||0,draft.catalog.length-1));
    field=snap.data().field==='qty'?'qty':'stock';
+   if(draft.catalog[pos]&&!draft.catalog[pos].hasStock)field='qty';
    localStorage.setItem(KEY,JSON.stringify({draft,pos,field,savedAt:draft.savedAt||remote.savedAt||0}));
    toast('已从云端恢复上次盘到的地方');
   }
@@ -97,7 +99,7 @@ function cellRaw(p,which){
  return draft.items[p.id].quantity||'';
 }
 function cellText(p,which){
- if(which==='stock'){if(!p.hasStock)return '无';return stockShown(p);}
+ if(which==='stock')return p.hasStock?stockShown(p):'';
  return draft.items[p.id].quantity||'';
 }
 function cellLabel(p,which){
@@ -304,9 +306,18 @@ function changeNote(c){
  return `老板娘：${C.textQuantity(c.before)||'不订'} → ${C.textQuantity(c.after)||'不订'}`;
 }
 function stockLine(p){
- if(!p.hasStock)return '这项没有库存';
+ if(!p.hasStock)return '';
  const text=order?String(stocks[p.id]??''):stockShown(p);
  return String(text).trim()?`库存 ${text}`:'库存没填';
+}
+function detailLine(p,note){
+ const parts=[];
+ const small=Flow.smallName(p);
+ if(small)parts.push(small);
+ const stock=stockLine(p);
+ if(stock)parts.push(stock);
+ if(note)parts.push(note);
+ return parts.join(' · ');
 }
 function orderedCount(cat){return catalog().filter(p=>p.cat===cat&&Flow.showsOnOrder(qtyOf(p.id))&&Flow.isNumericQty(String(qtyOf(p.id)))).length;}
 function shareUrl(){
@@ -407,7 +418,8 @@ function countRows(){
   n++;
   const on=keypad&&pos===i;
   const hint=p.name==='고수'?'<p class="warn">香菜：再看一次冰箱。</p>':String(p.name).startsWith('감자수제비')?'<p class="warn">土豆面片按大包记，1大包＝2小包。</p>':'';
-  html+=`<div class="line ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-i="${i}">${Flow.countTitleHtml(p,E)}</button>${countCell(p,i,'stock')}${countCell(p,i,'qty')}</div>${hint}`;
+  const fields=Flow.countFields(p);
+  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-i="${i}">${Flow.countTitleHtml(p,E)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
  });
  if(!n){
   const elseHits=query?draft.catalog.filter(p=>p.cat!==viewCat&&S.matches(p,query,aliasesOf(p))).length:0;
@@ -472,7 +484,7 @@ function blockHtml(cat){
   const tags=[!dead&&order&&!(baseQty[p.id]>0)?'<span class="tag">新加</span>':'',!dead&&!order&&draft?.added?.[p.id]?'<span class="tag">新加</span>':''].join('');
   const shown=editId===p.id&&editRaw!=null?editRaw:qtyOf(p.id);
   const editor=dead?`<button class="ghost" type="button" data-act="restore" data-id="${E(p.id)}">恢复</button>`:(textMode&&editId===p.id?`<input class="plain" value="${E(shown)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<button class="num" type="button" data-act="edit" data-id="${E(p.id)}">${E(shown)}${E((order?order.units[p.id]:p.unit)||'')}</button>`);
-  return `<div class="order ${Flow.stripe(i)} ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${Flow.smallName(p)?E(Flow.smallName(p))+' · ':''}${E(stockLine(p))}${c?` · ${E(changeNote(c))}`:''}</div></div><div>${editor}</div></div>`;
+  return `<div class="order ${Flow.stripe(i)} ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${E(detailLine(p,c?changeNote(c):''))}</div></div><div>${editor}</div></div>`;
  };
  const body=[...active,...gray].map(row).join('');
  const empty=yellowOnly?'这一块没有她改的。':'这一家这次不订。';
@@ -481,7 +493,8 @@ function blockHtml(cat){
 function searchHits(){
  return catalog().filter(p=>S.matches(p,query,aliasesOf(p))).map((p,i)=>{
   const cat=CATS.find(c=>c[0]===p.cat);
-  return `<button class="hit ${Flow.stripe(i)}" type="button" data-act="edit" data-id="${E(p.id)}">${Flow.boldName(p,E)} <small>${E(cat?cat[2]:'')}</small>${Flow.smallName(p)?`<small> · ${E(Flow.smallName(p))}</small>`:''}<div class="muted">${E(stockLine(p))}${Flow.showsOnOrder(qtyOf(p.id))?' · 已订 '+E(qtyOf(p.id)):' · 未订'}</div></button>`;
+  const note=Flow.showsOnOrder(qtyOf(p.id))?'已订 '+qtyOf(p.id):'未订';
+  return `<button class="hit ${Flow.stripe(i)}" type="button" data-act="edit" data-id="${E(p.id)}">${Flow.boldName(p,E)} <small>${E(cat?cat[2]:'')}</small>${Flow.smallName(p)?`<small> · ${E(Flow.smallName(p))}</small>`:''}<div class="muted">${E(detailLine(p,note))}</div></button>`;
  }).join('')||'<p>没有匹配的商品。</p>';
 }
 function dockHtml(){

@@ -27,6 +27,7 @@ h2{font-size:15px;margin:12px 0 4px}
 h1{font-size:22px;margin:4px 0 8px}
 .muted{color:var(--muted);font-size:13px}
 .line{display:grid;grid-template-columns:minmax(0,1fr) 74px 74px;gap:6px;align-items:stretch;margin:0 -8px;padding:6px 8px;border-radius:10px;background:#fff}
+.line.nostock{grid-template-columns:minmax(0,1fr) 74px}
 .line.band{background:var(--band)}
 .line.on{background:#f4b8c0}
 .who,.cell{border:0;background:transparent;text-align:left;padding:0}
@@ -88,6 +89,7 @@ label input{display:block;width:100%;min-height:48px;margin-top:4px;border:1px s
 .warnrow .ghost{background:transparent}
 @media(max-width:380px){
  .line{grid-template-columns:minmax(0,1fr) 64px 64px}
+ .line.nostock{grid-template-columns:minmax(0,1fr) 64px}
  .who b{font-size:15px}
  .cell b{font-size:16px}
  .cats button{font-size:12px}
