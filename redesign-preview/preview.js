@@ -454,13 +454,11 @@ function paintRows(){
 function clearFind(){
  if(textMode&&readPlain()===false)return;
  if(screen==='order'&&commitOrderEdit()===false)return;
+ if(screen==='count')leaveCountCell();
  keypad=false;textMode=false;
- document.body.classList.remove('key-open','text-mode');
- document.querySelector('.pad')?.remove();
  query='';
+ render();
  const find=document.getElementById('find');
- if(find)find.value='';
- paintRows();
  wantFind=true;
  if(find)find.focus({preventScroll:true});
 }
