@@ -80,7 +80,7 @@ test('redesign preview stays off the production pages and only writes test order
  assert.match(js,/data-act="cancel-find"/);
  assert.match(js,/data-act="clear-find"/);
  assert.match(js,/class="caret"/);
- assert.match(js,/activeElement!==find/);
+ assert.match(js,/findFocused:!!find&&document.activeElement===find/);
  assert.match(css,/\.cell\.on\{border:3px solid var\(--red\)/);
  assert.match(css,/\.order \.num\.on\{[^}]*border:3px solid var\(--red\)/);
  assert.match(css,/prefers-reduced-motion:reduce/);

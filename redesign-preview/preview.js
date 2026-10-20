@@ -18,6 +18,8 @@ let user=null,member=null,auth,db,api=null,order=null,baseQty={},stocks={},stock
 let query='',status='正在准备…',sample=false,demoRole=null,busy=false,orderDirty=false,editId=null,editSnap=null,editRaw=null;
 let undo=null,heldPrev={},ack={},yellowOn=true,yellowOnly=false,archives=[],cloudTimer=null,cloudPending=false,morePane='';
 let searchScroll=null,searchCat=null,wantFind=false,skipActUntil=0;
+let rowTap=null;
+const searchErrors=new Map();
 
 function toast(text){const t=document.getElementById('toast');t.textContent=text;t.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>{t.style.display='none';},2200);}
 function today(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());}
@@ -579,9 +581,48 @@ function blockHtml(cat){
 function searchHits(){
  return catalog().filter(p=>S.matches(p,query,aliasesOf(p))).map((p,i)=>{
   const cat=CATS.find(c=>c[0]===p.cat);
-  const note=Flow.showsOnOrder(qtyOf(p.id))?'已订 '+qtyOf(p.id):'未订';
-  return `<button class="hit ${Flow.stripe(i)}" type="button" data-act="edit" data-id="${E(p.id)}">${Flow.boldName(p,E)} <small>${E(cat?cat[2]:'')}</small>${Flow.smallName(p)?`<small> · ${E(Flow.smallName(p))}</small>`:''}<div class="muted">${E(detailLine(p,note))}</div></button>`;
+  const stock=p.hasStock?searchInput(p,'stock'):'';
+  return `<div class="line search-hit ${p.hasStock?'':'nostock'} ${Flow.stripe(i)}" data-id="${E(p.id)}"><div class="who">${Flow.boldName(p,E)}<small>${E(cat?cat[2]:'')}${Flow.smallName(p)?' · '+E(Flow.smallName(p)):''}</small></div>${stock}${searchInput(p,'qty')}</div>`;
  }).join('')||'<p>没有匹配的商品。</p>';
+}
+function searchInput(p,which){
+ const stock=which==='stock',label=stock?'库存':'订货';
+ // Keep submitted inventory read-only, including for the owner in this preview.
+ const readonly=stock&&(!!order||!canCount()||draft?.status==='reviewed');
+ const error=searchErrors.get(p.id+':'+which);
+ const value=error?error.raw:(stock?stockShown(p):qtyOf(p.id));
+ const unit=stock?((order?JSON.parse(order.snapshot).items[p.id]?.stockUnit:draft?.items[p.id]?.stockUnit)||''):((order?order.units[p.id]:p.unit)||'');
+ return `<label class="search-cell"><span>${label}${readonly?' · 只读':''}</span><input class="search-value" data-id="${E(p.id)}" data-field="${which}" aria-label="${E(p.name+' '+label)}" value="${E(value)}" inputmode="${stock?'text':'decimal'}" maxlength="40" autocomplete="off"${readonly?' readonly':''}${error?' aria-invalid="true"':''}>${unit?`<small>${E(unit)}</small>`:''}</label>`;
+}
+function editSearchInput(input){
+ const id=input.dataset.id,which=input.dataset.field,p=product(id);
+ const key=id+':'+which,raw=input.value;
+ try{
+  if(!p)throw Error('商品不存在，已停止填写');
+  if(which==='stock'){
+   if(order||!canCount()||!draft||draft.status==='reviewed'||!p.hasStock)throw Error('这格库存只能查看');
+   reviveStock(p);
+   Core().edit(draft,id,'stock',raw);
+   if(draft.stockText)delete draft.stockText[id];
+   if(raw.trim())markSeen(id);
+   persistLocal();
+  }else if(which==='qty'){
+   if(raw.trim()==='.'||/^\d+\.$/.test(raw.trim()))throw Error('数量还没写完');
+   applyQty(id,raw.trim()==='0'?'':raw.trim());
+  }else throw Error('不能修改这一栏');
+  searchErrors.delete(key);input.removeAttribute('aria-invalid');
+  const cats=document.querySelector('.bar .cats');if(cats)cats.outerHTML=orderCats();
+  const dock=document.querySelector('.dock');if(dock&&order)dock.outerHTML=dockHtml();
+ }catch(e){
+  searchErrors.set(key,{raw,message:e.message||'没有保存，请检查输入'});
+  input.setAttribute('aria-invalid','true');
+ }
+}
+function finishSearchInputs(){
+ if(!searchErrors.size)return true;
+ toast(searchErrors.values().next().value.message+'；请先改正红框里的内容');
+ document.querySelector('.search-value[aria-invalid="true"]')?.focus({preventScroll:true});
+ return false;
 }
 function dockHtml(){
  if(!order)return '';
@@ -735,6 +776,8 @@ function tryLeave(next){
 }
 
 document.body.addEventListener('click',async e=>{
+ if(e.target.closest('input.search-value'))return;
+ if(!finishSearchInputs())return;
  if(e.target.closest('input.plain'))return;
  const b=e.target.closest('[data-act]');
  if(!b){if((keypad||textMode)&&!e.target.closest('.pad')&&!e.target.closest('input,button,a,label'))closePad();return;}
@@ -789,6 +832,7 @@ document.body.addEventListener('click',async e=>{
  finally{busy=false;}
 });
 document.body.addEventListener('input',e=>{
+ if(e.target.classList.contains('search-value')){editSearchInput(e.target);return;}
  if(e.target.classList.contains('plain')){
   const value=e.target.value.slice(0,40);
   if(screen==='order'&&editId){
@@ -800,7 +844,15 @@ document.body.addEventListener('input',e=>{
   writeCell(value);
   return;
  }
- if(e.target.id==='find'){if(screen==='count')rememberSearchOrigin();query=e.target.value;paintRows();}
+ if(e.target.id==='find'){if(!finishSearchInputs()){e.target.value=query;return;}if(screen==='count')rememberSearchOrigin();query=e.target.value;paintRows();}
+});
+document.body.addEventListener('change',e=>{
+ if(!e.target.classList.contains('search-value'))return;
+ editSearchInput(e.target);
+ if(!finishSearchInputs())return;
+ if(e.target.dataset.field==='qty'&&e.target.value.trim()==='0'){
+  e.target.value='';toast('订货写 0 不算订，留空就是不订');
+ }
 });
 document.body.addEventListener('keydown',e=>{
  if(!e.target.classList.contains('plain')||e.key!=='Enter')return;
@@ -811,16 +863,29 @@ document.body.addEventListener('keydown',e=>{
  else advanceOrder();
 });
 document.body.addEventListener('pointerdown',e=>{
+ rowTap=null;
+ if(e.isPrimary===false||e.button>0)return;
+ skipActUntil=0;
  if(e.target.closest('#find')){wantFind=true;rememberSearchOrigin();return;}
  wantFind=false;
  if(e.target.closest('[data-act="clear-find"]')){e.preventDefault();clearFind();skipAct();return;}
  if(e.target.closest('[data-act="cancel-find"]')){e.preventDefault();cancelFind();skipAct();return;}
  const find=document.getElementById('find');
  const row=e.target.closest('[data-act="open"],[data-act="edit"]');
- if(!row||!find||document.activeElement!==find)return;
- e.preventDefault();
- skipAct();
- openFromRow(row);
+ if(!row)return;
+ rowTap={row,id:e.pointerId,x:e.clientX,y:e.clientY,moved:false,findFocused:!!find&&document.activeElement===find};
+});
+document.body.addEventListener('pointermove',e=>{
+ if(!rowTap||rowTap.id!==e.pointerId)return;
+ if(Math.hypot(e.clientX-rowTap.x,e.clientY-rowTap.y)>10)rowTap.moved=true;
+},{passive:true});
+document.body.addEventListener('pointercancel',()=>{if(rowTap)skipAct();rowTap=null;});
+document.body.addEventListener('pointerup',e=>{
+ const tap=rowTap;if(!tap||tap.id!==e.pointerId)return;rowTap=null;
+ const moved=tap.moved||Math.hypot(e.clientX-tap.x,e.clientY-tap.y)>10;
+ if(moved||e.target.closest('[data-act="open"],[data-act="edit"]')!==tap.row){skipAct();return;}
+ if(!tap.findFocused)return; // Normal click/keyboard activation remains native.
+ e.preventDefault();skipAct();openFromRow(tap.row);
 });
 document.body.addEventListener('focusin',e=>{
  if(e.target.id!=='find')return;
@@ -837,7 +902,7 @@ document.body.addEventListener('submit',async e=>{
  if(e.target.id==='login'){e.preventDefault();const form=e.target;try{await signInWithEmailAndPassword(auth,A.accountEmail(form.elements.account.value),form.elements.password.value);}catch(err){toast(A.authErrorText(err.code,err.message)||err.message||'登录失败');}finally{form.elements.password.value='';}}
  if(e.target.id==='pass'){e.preventDefault();const form=e.target;const problem=A.passwordChangeError(form.elements.current.value,form.elements.next.value,form.elements.confirm.value);if(problem){toast(problem);return;}try{await reauthenticateWithCredential(user,EmailAuthProvider.credential(user.email,form.elements.current.value));await updatePassword(user,form.elements.next.value);toast('密码已改');}catch(err){toast(A.authErrorText(err.code,err.message,'password')||err.message);}finally{form.reset();}}
 });
-window.addEventListener('beforeunload',e=>{if(orderDirty){e.preventDefault();e.returnValue='';}});
+window.addEventListener('beforeunload',e=>{if(orderDirty||searchErrors.size){e.preventDefault();e.returnValue='';}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushCloud();});
 window.addEventListener('pagehide',()=>flushCloud());
 window.addEventListener('online',()=>{if(cloudPending)flushCloud();});
