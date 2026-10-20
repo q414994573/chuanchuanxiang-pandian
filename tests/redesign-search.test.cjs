@@ -29,6 +29,9 @@ test('tenfold or an extra zero is a typo reminder, not a stock rule',()=>{
  assert.equal(typoRisk('3','2'),false);
  assert.equal(typoRisk('','3'),false);
  assert.equal(typoRisk('5',null),false);
+ assert.equal(typoRisk('半箱','3'),false);
+ assert.equal(typoRisk('2箱多','1'),false);
+ assert.equal(typoRisk('30箱','3'),false);
 });
 test('supplier copy stays one product per line and the boss text has no name suffix',()=>{
  const text=supplierText('2026-10-25',[{name:'대파',qty:'2',unit:'단'},{name:'辣椒段',qty:'5',unit:'봉'}]);
