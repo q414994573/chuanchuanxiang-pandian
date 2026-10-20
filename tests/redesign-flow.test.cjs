@@ -28,6 +28,29 @@ test('next item stays inside the current supplier block',()=>{
  assert.equal(Flow.endLabel('other'),'其他商品盘完了 · 看今日订单');
 });
 
+test('count search jumps to another block only when this block has no hit',()=>{
+ const S=require('../redesign-preview/search.cjs');
+ const aliases=require('../redesign-preview/aliases.json');
+ const byId=new Map(aliases.items.map(item=>[item.id,item.aliases]));
+ const catalog=products.map(p=>({id:p.id,cat:p.cat,name:p.name,alias:p.alias||''}));
+ const countsFor=q=>Flow.searchHitCounts(catalog,p=>S.matches(p,q,byId.get(p.id)||[]));
+ const chicken=countsFor('鸡精');
+ assert.equal(chicken.kr,0);
+ assert.equal(chicken.cn,1);
+ assert.equal(chicken.other,0);
+ assert.equal(Flow.searchCatChoice(chicken,'kr'),'cn');
+ assert.equal(catalog.find(p=>p.id==='cn:9').name,'鸡精');
+ const both=countsFor('豆腐');
+ assert.equal(both.kr,2);
+ assert.equal(both.cn,3);
+ assert.equal(Flow.searchCatChoice(both,'kr'),'kr');
+ const tie={kr:0,cn:2,other:2};
+ assert.equal(Flow.searchCatChoice(tie,'kr'),'cn');
+ assert.equal(Flow.searchCatChoice({kr:0,cn:1,other:4},'kr'),'other');
+ assert.equal(Flow.searchCatChoice({kr:3,cn:3,other:0},'other'),'kr');
+ assert.equal(Flow.searchCatChoice({kr:0,cn:0,other:0},'cn'),'cn');
+});
+
 test('a filtered count row is edited by product id, not by its row number on screen',()=>{
  const catalog=products.map(p=>({id:p.id,cat:p.cat,name:p.name,alias:p.alias||''}));
  const matches=p=>String(p.name).includes('鸡精')||String(p.alias).includes('鸡精');
