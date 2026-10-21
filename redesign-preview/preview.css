@@ -138,3 +138,7 @@ button:disabled{opacity:.5;cursor:default}
 .search .cancel{white-space:nowrap}
 
 #app:has(.order-save-status){padding-bottom:calc(var(--tabs) + 200px + env(safe-area-inset-bottom))}
+
+.card[data-more-section]>summary{font-weight:800;min-height:44px;display:list-item;cursor:pointer;padding:10px 0}
+.card .latest-action{margin:8px 0}
+input[type="file"]{max-width:100%;width:100%;font-size:14px}

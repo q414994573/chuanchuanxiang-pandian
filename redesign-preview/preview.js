@@ -30,8 +30,12 @@ let lastLocalRaw=null,localSerial=0,localBlocked=false,localConflict=false;
 let backupUid=null,cloudBase,cloudReady=false,cloudReading=false,cloudWriting=false,cloudConflict=false;
 let cloudPhase='waiting',cloudAt=null,retryDelay=5000,sessionEpoch=0;
 let latestOrder=null,latestMessage='',latestRequest=0,directoryRecords=[],directoryCursor=null,directoryMore=false,directoryDate='',directoryMessage='',directoryRequest=0;
-let preparedExport=null,moreToolsOpen=false;
+let preparedExport=null;
 let orderSaveNotice=null;
+const moreSections={};
+function helpHtml(label,text){return `<details class="action-help"><summary aria-label="${E(label)}的说明">ⓘ</summary><p>${E(text)}</p></details>`;}
+function toolButton(label,act,help,attrs=""){return `<div class="latest-action"><button class="ghost" type="button" data-act="${act}" ${attrs}>${E(label)}</button>${help?helpHtml(label,help):""}</div>`;}
+function toolSection(id,title,content){return `<details class="card" data-more-section="${id}" ${moreSections[id]?"open":""}><summary>${title}</summary>${content}</details>`;}
 
 const testOrders=records=>Entry.orders(records,MODE.test);
 function fixedEntryUrl(){const url=new URL(location.href);url.searchParams.delete('order');url.searchParams.delete('sample');return url.href;}
@@ -858,12 +862,20 @@ function moreHtml(){
  const who=member?`<div class="card"><h1>账号 · ${E(member.name)}</h1><p class="muted">${member.role==='owner'?'盘货负责人':'订单编辑者'}</p></div>`:`<div class="card"><h1>登录</h1><p class="muted">填账号。大伟用 dawei，老板娘用 laobanniang。</p><form id="login"><label>账号<input name="account" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">登录</button></form></div>`;
  const accountTools=member?`<div class="card"><h2>修改密码</h2><form id="pass"><label>当前密码<input name="current" type="password" required></label><label>新密码<input name="next" type="password" required></label><label>再输入一次<input name="confirm" type="password" required></label><button class="ghost" type="submit">保存新密码</button></form><button class="ghost" type="button" data-act="logout">退出登录</button></div>`:'';
  const date=draft&&canCount()?`<div class="card"><h2>盘货日期</h2><label>日期<input id="countDate" type="date" value="${E(draft.date)}"></label><button class="ghost" type="button" data-act="set-date">用这个日期</button></div>`:'';
- const restart=draft&&canCount()?'<div class="card"><button class="ghost" type="button" data-act="fresh">放弃这份盘货，重新开始</button></div>':'';
- const legacy=PRODUCTION&&member?.role==='owner'?legacyImportHtml():'';
- const backups=!sample?`<div class="card"><h2>备份与恢复</h2>${canCount()&&draft?'<button class="ghost" data-act="backup-export">下载本机草稿备份</button>':''}${order?'<button class="ghost" data-act="order-backup">下载当前订单备份</button>':''}${member?.role==='owner'?'<label>恢复为独立盘货<input type="file" id="restoreFile" accept=".json,application/json"></label><button class="ghost" data-act="restore-file">读取并恢复备份</button><p>先保留当前内容的本机副本；不会覆盖原云端订单，恢复后需重新检查。</p>':''}</div>`:'';
- return `${who}${date}<div class="card"><h2>查订单</h2><div id="cloudList">${api&&!sample?entryHtml():'<p class="muted">'+(sample?'样例不查询云端订单。':'登录后可按日期查看已提交订单。')+'</p>'}</div><p class="muted">${E(status)}</p></div><div class="card"><button class="ghost" type="button" data-act="pane" data-pane="log">修改记录</button></div>${morePane==='log'?morePaneHtml():''}<details id="moreTools" class="card" ${moreToolsOpen?'open':''}><summary>备用工具</summary><p class="muted">备份、恢复和旧资料，需要时再打开。</p>${backups}${legacy}${restart}${accountTools}<div class="card"><button class="ghost" style="width:100%" type="button" data-act="pane" data-pane="archive">10月18日存档</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="pane" data-pane="history">历史档案（原有存档）</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="sample">看一张样例订单（不写入云端）</button></div>${['archive','history'].includes(morePane)?morePaneHtml():''}<div class="card"><h2>放到主屏幕</h2><p>用 Safari 打开此页面，点底部或顶部的分享，再点「添加到主屏幕」。名字是「천천향 盘货」。若现在在 KakaoTalk 里，先在浏览器里打开，再添加。</p></div></details>`;
+ const completed=draft?.status==='reviewed';
+ const restart=draft&&canCount()&&!sample?toolButton(completed?'开始下一次盘货':'作废当前盘货','fresh',completed?'保留这份盘货的本机副本，开始一份空白盘货。不会删除已提交的云端订单。':'放弃当前未提交的盘货，重新填写。操作前会确认并保留本机副本；这不是删除云端订单。'):'';
+ const legacy=PRODUCTION&&member?.role==='owner'?toolSection('legacy','旧版资料与入口',legacyImportHtml()):'';
+ const backupDraft=canCount()&&draft?`<p>这部手机上的盘货：${E(draft.date)}${completed?'（已复核的本机记录）':'（尚未提交）'}</p>${toolButton('保存这份盘货备份','backup-export','下载这部手机上的盘货记录，包括库存和订货数量。请将文件保存到手机；它不一定等于老板娘修改后的云端订单。')}`:'';
+ const backupOrder=order?`<p>当前打开的订单：${E(order.date)} · 第 ${order.revision} 版</p>${toolButton('保存这份订单备份','order-backup','下载当前打开的订单，包括尚未保存的修改。下载备份不会把修改上传云端。')}`:'';
+ const restore=member?.role==='owner'?`<label>选择之前保存的备份文件<input type="file" id="restoreFile" accept=".json,application/json"></label>${toolButton('从备份文件恢复','restore-file','将文件恢复成一份单独的盘货，需重新核对后提交。先保留当前盘货副本，不覆盖已有云端订单。')}`:'';
+ const backups=!sample?toolSection('backup','数据备份与恢复',backupDraft+backupOrder+restore+(!draft&&!order?'<p>打开盘货或订单后，可以保存备份。</p>':'')):'';
+ const historyTools=toolSection('history','历史资料',`<p>这里只查看以前确认的记录，不代表当前库存。新版云端订单请用上方“查订单”。</p>${toolButton('查看基准存档','pane','查看最初确认的历史订单快照，仅供查证，不会替换当前盘货。','data-pane="archive"')}${toolButton('查看旧历史档案','pane','查看原来保留的历史记录，不会改变当前订单。','data-pane="history"')}${['archive','history'].includes(morePane)?morePaneHtml():''}${legacy}`);
+ const account=member?toolSection('account','账号设置',accountTools):'';
+ const home=toolSection('home','添加到手机桌面','<p>iPhone：用 Safari 打开，选择分享 → 添加到主屏幕。安卓：在浏览器菜单中选择添加到主屏幕或安装应用。名称是“천천향 盘货”。如果在聊天软件里打开，请先转到手机浏览器。</p>');
+ return `${who}${date}${completed&&restart?'<div class="card">'+restart+'</div>':''}<div class="card"><h2>查订单</h2><div id="cloudList">${api&&!sample?entryHtml():'<p class="muted">'+(sample?'样例不查询云端订单。':'登录后可按日期查看已提交订单。')+'</p>'}</div><p class="muted">${E(status)}</p></div><div class="card">${toolButton('修改记录','pane','查看当前打开的订单由谁修改、改了哪些内容。','data-pane="log"')}</div>${morePane==='log'?morePaneHtml():''}${backups}${account}${historyTools}${!completed&&restart?toolSection('restart','作废与重新填写',restart):''}${home}${!PRODUCTION?toolSection('demo','测试样例','<button class="ghost" data-act="sample">看一张样例订单（不写入云端）</button>'):''}`;
 }
-document.body.addEventListener('toggle',e=>{if(e.target.id==='moreTools')moreToolsOpen=e.target.open;},true);
+document.body.addEventListener('toggle',e=>{if(e.target.dataset?.moreSection)moreSections[e.target.dataset.moreSection]=e.target.open;},true);
+
 function morePaneHtml(){
  if(morePane==='archive')return `<div class="card"><h2>${E(source.date)} 存档</h2><p class="muted">只看已经确认的旧单。空白不是 0。</p><div class="hero" style="background-image:linear-gradient(#0008,#0004),url('../assets/storefront.jpg')"><img src="../redesign-preview/logo.jpg" alt="川川香门头LOGO"></div>${source.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')}</div>`;
  if(morePane==='history')return archives.length?archives.map(block=>`<div class="card"><h2>${E(block.date)}</h2>${block.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')||'<p>这一天没有订货数字。</p>'}</div>`).join(''):'<p>历史还在读取。</p>';
@@ -1073,6 +1085,20 @@ function advanceOrder(){
  if(ids[at+1])openOrderKey(ids[at+1]);
  else{keypad=false;render();}
 }
+function startFreshCount(){
+ if(!canCount()||sample)throw Error('请由大伟操作正式盘货');
+ if(dirtyCount())throw Error('请先保存当前订单的修改，再开始盘货');
+ if(!confirm(draft?.status==='reviewed'?'保留当前盘货副本，并开始下一次空白盘货？已有云端订单不会删除。':'确认作废当前未提交的盘货并重新填写？会先保留本机副本。'))return;
+ if(localBlocked||localConflict)throw Error('请先下载备份并重新打开页面');
+ if(localStorage.getItem(KEY)!==lastLocalRaw)throw Error('另一页面已修改盘货，请先备份并核对');
+ if(draft)localStorage.setItem(KEY+':recovery:'+Date.now(),JSON.stringify({draft,pos,field}));
+ const previous={draft,pos,field};
+ try{draft=null;pos=0;field='stock';ensureDraft();}
+ catch(e){draft=previous.draft;pos=previous.pos;field=previous.field;throw e;}
+ order=null;preparedExport=null;orderSaveNotice=null;history=[];baseQty={};baseUnits={};heldPrev={};orderDirty=false;
+ editId=null;editRaw=null;query='';viewCat='kr';moduleEnd=false;keypad=false;textMode=false;catScroll={kr:0,cn:0,other:0};
+ flushCloud();screen='count';render();
+}
 function tryLeave(next){
  if(orderDirty&&next!=='order'&&!confirm('还有改动没保存，离开吗？'))return;
  if(readPlain()===false)return;
@@ -1145,9 +1171,9 @@ document.body.addEventListener('click',async e=>{
   if(act==='resume-order'){busy=true;await resumeReviewedOrder();return;}
   if(act==='confirm'){busy=true;await confirmShare();return;}
   if(act==='save'){busy=true;await saveOrder();return;}
-  if(act==='sample'){buildSample('order');render();return;}
+  if(act==='sample'){if(PRODUCTION)return;buildSample('order');render();return;}
   if(act==='pane'){morePane=morePane===b.dataset.pane?'':b.dataset.pane;render();return;}
-  if(act==='fresh'){if(!confirm('放弃这部手机上的这份盘货？'))return;if(localBlocked||localConflict)throw Error('请先下载备份并重新打开页面');if(draft)localStorage.setItem(KEY+':recovery:'+Date.now(),JSON.stringify({draft,pos,field}));draft=null;editId=null;pos=0;field='stock';viewCat='kr';moduleEnd=false;keypad=false;textMode=false;catScroll={kr:0,cn:0,other:0};ensureDraft();flushCloud();screen='count';render();return;}
+  if(act==='fresh'){startFreshCount();return;}
   if(act==='set-date'){const v=document.getElementById('countDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('请选日期');return;}if(draft.status==='reviewed'){toast('已经提交，日期不能改');return;}draft.date=v;persistLocal();toast('日期已改');return;}
   if(act==='logout'){await signOut(auth);order=null;return;}
   if(act==='open-cloud'){if(textMode&&readPlain()===false)return;if(commitOrderEdit()===false)return;if(dirtyCount()&&!confirm('还有修改没保存，确定切换订单吗？'))return;busy=true;await openOrder(b.dataset.id);return;}

@@ -246,7 +246,7 @@ for(const failure of ['network','json','http','shape']){
    else{
     assert.equal(h.run(`draft.items['cn:9'].quantity`),'12');assert.equal(h.run(`draft.items['kr:3'].stock`),'0');
     assert.match(h.run('backupMessage()'),/配置加载失败.*暂未备份/);
-    assert.match(h.run('moreHtml()'),/下载本机草稿备份/);
+    assert.match(h.run('moreHtml()'),/保存这份盘货备份/);
     h.run(`Core().edit(draft,'cn:9','quantity','13');persistLocal()`);
     assert.equal(JSON.parse(h.saved.get(h.run('KEY'))).draft.items['cn:9'].quantity,'13');
    }
@@ -254,18 +254,26 @@ for(const failure of ['network','json','http','shape']){
  });
 }
 
-test('More groups every existing tool without changing role permissions or losing order lookup on redraw',()=>{
+test('More separates backup, account and history without losing tools or changing permissions',()=>{
  const h=harness(true);h.run(`releaseLocked=false;member={role:'owner',name:'大伟'};api={};`);
- let html=h.run('moreHtml()'),main=html.split('<details id="moreTools"')[0],tools=html.split('<details id="moreTools"')[1];
- for(const title of ['账号 · 大伟','盘货日期','查订单','修改记录'])assert.ok(main.includes(title),title);
- for(const action of ['backup-export','restore-file','fresh','logout','sample']){assert.ok(tools.includes('data-act="'+action+'"'),action);assert.ok(!main.includes('data-act="'+action+'"'),action);}
- for(const label of ['修改密码','旧版记录','10月18日存档','历史档案（原有存档）','放到主屏幕'])assert.ok(tools.includes(label),label);
- assert.doesNotMatch(html,/<details id="moreTools"[^>]*\bopen\b/);
- assert.match(main,/data-act="find-date"/);assert.match(main,/data-act="fixed-link"/);
- h.handlers.toggle({target:{id:'moreTools',open:true}});h.run(`morePane='archive'`);html=h.run('moreHtml()');assert.match(html,/<details id="moreTools"[^>]*\bopen\b/);assert.match(html,/只看已经确认的旧单/);
- h.run(`buildSample('boss');sample=false;member={role:'editor',name:'老板娘'};api={};moreToolsOpen=false;`);html=h.run('moreHtml()');
- for(const action of ['restore-file','fresh','backup-export','legacy-import'])assert.ok(!html.includes('data-act="'+action+'"'),action);
- assert.match(html,/data-act="order-backup"/);assert.match(html,/id="pass"/);assert.match(html,/data-act="find-date"/);
+ let html=h.run('moreHtml()');
+ for(const title of ['账号 · 大伟','盘货日期','查订单','修改记录','数据备份与恢复','账号设置','历史资料','作废当前盘货'])assert.ok(html.includes(title),title);
+ for(const act of ['backup-export','restore-file','fresh','logout'])assert.ok(html.includes('data-act="'+act+'"'),act);
+ assert.doesNotMatch(html,/data-act="sample"|备用工具|moreTools/);
+ for(const id of ['backup','account','history','legacy','restart','home'])assert.ok(html.includes('data-more-section="'+id+'"'),id);
+ assert.match(html,/data-act="find-date"/);assert.match(html,/data-act="fixed-link"/);
+ h.handlers.toggle({target:{dataset:{moreSection:'history'},open:true}});h.run(`morePane='archive'`);html=h.run('moreHtml()');assert.match(html,/data-more-section="history" open/);assert.match(html,/只看已经确认的旧单/);
+ h.run(`buildSample('boss');sample=false;member={role:'editor',name:'老板娘'};api={};`);html=h.run('moreHtml()');
+ for(const act of ['restore-file','fresh','backup-export','legacy-import'])assert.ok(!html.includes('data-act="'+act+'"'),act);
+ assert.match(html,/data-act="order-backup"/);assert.match(html,/id="pass"/);
+ assert.match(html,/当前打开的订单/);assert.match(html,/下载备份不会把修改上传云端/);
+ const preview=harness();assert.match(preview.run('moreHtml()'),/data-act="sample"/);
+});
+test('reviewed count has next-count entry, unfinished count has explicit discard and help',()=>{
+ const h=harness(true);h.run(`member={role:'owner'};draft.status='reviewed'`);
+ assert.match(h.run('moreHtml()'),/开始下一次盘货/);assert.doesNotMatch(h.run('moreHtml()'),/>作废当前盘货</);
+ h.run(`draft.status='draft'`);assert.match(h.run('moreHtml()'),/作废当前盘货的说明/);
+ assert.match(h.run('moreHtml()'),/这不是删除云端订单/);
 });
 
 test('search lifts results above native keyboard without changing order or input; resize follows viewport',()=>{
@@ -374,4 +382,17 @@ for(const code of ['unavailable','ccx/conflict'])test('failed save preserves edi
  assert.equal(h.run(`order.quantities['cn:9']`),2000);assert.equal(h.run('dirtyCount()'),1);
  assert.match(h.run('orderSaveMessage()'),code==='ccx/conflict'?/本次未保存/:/未能确认云端保存成功/);
  assert.doesNotMatch(h.run('dockHtml()'),/data-act="save" disabled/);
+});
+
+test('starting next count preserves recovery copy and cannot discard unsaved order edits',()=>{
+ const h=harness(true);h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'new-count'};
+ h.run(`member={role:'owner'};draft.status='reviewed';globalThis.oldDraft=draft;flushCloud=()=>{};`);
+ h.run('startFreshCount()');assert.notEqual(h.run('draft.id'),h.run('oldDraft.id'));assert.equal(h.run('screen'),'count');assert.equal(h.run('order'),null);
+ assert.ok([...h.saved.keys()].some(k=>k.includes(':recovery:')));
+ h.run('dirtyCount=()=>1');assert.throws(()=>h.run('startFreshCount()'),/先保存/);
+});
+test('failed new-count local write keeps original draft and current order',()=>{
+ const h=harness(true);h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'new-count'};
+ h.run(`member={role:'owner'};globalThis.oldDraft=draft;globalThis.write=localStorage.setItem;localStorage.setItem=(k,v)=>{if(k===KEY)throw Error('quota');write(k,v)};`);
+ assert.throws(()=>h.run('startFreshCount()'),/本机保存失败/);assert.equal(h.run('draft===oldDraft'),true);
 });
