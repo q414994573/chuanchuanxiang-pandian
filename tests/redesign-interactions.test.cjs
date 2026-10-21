@@ -288,3 +288,31 @@ test('search viewport respects counting sticky bar and ignores unfocused/keypad 
  h.run(`textMode=true;scrollActive=()=>{globalThis.numericScrolled=true}`);
  top=500;h.viewportHandlers.resize();assert.equal(h.run('numericScrolled'),true);assert.equal(top,500);
 });
+
+test('reviewed local record resumes its exact cloud order after fixed-entry reload, then quantities save and reload',async()=>{
+ const h=harness();h.window.history={replaceState(){}};h.ctx.crypto={randomUUID:()=> 'test-save-order-state'};
+ h.run(`member={role:'owner',name:'大伟'};user={uid:'test-owner'};Core().edit(draft,'kr:7','quantity','1');
+ for(const p of draft.catalog){draft.seen[p.id]=true;Core().finish(draft,p.id,p.id!=='kr:7');}
+ api={create:async(id,payload)=>{globalThis.remote={id,...payload,revision:1,orderStage:'pending'};return C.clone(remote)},read:async id=>{if(id!==remote.id)throw Error('wrong order');return C.clone(remote)},history:async()=>[],save:async(id,base,q,mutation,patch)=>{C.assertRevision(remote.revision,base.revision);remote={...remote,quantities:{...q},units:patch.units,revision:remote.revision+1};return C.clone(remote)}};`);
+ await h.run('confirmShare()');assert.equal(h.run('order.id'),h.run('C.cloudOrderId(draft.id,MODE.test)'));
+ assert.equal(h.run('draft.status'),'reviewed');
+ h.run(`order=null;screen='count';loadLocal()`);assert.equal(h.run('screen'),'order');
+ assert.doesNotMatch(h.run('draftOrderHtml()'),/盘货中|盘货草稿预览/);
+ await h.run('resumeReviewedOrder()');h.run(`openOrderKey('kr:7');applyQty('kr:7','3');editRaw='3';`);
+ await h.run('saveOrder()');assert.equal(h.run("remote.quantities['kr:7']"),3000);
+ h.run('order=null');await h.run('resumeReviewedOrder()');assert.equal(h.run("order.quantities['kr:7']"),3000);
+ assert.equal(h.run('draft.items["kr:7"].quantity'),'1');
+});
+test('reviewed local record cannot open editable keypad when cloud read fails; draft and other cloud order preserved',async()=>{
+ const h=harness();h.run(`draft.status='reviewed';member={role:'owner'};api={read:async()=>{throw Error('断网')}};globalThis.originalDraft=JSON.stringify(draft)`);
+ h.run(`openOrderKey('kr:7')`);assert.equal(h.run('keypad'),false);assert.equal(h.run('editId'),null);
+ assert.throws(()=>h.run(`applyQty('kr:7','2')`),/云端订单/);
+ await h.run('resumeReviewedOrder()');assert.equal(h.run('order'),null);assert.match(h.run('status'),/断网/);
+ assert.equal(h.run('JSON.stringify(draft)===originalDraft'),true);
+ h.run(`draft.status='draft';globalThis.reads=0;api.read=async()=>{reads++}`);await h.run('resumeReviewedOrder()');assert.equal(h.run('reads'),0);
+ h.run(`draft.status='reviewed';order={id:'other-open-order'}`);await h.run('resumeReviewedOrder()');assert.equal(h.run('order.id'),'other-open-order');assert.equal(h.run('reads'),0);
+});
+test('finalized cloud order never opens keypad, pending cloud order does',()=>{
+ const h=harness();h.run(`buildSample('boss');order.orderStage='finalized';keypad=false;openOrderKey('kr:7')`);assert.equal(h.run('keypad'),false);
+ h.run(`order.orderStage='pending';openOrderKey('kr:7')`);assert.equal(h.run('keypad'),true);
+});
