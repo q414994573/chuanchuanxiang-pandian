@@ -8,7 +8,8 @@ service cloud.firestore {
   function qty(v) { return v.matches('^(0|[1-9][0-9]{0,8}|1000000000)$'); }
   function production(d) { return d.units.keys().hasOnly(${JSON.stringify(ids)}) && d.units.size() == 129 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){128}$'); }
   function sandbox(d) { return d.units.keys().hasOnly(['test:a','test:b','test:c']) && d.units.size() == 3 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){2}$'); }
-  function shape(d,group) { return d.keys().hasOnly(['schema','date','snapshot','quantities','units','createdBy','createdAt','updatedBy','updatedAt','updatedByName','revision','mutationId'])
+  function shape(d,group) { return d.keys().hasOnly(['schema','date','snapshot','quantities','units','createdBy','createdAt','updatedBy','updatedAt','updatedByName','revision','mutationId','orderStage'])
+    && d.get('orderStage','pending') in ['pending','finalized']
     && d.schema == 'ccx-cloud-1' && d.date is string && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
     && d.snapshot is string && d.snapshot.size() < 500000 && d.quantities is string && d.units is map
     && d.revision is int && d.revision > 0
@@ -23,12 +24,17 @@ service cloud.firestore {
    function audit() { let d=request.resource.data; return !exists(/databases/$(database)/documents/$(group)/$(id)/revisions/$(d.mutationId)) && getAfter(/databases/$(database)/documents/$(group)/$(id)/revisions/$(d.mutationId)).data == d; }
    allow read: if permitted();
    allow create: if permitted() && owner() && shape(request.resource.data,group)
+    && request.resource.data.get('orderStage','pending') == 'pending'
     && request.resource.data.createdBy == request.auth.uid && request.resource.data.createdAt == request.time
     && request.resource.data.revision == 1 && audit();
    allow update: if permitted() && shape(request.resource.data,group)
     && request.resource.data.revision == resource.data.revision + 1 && audit()
-    && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','revision','updatedBy','updatedAt','updatedByName','mutationId'])
-      || (owner() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','snapshot','revision','updatedBy','updatedAt','updatedByName','mutationId'])));
+    && ((resource.data.get('orderStage','pending') == 'pending'
+       && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','revision','updatedBy','updatedAt','updatedByName','mutationId'])
+        || (owner() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','snapshot','revision','updatedBy','updatedAt','updatedByName','mutationId']))))
+      || (get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'editor'
+        && request.resource.data.get('orderStage','pending') != resource.data.get('orderStage','pending')
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['orderStage','revision','updatedBy','updatedAt','updatedByName','mutationId'])));
    allow delete: if false;
    match /revisions/{mutation} {
     allow read: if group in ['orders','sandboxOrders'] && member();

@@ -13,5 +13,18 @@ export function store(db,uid,group='orders',actorName=''){
  async function read(id){online();const s=await getDocFromServer(ref(id));if(!s.exists())throw Error('找不到这份云端订单');return {id:s.id,...decode(s.data())};}
  async function list(){online();return (await getDocsFromServer(query(collection(db,group),orderBy('updatedAt','desc'),limit(30)))).docs.map(s=>({id:s.id,...decode(s.data())}));}
  async function history(id){online();return (await getDocsFromServer(query(collection(ref(id),'revisions'),orderBy('revision','desc'),limit(50)))).docs.map(s=>decode(s.data()));}
- return {create,save,read,list,history};
+ async function finalize(id,base,mutationId,stage='finalized'){
+  if(!['pending','finalized'].includes(stage))throw Error('订单状态不正确');
+  online();
+  await runTransaction(db,async tx=>{
+   const r=ref(id),s=await tx.get(r);if(!s.exists())throw Error('订单不存在');
+   const current=s.data();
+   if(current.mutationId===mutationId&&current.updatedBy===uid)return;
+   Core.assertRevision(current.revision,base.revision);
+   if((current.orderStage||'pending')===stage)throw Error('订单已经处于这个状态，请刷新查看');
+   const next={...current,orderStage:stage,revision:current.revision+1,updatedBy:uid,updatedAt:serverTimestamp(),updatedByName:actorName,mutationId};
+   tx.update(r,next);tx.set(doc(r,'revisions',mutationId),next);
+  });return read(id);
+ }
+ return {create,save,read,list,history,finalize};
 }
