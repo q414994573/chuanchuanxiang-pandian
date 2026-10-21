@@ -1,4 +1,6 @@
-# 新版正式启用前核查 · 2026-10-21
+# 新版正式启用核查 · 2026-10-21
+
+**最新状态**：用户明确要求“把正式版做出来，我要实际使用”，本轮据此启用 `/ordering/`。69项自动检查及此前规则模拟器通过；双手机/KakaoTalk/锁屏完整验收仍未完成。以下启用前检查记录保留为历史，不能据其旧措辞判断入口仍关闭。回退仅关闭 ordering 配置，不删除订单或草稿。
 
 本文件区分代码检查、模拟器验证和真机验收，不把“发布了预览”写成“正式启用”。基线为 main `0234ca2`（v14）。
 
@@ -9,7 +11,7 @@
 - `/`：Grok 的旧版正式界面，云端已启用，读写 `orders/count-…`。本机盘货用 `ccx-count-session:` / `ccx-count-active`。不是纯静态展示页。
 - `/cloud-test/`：旧版测试入口，使用 test- 订单和独立本机存储键。
 - `/redesign-preview/`：新版界面，仍只读写 `orders/test-…`；本机草稿用 `ccx-redesign-draft-v2`，私有云端草稿用 `countDrafts/{uid}`。只对 owner 提供盘货草稿。
-- `/ordering/`：新版正式入口，与预览共用同一份bundle/CSS/图片。配置目前 `enabled:false`，页面只显示准备中，先检查开关再读取业务数据。启用后仅打开 `orders/count-…`，本机草稿用 `ccx-ordering-draft-v1`、云端用 `liveCountDrafts/{uid}`。不自动搬运测试草稿或测试订单。
+- `/ordering/`：新版正式入口，与预览共用同一份bundle/CSS/图片。配置已按用户要求改为 `enabled:true`；关闭配置时页面只显示准备中，先检查开关再读取业务数据。启用后仅打开 `orders/count-…`，本机草稿用 `ccx-ordering-draft-v1`、云端用 `liveCountDrafts/{uid}`。不自动搬运测试草稿或测试订单。
 - `sandboxOrders`：三商品模拟器验证。真实云端测试与正式订单当前是在同一 orders 集合里通过 ID 前缀和客户端入口隔离，不是独立 Firebase 项目。两个授权成员可读该集合，不能将前缀隔离宣传为独立数据库权限边界。
 - `current-order.json` / `order-archives/`：已确认历史快照，不能当今日库存；新订单不得覆写它们。Google Sheets 不修改。
 

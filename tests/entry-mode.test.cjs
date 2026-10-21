@@ -15,9 +15,9 @@ test('legacy discovery reads only original production records without changing t
  const records=E.legacyDrafts(store,source);assert.equal(records.length,1);assert.equal(records[0].draft.id,'count-old');
  const recovered=R.restore(records[0].raw,source,'count-new');assert.equal(recovered.id,'count-new');assert.equal(recovered.items['cn:9'].quantity,'2');assert.equal(JSON.parse(store.getItem(entries[0][0])).id,'count-old');
 });
-test('prepared production entry remains disabled, uses shared code, and does not replace old entry',()=>{
+test('authorized production entry is enabled, uses shared code, and does not replace old entry',()=>{
  const read=p=>fs.readFileSync(p,'utf8');
- assert.equal(JSON.parse(read('ordering/firebase-config.json')).enabled,false);
+ assert.equal(JSON.parse(read('ordering/firebase-config.json')).enabled,true);
  assert.match(read('ordering/index.html'),/data-order-mode="production"/);
  assert.match(read('ordering/index.html'),/\.\.\/redesign-preview\/preview.bundle.js/);
  assert.doesNotMatch(read('redesign-preview/index.html'),/data-order-mode="production"/);
