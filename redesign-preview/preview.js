@@ -957,7 +957,9 @@ function pinnedStatusHtml(head=currentStageText()){
  return `${saved}<p class="muted count-stage">${head}</p>`;
 }
 function countColumns(){return `<div class="count-columns"><span>商品</span><span>库存</span><span>订货</span></div>`;}
+function peerLoginHtml(){return `<div class="card"><h1>登录后共同盘货</h1><p>两个账号使用同一份当前盘货，都可以定稿和解除定稿。</p><p>${E(status)}</p><button class="primary" type="button" data-act="tab" data-tab="more">去登录</button></div>`;}
 function countHtml(){
+ if(peerEnabled&&!sample&&!canCount())return peerLoginHtml();
  if(sharedCount())return `<div class="bar">${pinnedStatusHtml()}${textBar()}<div class="cats">${catButtonsHtml()}</div>${searchBar('搜中文、韩文，或开头辅音')}${countColumns()}</div><div id="rows">${countRows()}</div>${keypad&&editId&&!textMode?orderPad():''}${dockHtml()}`;
  if(!canCount())return `<div class="card"><h1>请先打开订单</h1><p>打开已提交订单后，定稿前双方都可以修改库存和订货数量。</p><button class="primary" type="button" data-act="goto-order">去订单</button></div>`;
  try{ensureDraft();}catch(e){toast(e.message);}
@@ -1003,6 +1005,7 @@ function orderHtml(){
  return exportPanel()+orderContentHtml();
 }
 function orderContentHtml(){
+ if(peerEnabled&&!sample&&!canCount())return peerLoginHtml();
  const link=new URLSearchParams(location.search).get('order');
  if(link&&!order&&!sample)return `<div class="card"><h1>登录后看这份订单</h1><p>${E(status)}</p><button class="primary" type="button" data-act="tab" data-tab="more">去登录</button></div>`;
  if(!peerEnabled&&member?.role==='editor'&&!order&&!sample)return '<div class="card"><h1>还没有打开已提交订单</h1><p>请到“更多 → 查订单”查看最新订单，或按日期查找。</p></div>';
