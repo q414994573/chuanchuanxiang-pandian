@@ -822,13 +822,21 @@ function render(){
  if(findFocused)document.getElementById('find')?.focus({preventScroll:true});
  if(keypad||textMode)scrollActive();
 }
+function currentStageText(){
+ if(order)return sample?'样例 · 不会写入云端':`${E(order.date)} · ${order.orderStage==='finalized'?'已定稿 · 由老板娘自行发送':'待老板娘审核'} · ${E(order.updatedByName||'')} · 第 ${order.revision} 版`;
+ return draft?`${E(draft.date)} · ${draft.status==='reviewed'?'已复核 · 尚未打开对应云端订单':'盘货中 · 提交后老板娘才能查看'}`:'';
+}
+function pinnedStatusHtml(head=currentStageText()){
+ const saved=order&&!sample?`<div class="backup-status" role="status">${E(orderSaveMessage()||(dirtyCount()?'有修改，等待保存到云端':'已读取云端订单'))}</div>`:backupStatusHtml();
+ return `${saved}<p class="muted count-stage">${head}</p>`;
+}
 function countColumns(){return `<div class="count-columns"><span>商品</span><span>库存</span><span>订货</span></div>`;}
 function countHtml(){
- if(sharedCount())return `<p>${E(order.date)} · ${order.orderStage==='finalized'?'已定稿':'待老板娘审核'} · 第 ${order.revision} 版</p><div class="bar">${textBar()}<div class="cats">${catButtonsHtml()}</div>${searchBar('搜中文、韩文，或开头辅音')}${countColumns()}</div><div id="rows">${countRows()}</div>${keypad&&editId&&!textMode?orderPad():''}${dockHtml()}`;
+ if(sharedCount())return `<div class="bar">${pinnedStatusHtml()}${textBar()}<div class="cats">${catButtonsHtml()}</div>${searchBar('搜中文、韩文，或开头辅音')}${countColumns()}</div><div id="rows">${countRows()}</div>${keypad&&editId&&!textMode?orderPad():''}${dockHtml()}`;
  if(!canCount())return `<div class="card"><h1>请先打开订单</h1><p>打开已提交订单后，定稿前双方都可以修改库存和订货数量。</p><button class="primary" type="button" data-act="goto-order">去订单</button></div>`;
  try{ensureDraft();}catch(e){toast(e.message);}
  if(!draft)return `<div class="card">${backupStatusHtml()}<p>原内容仍保留。请下载备份后再处理，不要清除网站数据。</p></div>`;
- return `${countNotice()}${backupStatusHtml()}<div class="bar"><div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看订单':'下一个没盘的'}</button>${searchBar('搜中文、韩文，或开头辅音')}${countColumns()}</div><div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
+ return `<div class="bar">${pinnedStatusHtml()}${countNotice()}<div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看订单':'下一个没盘的'}</button>${searchBar('搜中文、韩文，或开头辅音')}${countColumns()}</div><div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
 }
 function catButtonsHtml(){
  const counts=query&&(draft||sharedCount())?Flow.searchHitCounts(sharedCount()?catalog():draft.catalog,p=>S.matches(p,query,aliasesOf(p))):null;
@@ -897,7 +905,7 @@ function orderCats(){
  }).join('')}</div>`;
 }
 function orderShell(head,dock){
- return `${backupStatusHtml()}${yellowBanner()}<p class="muted">${head}</p><div class="bar">${textBar()}${orderCats()}${searchBar('搜全部129种，用来补订或看库存')}</div><div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
+ return `<div class="bar">${pinnedStatusHtml(head)}${yellowBanner()}${textBar()}${orderCats()}${searchBar('搜全部129种，用来补订或看库存')}</div><div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
 }
 function orderPane(){
  const mine=warnings().filter(p=>p.cat===orderCat);
