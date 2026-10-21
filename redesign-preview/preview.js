@@ -9,6 +9,7 @@ import Flow from './count-flow.cjs';
 import Backup from './draft-backup.cjs';
 import Recovery from './recovery.cjs';
 import Entry from './entry-mode.cjs';
+import Auto from './order-autosave.cjs';
 
 const Core=()=>window.CountCore;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -33,6 +34,87 @@ let latestOrder=null,latestMessage='',latestRequest=0,directoryRecords=[],direct
 let preparedExport=null;
 let orderSaveNotice=null;
 const moreSections={};
+// Shared-order autosave is separate from the owner's private draft backup.
+let orderStageWriting=false,orderTimer=null,orderFlight=null,orderBase=null,orderAutoBlocked=false,orderRetry=5000;
+let orderObserved='',orderLocalRaw=null,orderLocalKey=null,orderLocalFailed=false,orderMutation=null;
+function orderKey(){return user?.uid&&order?KEY+':order-edit:'+user.uid+':'+order.id:null;}
+function editorRecord(){return editId&&editRaw!==null&&unfinishedOrderInput()?{id:editId,field:editField,raw:String(editRaw)}:null;}
+function orderLocalWrite(){
+ const key=orderKey();if(!key||sample||!orderBase)return;
+ try{
+  if(key!==orderLocalKey||localStorage.getItem(key)!==orderLocalRaw)throw Error('另一页面的未保存修改不同，请先下载备份核对');
+  const raw=dirtyCount()||editorRecord()?JSON.stringify(Auto.record(orderBase,order,editorRecord())):'';
+  localStorage.setItem(key,raw);orderLocalRaw=raw;orderLocalFailed=false;
+ }catch(e){orderLocalFailed=true;orderAutoBlocked=true;orderSaveNotice={id:order.id,epoch:sessionEpoch,phase:'failed',message:'本机备份失败，尚未自动上传；请保留页面并下载当前订单备份。'};}
+}
+function orderEdited(){
+ if(!order||sample||!api||!member)return;
+ if(orderLocalFailed)return;
+ const sig=Auto.values(order)+'|'+JSON.stringify(editorRecord());
+ if(sig===orderObserved)return;
+ orderObserved=sig;clearTimeout(orderTimer);orderLocalWrite();
+ if(orderAutoBlocked||order.orderStage==='finalized')return;
+ if(dirtyCount()||editorRecord()){
+  orderSaveNotice={id:order.id,epoch:sessionEpoch,phase:'waiting',message:'修改未保存 · 停止输入后自动保存'};
+  orderTimer=setTimeout(()=>flushOrder(),1500);
+ }
+}
+function unfinishedOrderInput(){
+ if(!editId)return false;
+ const raw=String(editRaw??'').trim(),value=String(orderValue(editId,editField)).trim();
+ if(raw==='.'||/\.$/.test(raw))return true;
+ if(raw===value)return false;
+ // Quantities are canonicalized (1.0 -> 1); the visible valid input is still complete.
+ return !(editField==='qty'&&Flow.isNumericQty(raw)&&C.quantity(raw)===(order?.quantities[editId]??-1));
+}
+async function flushOrder(){
+ if(!order||sample||!api||!member||orderAutoBlocked||orderStageWriting||order.orderStage==='finalized')return;
+ if(orderFlight)return orderFlight;
+ if(unfinishedOrderInput()){orderSaveNotice={id:order.id,epoch:sessionEpoch,phase:'waiting',message:'输入还没完成，尚未上传；完成数字后会自动保存'};return;}
+ if(!dirtyCount())return;
+ if(typeof navigator!=='undefined'&&navigator.onLine===false){orderSaveNotice={id:order.id,epoch:sessionEpoch,phase:'failed',message:'当前断网 · 修改已留在本机，联网后自动重试'};render();return;}
+ try{await saveOrder(true);orderRetry=5000;}
+ catch(e){
+  if(!order||orderAutoBlocked)return;
+  if(['permission-denied','unauthenticated','invalid-argument'].includes(e.code)){orderAutoBlocked=true;return;}
+  clearTimeout(orderTimer);orderTimer=setTimeout(()=>flushOrder(),orderRetry);orderRetry=Math.min(orderRetry*2,60000);
+ }
+}
+function beginOrderSession(data){
+ clearTimeout(orderTimer);orderBase=C.clone(data);orderAutoBlocked=false;orderLocalFailed=false;orderMutation=null;orderRetry=5000;
+ orderLocalKey=orderKey();
+ try{orderLocalRaw=orderLocalKey?localStorage.getItem(orderLocalKey):null;}catch(e){orderLocalFailed=true;orderAutoBlocked=true;orderSaveNotice={id:data.id,epoch:sessionEpoch,phase:'failed',message:'本机备份暂时无法读取，自动保存已暂停，请保留页面并下载备份。'};return;}
+ orderObserved=Auto.values(order)+'|null';
+ if(!orderLocalRaw)return;
+ try{
+  const r=Auto.validate(JSON.parse(orderLocalRaw),data,C),choice=Auto.choice(r,data);
+  if(choice==='saved'){localStorage.setItem(orderLocalKey,'');orderLocalRaw='';return;}
+  orderBase=r.base;order=r.base;rememberStocks();baseQty={...r.base.quantities};baseUnits={...r.base.units};
+  order=r.working;const restored=C.inventorySnapshot(order);stocks=Object.fromEntries(restored.catalog.map(p=>[p.id,restored.stockText?.[p.id]??restored.items[p.id]?.stock??'']));
+  if(r.editor){editId=r.editor.id;editField=r.editor.field;editRaw=r.editor.raw;editSnap=orderValue(editId,editField);keypad=true;}
+  orderDirty=dirtyCount()>0;orderObserved='';
+  if(choice==='conflict'){orderAutoBlocked=true;orderSaveNotice={id:order.id,epoch:sessionEpoch,phase:'conflict',message:'本机有未上传修改，但云端已更新或定稿。已暂停自动保存，请下载备份后查看云端新版。'};}
+  else{orderEdited();toast('已找回上次未上传的修改');}
+ }catch(e){orderAutoBlocked=true;orderLocalFailed=true;orderSaveNotice={id:data.id,epoch:sessionEpoch,phase:'failed',message:e.message||'本机待保存记录暂时无法读取，已保留'};}
+}
+async function useCloudOrder(){
+ if(orderFlight||orderStageWriting)throw Error('正在保存，请稍后');
+ if(!confirm('先下载当前订单备份。接下来显示云端版本，本机修改仍留有恢复副本，不会覆盖云端。继续吗？'))return;
+ const current=order,epoch=sessionEpoch,signature=Auto.values(order)+'|'+JSON.stringify(editorRecord());
+ const data=await api.read(order.id);if(epoch!==sessionEpoch||order!==current)return;
+ if(signature!==Auto.values(order)+'|'+JSON.stringify(editorRecord()))throw Error('读取期间你又修改了内容，已保留当前输入，请重新核对');
+ if(orderLocalKey){
+  // Preserve this tab's actual edits as well as any other tab's journal before switching.
+  localStorage.setItem(orderLocalKey+':recovery:'+Date.now(),JSON.stringify(Auto.record(orderBase||current,current,editorRecord())));
+  const existing=localStorage.getItem(orderLocalKey);
+  if(existing&&existing!==orderLocalRaw)throw Error('另一页面也有修改，已保存当前恢复副本，请先核对另一页面');
+  if(existing)localStorage.setItem(orderLocalKey+':recovery-journal:'+Date.now(),existing);
+  localStorage.setItem(orderLocalKey,'');
+ }
+ acceptOrder(data);render();
+ try{const versions=await api.history(data.id);if(epoch===sessionEpoch&&order?.id===data.id){history=versions;render();}}catch(e){toast('修改记录没读到');}
+}
+
 function helpHtml(label,text){return `<details class="action-help"><summary aria-label="${E(label)}的说明">ⓘ</summary><p>${E(text)}</p></details>`;}
 function toolButton(label,act,help,attrs=""){return `<div class="latest-action"><button class="ghost" type="button" data-act="${act}" ${attrs}>${E(label)}</button>${help?helpHtml(label,help):""}</div>`;}
 function toolSection(id,title,content){return `<details class="card" data-more-section="${id}" ${moreSections[id]?"open":""}><summary>${title}</summary>${content}</details>`;}
@@ -144,10 +226,9 @@ function backupRecovery(){
 }
 function downloadOrderBackup(){
  if(!order||sample)throw Error('请先打开云端订单');
- if(textMode&&readPlain()===false)return;
- if(editId&&commitOrderEdit()===false)return;
  const value=Recovery.fromOrder(order,source);
- value.origin.unsaved=dirtyCount()>0;
+ value.origin.unsaved=dirtyCount()>0||unfinishedOrderInput();
+ value.pendingEditor=editorRecord(); // Preserve even a partial/invalid number without applying it.
  const blob=new Blob([JSON.stringify(value)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download=`川川香-订单备份-${order.date}-v${order.revision}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  toast('已生成备份，请保存文件；恢复时会创建独立盘货');
@@ -404,6 +485,7 @@ function doUndo(){
 
 function unitPicker(p,which){
  const order=screen==='count'&&!sharedCount()?null:globalOrder();
+ if(which==='stock'&&Core().stockDefaults[p.id]&&stockUnitOf(p)===Core().stockDefaults[p.id])return '';
  const options=C.units.choices[p.id];if(!options)return '';
  const stock=which==='stock',value=stock?(stockUnitOf(p)):(order?order.units[p.id]:draft?.items[p.id]?.unit);
  const locked=order?.orderStage==='finalized'||(stock?!canEditStock(p):!order&&!canCount());
@@ -411,6 +493,7 @@ function unitPicker(p,which){
  return `<label class="unit-picker">${label}<select data-unit="${E(p.id)}" data-field="${which}" aria-label="${E(p.name+' '+label)}" ${locked?'disabled':''}><option value="">请选择</option>${options.map(([u,n])=>`<option value="${E(u)}" ${value===u?'selected':''}>${E(u+' · '+n)}</option>`).join('')}</select></label>`;
 }
 function selectUnit(id,which,value){
+ if(orderStageWriting)throw Error('正在确认订单状态，请稍后修改');
  const order=screen==='count'&&!sharedCount()?null:globalOrder();
  const p=product(id),stock=which==='stock';
  if(!p||!C.units.choices[id]||!C.units.valid(id,value))throw Error('请选择模板规定的单位');
@@ -434,6 +517,7 @@ function qtyOf(id){
  return r&&r.decision==='order'?r.quantity:'';
 }
 function applyQty(id,text){
+ if(orderStageWriting)throw Error('正在确认订单状态，请稍后修改');
  if(!order&&draft?.status==='reviewed')throw Error('请先打开这次盘货对应的云端订单，再修改数量');
  if(order?.orderStage==='finalized')throw Error('订单已定稿，请老板娘先点重新修改');
  const prev=qtyOf(id);
@@ -456,6 +540,7 @@ function applyQty(id,text){
 function canEditStock(p){if(screen==='count'&&!sharedCount())return !!p?.hasStock&&canCount()&&draft?.status==='draft';return !!p?.hasStock&&(order?(order.orderStage!=='finalized'&&(sample||['owner','editor'].includes(member?.role))):(canCount()&&draft?.status==='draft'));}
 function orderValue(id,which){return which==='stock'?stockShown(product(id)):qtyOf(id);}
 function applyOrderValue(id,which,value){
+ if(orderStageWriting)throw Error('正在确认订单状态，请稍后修改');
  if(which!=='stock'){applyQty(id,value);return;}
  const p=product(id);
  if(!canEditStock(p))throw Error('这格库存只能查看');
@@ -720,6 +805,8 @@ function openFromRow(b){
  openOrderKey(id);
 }
 function render(){
+ const findFocused=document.activeElement?.id==='find';
+ orderEdited();
  document.body.classList.toggle('key-open',keypad&&!textMode);
  document.body.classList.toggle('text-mode',!!textMode);
  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===screen));
@@ -730,6 +817,7 @@ function render(){
   const input=document.querySelector('input.plain');
   if(input){input.focus({preventScroll:true});const n=input.value.length;try{input.setSelectionRange(n,n);}catch(e){}}
  }
+ if(findFocused)document.getElementById('find')?.focus({preventScroll:true});
  if(keypad||textMode)scrollActive();
 }
 function countHtml(){
@@ -866,17 +954,18 @@ function searchInput(p,which){
  return `<div class="search-cell"><small>${label}${readonly?' · 只读':''}</small><div class="cell ${on?'on':''}" ${attrs} role="button" ${readonly?'':'tabindex="0"'} aria-label="${E(p.name+' '+label)}">${inner}${unit?`<small>${E(unit)}</small>`:''}</div>${stock&&order&&screen==='order'?'':unitPicker(p,which)}</div>`;
 }
 function orderSaveMessage(){
+ if(orderLocalFailed&&order)return '本机备份失败；自动保存已暂停，请保留页面并下载当前订单备份。';
  const n=orderSaveNotice;
  if(!n||!order||sample||n.id!==order.id||n.epoch!==sessionEpoch)return '';
  if(n.phase==='saved'&&dirtyCount())return '前一批修改已保存到云端；当前还有修改未保存。';
  return n.message;
 }
-function orderSaveHtml(){const message=orderSaveMessage();return message?`<p class="order-save-status" role="status" aria-live="polite">${E(message)}</p>`:'';}
+function orderSaveHtml(){const message=orderSaveMessage();return (message?`<p class="order-save-status" role="status" aria-live="polite">${E(message)}</p>`:'')+(orderAutoBlocked?'<button class="ghost" data-act="order-backup">下载当前订单备份</button><button class="ghost" data-act="use-cloud-order">查看云端新版</button>':'');}
 function dockHtml(){
  if(!order)return '';
  if(order.orderStage==='finalized')return `<div class="dock"><p>已定稿，可按分类复制发送。</p>${member?.role==='editor'?'<button class="ghost" type="button" data-act="reopen">重新修改</button>':''}</div>`;
  const n=dirtyCount();
- const text=n?`有 ${n} 处改动，点这里保存`:'保存';
+ const text=n?`有 ${n} 处改动 · 立即保存`:'保存';
  return `<div class="dock">${orderSaveHtml()}${sample?'<p class="muted">样例不会写入云端</p>':''}<button class="primary" type="button" data-act="save" ${orderSaveNotice?.phase==='saving'&&orderSaveNotice.id===order.id&&orderSaveNotice.epoch===sessionEpoch?'disabled':''}>${text}</button>${!sample&&member?.role==='editor'?'<button class="ghost" type="button" data-act="finalize">确认定稿</button>':''}</div>`;
 }
 function dirtyCount(){
@@ -996,9 +1085,17 @@ async function confirmShare(){
  preparedExport={kind:'link',id:order.id,revision:order.revision,epoch:sessionEpoch,text:S.bossShareText(order.date,counts,shareUrl())};
  render();window.scrollTo(0,0);toast('订单已提交，请复制或分享上方链接给老板娘');
 }
-async function saveOrder(){
- if(textMode&&readPlain()===false)return;
- if(editId&&commitOrderEdit()===false)return;
+async function saveOrder(automatic=false){
+ if(orderFlight)return orderFlight;
+ if(orderAutoBlocked)throw Error('自动保存已暂停，请先备份并核对云端新版');
+ clearTimeout(orderTimer);
+ const promise=performOrderSave(automatic);orderFlight=promise;
+ try{return await promise;}finally{orderFlight=null;if(order&&!orderAutoBlocked&&dirtyCount())orderTimer=setTimeout(()=>flushOrder(),1500);}
+}
+async function performOrderSave(automatic=false){
+ if(!automatic&&textMode&&readPlain()===false)return;
+ if(!automatic&&editId&&commitOrderEdit()===false)return;
+ if(unfinishedOrderInput())return;
  if(sample){toast('样例不会写入云端');return;}
  if(!api||!order){toast('请先登录');return;}
  if(!dirtyCount()){toast('没有要保存的改动');return;}
@@ -1006,14 +1103,18 @@ async function saveOrder(){
  C.checkQuantities(q,order.units,Object.keys(order.units));
  C.inventorySnapshot(order);
  let patch={stockEdits:{...order.stockEdits},stockUnits:{...order.stockUnits}};
- const sentInventory=JSON.stringify([patch.stockEdits,patch.stockUnits]);
+ const sentInventory=Auto.inventoryValues(patch);
  const sentUnits={...order.units};patch={...patch,units:sentUnits};
  const current=order,epoch=sessionEpoch,client=api;
- orderSaveNotice={id:current.id,epoch,phase:'saving',message:'正在保存到云端…'};render();
+ orderEdited();orderSaveNotice={id:current.id,epoch,phase:'saving',message:'正在保存到云端…'};render();
+ if(orderAutoBlocked)throw Error('本机备份失败，已暂停保存，请先下载当前订单备份');
  let data;
- try{data=await client.save(current.id,current,q,crypto.randomUUID(),patch);}
+ const sentSignature=JSON.stringify([current.id,current.revision,q,patch]);
+ if(!orderMutation||orderMutation.signature!==sentSignature)orderMutation={signature:sentSignature,id:crypto.randomUUID()};
+ try{data=await client.save(current.id,current,q,orderMutation.id,patch);}
  catch(e){
   if(epoch===sessionEpoch&&order===current){
+   if(e.code==='ccx/conflict'){orderAutoBlocked=true;clearTimeout(orderTimer);}
    const message=e.code==='ccx/conflict'?'云端订单已被修改，本次未保存，请先备份并核对。':'未能确认云端保存成功，请保留当前修改，联网后核对并重试。';
    orderSaveNotice={id:current.id,epoch,phase:'failed',message};render();
   }
@@ -1021,17 +1122,18 @@ async function saveOrder(){
  }
  if(epoch!==sessionEpoch||order!==current)return;
  const laterStocks={...stocks};
- const further=sentInventory!==JSON.stringify([order.stockEdits||{},order.stockUnits||{}])||Object.keys(q).some(id=>current.quantities[id]!==q[id]||current.units[id]!==sentUnits[id]);
- if(further&&(sentInventory!==JSON.stringify([data.stockEdits||{},data.stockUnits||{}])||Object.keys(q).some(id=>data.quantities[id]!==q[id]||data.units[id]!==sentUnits[id]))){
+ const further=sentInventory!==Auto.inventoryValues(order)||Object.keys(q).some(id=>current.quantities[id]!==q[id]||current.units[id]!==sentUnits[id]);
+ if(further&&(sentInventory!==Auto.inventoryValues(data)||Object.keys(q).some(id=>data.quantities[id]!==q[id]||data.units[id]!==sentUnits[id]))){
+  orderAutoBlocked=true;
   const message='本次保存已完成，但云端随后又有更新；已保留你的后续输入，请核对云端版本';
   orderSaveNotice={id:current.id,epoch,phase:'changed',message};render();throw Error(message);
  }
  order=further?{...data,quantities:{...current.quantities},units:{...current.units},stockEdits:{...current.stockEdits},stockUnits:{...current.stockUnits}}:data;
- const edited=order;order=data;rememberStocks();order=edited;if(further)stocks=laterStocks;baseQty={...data.quantities};baseUnits={...data.units};if(!further)heldPrev={};orderDirty=further;
+ const edited=order;order=data;rememberStocks();order=edited;if(further)stocks=laterStocks;baseQty={...data.quantities};baseUnits={...data.units};if(!further)heldPrev={};orderDirty=further;orderBase=C.clone(data);orderMutation=null;orderLocalWrite();orderObserved=Auto.values(order)+'|'+JSON.stringify(editorRecord());
  const at=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
  orderSaveNotice={id:data.id,epoch,phase:'saved',message:'已保存到云端 · '+at};
  const message=further?'前一批修改已保存；刚输入的内容还需保存':'已保存到云端';
- toast(message);render();
+ if(!automatic)toast(message);render();
  try{const versions=await client.history(data.id);if(epoch!==sessionEpoch||order?.id!==data.id)return;history=versions;render();}
  catch(e){if(epoch===sessionEpoch&&order?.id===data.id)toast(message+'；修改记录暂未读到');}
 }
@@ -1043,28 +1145,36 @@ async function resumeReviewedOrder(){
  catch(e){status='云端订单暂未打开：'+(e.message||'读取失败');render();}
 }
 async function openOrder(id,fixed=false){
+ if(orderFlight||orderStageWriting)throw Error('正在保存，请稍后再切换订单');
+ if(unfinishedOrderInput())throw Error('请先完成当前数字，再切换订单');
  guardTest(id);sample=false;demoRole=null;
  const epoch=sessionEpoch,previous=order,previousQty=JSON.stringify([order?.quantities,order?.units,order?.stockEdits,order?.stockUnits]),previousRaw=editRaw;
  const data=await api.read(id);if(epoch!==sessionEpoch)return;
  if(order!==previous||JSON.stringify([order?.quantities,order?.units,order?.stockEdits,order?.stockUnits])!==previousQty||editRaw!==previousRaw)throw Error('读取期间你又修改了内容，已保留当前输入。请保存后再打开。');
- orderSaveNotice=null;
- order=data;rememberStocks();baseQty={...data.quantities};baseUnits={...data.units};heldPrev={};ack={};orderDirty=false;history=[];screen='order';keypad=false;textMode=false;editId=null;editRaw=null;query='';
+ acceptOrder(data);
  const url=new URL(location.href);if(fixed)url.searchParams.delete('order');else url.searchParams.set('order',id);url.searchParams.delete('sample');historyReplace(url);
  render();
  try{const versions=await api.history(id);if(epoch!==sessionEpoch||order?.id!==id)return;history=versions;}catch(e){toast('修改记录没读到');}
  render();
+}
+function acceptOrder(data){
+ orderSaveNotice=null;
+ order=data;rememberStocks();baseQty={...data.quantities};baseUnits={...data.units};heldPrev={};ack={};orderDirty=false;history=[];screen='order';keypad=false;textMode=false;editId=null;editRaw=null;query='';
+ beginOrderSession(data);
 }
 function historyReplace(url){window.history.replaceState(null,'',url.pathname+url.search);}
 async function changeOrderStage(stage){
  if(sample||!api||!order||member?.role!=='editor')throw Error('请由老板娘确认订单');
  if(textMode&&readPlain()===false)return;
  if(editId&&commitOrderEdit()===false)return;
- if(dirtyCount())throw Error('请先保存修改，再确认定稿');
+ if(orderFlight)await orderFlight;
+ if(dirtyCount()||orderAutoBlocked)throw Error('请先保存修改并解决冲突，再确认定稿');
  if(!confirm(stage==='finalized'?'确认这份订单已经检查完毕？定稿后可按分类复制，发送给供货商。':'重新修改后需要再次定稿；如果已发给供货商，请另行通知对方变更。继续吗？'))return;
  const current=order,epoch=sessionEpoch,client=api;
- const data=await client.finalize(current.id,current,crypto.randomUUID(),stage);
+ let data;orderStageWriting=true;clearTimeout(orderTimer);
+ try{data=await client.finalize(current.id,current,crypto.randomUUID(),stage);}finally{orderStageWriting=false;}
  if(epoch!==sessionEpoch||order!==current)return;
- order=data;keypad=false;textMode=false;editId=null;render();
+ order=data;keypad=false;textMode=false;editId=null;orderBase=C.clone(data);orderObserved=Auto.values(order)+'|null';render();
  toast(stage==='finalized'?'已定稿，尚未代你发送给供货商':'已恢复为待审核');
  try{const versions=await client.history(data.id);if(epoch!==sessionEpoch||order?.id!==data.id)return;history=versions;render();}catch(e){if(epoch===sessionEpoch&&order?.id===data.id)toast('状态已保存，修改记录暂未读到');}
 }
@@ -1115,6 +1225,7 @@ function advanceOrder(){
 }
 function returnToDraft(){
  if(!canCount()||sample||draft?.status!=='draft')return;
+ if(orderFlight||orderStageWriting)throw Error('正在保存，请稍后');
  if(readPlain()===false||commitOrderEdit()===false)return;
  if(dirtyCount())throw Error('请先保存当前订单的修改，再返回未提交盘货');
  order=null;history=[];baseQty={};baseUnits={};stocks={};stockBase={};stockBaseUnits={};orderDirty=false;orderSaveNotice=null;preparedExport=null;heldPrev={};ack={};
@@ -1123,6 +1234,8 @@ function returnToDraft(){
 }
 function startFreshCount(){
  if(!canCount()||sample)throw Error('请由大伟操作正式盘货');
+ if(orderFlight||orderStageWriting)throw Error('正在保存，请稍后');
+ if(unfinishedOrderInput())throw Error('请先完成当前数字，再开始盘货');
  if(dirtyCount())throw Error('请先保存当前订单的修改，再开始盘货');
  if(!confirm(draft?.status==='reviewed'?'保留当前盘货副本，并开始下一次空白盘货？已有云端订单不会删除。':'确认作废当前未提交的盘货并重新填写？会先保留本机副本。'))return;
  if(localBlocked||localConflict)throw Error('请先下载备份并重新打开页面');
@@ -1133,6 +1246,7 @@ function startFreshCount(){
  catch(e){draft=previous.draft;pos=previous.pos;field=previous.field;throw e;}
  order=null;preparedExport=null;orderSaveNotice=null;history=[];baseQty={};baseUnits={};heldPrev={};orderDirty=false;
  editId=null;editRaw=null;query='';viewCat='kr';moduleEnd=false;keypad=false;textMode=false;catScroll={kr:0,cn:0,other:0};
+ const url=new URL(location.href);url.searchParams.delete('order');historyReplace(url);
  flushCloud();screen='count';render();
 }
 function tryLeave(next){
@@ -1213,7 +1327,8 @@ document.body.addEventListener('click',async e=>{
   if(act==='return-draft'){returnToDraft();return;}
   if(act==='fresh'){startFreshCount();return;}
   if(act==='set-date'){const v=document.getElementById('countDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('请选日期');return;}if(draft.status==='reviewed'){toast('已经提交，日期不能改');return;}draft.date=v;persistLocal();toast('日期已改');return;}
-  if(act==='logout'){await signOut(auth);order=null;return;}
+  if(act==='use-cloud-order'){await useCloudOrder();return;}
+  if(act==='logout'){if(orderFlight||orderStageWriting||dirtyCount()||unfinishedOrderInput())throw Error('请先完成输入并保存修改，再退出登录');await signOut(auth);order=null;return;}
   if(act==='open-cloud'){if(textMode&&readPlain()===false)return;if(commitOrderEdit()===false)return;if(dirtyCount()&&!confirm('还有修改没保存，确定切换订单吗？'))return;busy=true;await openOrder(b.dataset.id);return;}
   if(act==='restore-rev'){if(order?.orderStage==='finalized')throw Error('订单已定稿，请老板娘先点重新修改');const v=history.find(x=>x.revision===Number(b.dataset.revision));if(!v)return;C.units.checkChange(order.units,v.units);order.quantities=C.clone(v.quantities);order.units=C.clone(v.units);orderDirty=true;morePane='';screen='order';render();toast('旧数量和订货单位已放回，还没保存');return;}
  }catch(err){toast(err.message||'没做成');}
@@ -1221,6 +1336,7 @@ document.body.addEventListener('click',async e=>{
 });
 document.body.addEventListener('input',e=>{
  if(e.target.classList.contains('plain')){
+  if(orderStageWriting){toast('正在确认订单状态，请稍后修改');render();return;}
   const value=e.target.value.slice(0,40);
   if(orderEditing()&&editId){
    editRaw=value;
@@ -1228,6 +1344,7 @@ document.body.addEventListener('input',e=>{
     if(!order&&draft)applyOrderValue(editId,editField,editField==='qty'&&value.trim()==='0'?'':value);
     else if(order&&(!value.trim()||Flow.isNumericQty(value.trim())))applyOrderValue(editId,editField,value.trim());
    }catch(err){toast(err.message||'没有保存，请检查输入');}
+   orderEdited();
    return;
   }
   writeCell(value);
@@ -1289,9 +1406,9 @@ document.body.addEventListener('submit',async e=>{
  if(e.target.id==='pass'){e.preventDefault();const form=e.target;const problem=A.passwordChangeError(form.elements.current.value,form.elements.next.value,form.elements.confirm.value);if(problem){toast(problem);return;}try{await reauthenticateWithCredential(user,EmailAuthProvider.credential(user.email,form.elements.current.value));await updatePassword(user,form.elements.next.value);toast('密码已改');}catch(err){toast(A.authErrorText(err.code,err.message,'password')||err.message);}finally{form.reset();}}
 });
 window.addEventListener('beforeunload',e=>{if(localSaveFailed||orderDirty||editId&&editRaw!==orderValue(editId,editField)){e.preventDefault();e.returnValue='';}});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushCloud();});
-window.addEventListener('pagehide',()=>flushCloud());
-window.addEventListener('online',()=>{if(cloudPending)flushCloud();paintBackupStatus();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){orderEdited();flushOrder();flushCloud();}});
+window.addEventListener('pagehide',()=>{orderEdited();flushOrder();flushCloud();});
+window.addEventListener('online',()=>{flushOrder();if(cloudPending)flushCloud();paintBackupStatus();});
 window.addEventListener('offline',()=>{cloudPending=true;paintBackupStatus();});
 window.addEventListener('storage',e=>{if(e.key===KEY&&e.newValue!==lastLocalRaw){localConflict=true;clearTimeout(cloudTimer);paintBackupStatus();}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&cloudPending)flushCloud();});
@@ -1328,17 +1445,21 @@ async function boot(){
   if(!cfg.enabled){status=configFailed?'云端配置加载失败，尚未连接云端。本机草稿仍可继续盘货或下载备份；联网后刷新重试。':'云端没打开。本机照样能盘货。';render();return;}
   const firebaseApp=initializeApp(cfg.firebase);auth=getAuth(firebaseApp);db=getFirestore(firebaseApp);
   onAuthStateChanged(auth,async u=>{
-   sessionEpoch++;cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
+   sessionEpoch++;clearTimeout(orderTimer);orderAutoBlocked=false;orderBase=null;orderObserved='';cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
+   const authEpoch=sessionEpoch;
    latestRequest++;directoryRequest++;latestOrder=null;latestMessage='';directoryRecords=[];directoryCursor=null;directoryMore=false;directoryMessage='';
    if(u&&backupUid!==u.uid){cloudBase=undefined;cloudAt=null;backupUid=u.uid;}
    user=u;member=null;api=null;
+   if(!sample){order=null;editId=null;editRaw=null;keypad=false;textMode=false;orderDirty=false;orderSaveNotice=null;}
    if(!u){status='还没登录。本机盘货可以用，云端备份要等大伟登录。';if(!sample)order=null;if(params.get('order')&&!sample){screen='order';status='登录后才能看这份订单。';}render();return;}
    try{
     const snap=await getDocFromServer(doc(db,'members',u.uid));
+    if(authEpoch!==sessionEpoch)return;
     const data=snap.exists()?snap.data():null;
     if(data&&data.active===true&&['owner','editor'].includes(data.role)&&data.name){
      member=data;api=store(db,u.uid,'orders',data.name);status=data.name+' 已登录';
      if(data.role==='owner')await pullDraft();
+     if(authEpoch!==sessionEpoch)return;
      const id=new URLSearchParams(location.search).get('order');
      if(id&&!sample)await openOrder(id);
      else if(data.role==='owner'&&!sample&&draft?.status==='reviewed'){await resumeReviewedOrder();}
@@ -1349,7 +1470,8 @@ async function boot(){
       else status=latestMessage;
      }
     }else status='登录了，但还不能看订单';
-   }catch(err){status=err.message||'登录后没读到权限';}
+   }catch(err){if(authEpoch!==sessionEpoch)return;status=err.message||'登录后没读到权限';}
+   if(authEpoch!==sessionEpoch)return;
    render();if(screen==='more')loadList();
   });
  }catch(e){status='云端没连上。本机照样能盘货。';}

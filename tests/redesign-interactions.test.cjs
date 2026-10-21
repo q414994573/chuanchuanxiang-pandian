@@ -7,10 +7,10 @@ function harness(production=false){
   activeElement:find,getElementById(id){return id==='find'?find:{};},
   querySelector(){return null;},querySelectorAll(){return [];},addEventListener(){}};
  const viewportHandlers={};
- const window={visualViewport:{offsetTop:0,height:400,addEventListener(n,fn){viewportHandlers[n]=fn;}},CountCore:Core,scrollY:80,scrollTo(x,y){this.scrollY=y;},addEventListener(){}};
- const ctx=vm.createContext({document,window,localStorage:{setItem(k,v){saved.set(k,v);},getItem(k){return saved.get(k)||null;}},
+ const window={history:{replaceState(){}},visualViewport:{offsetTop:0,height:400,addEventListener(n,fn){viewportHandlers[n]=fn;}},CountCore:Core,scrollY:80,scrollTo(x,y){this.scrollY=y;},addEventListener(){}};
+ const ctx=vm.createContext({document,window,localStorage:{setItem(k,v){saved.set(k,v);},getItem(k){return saved.get(k)??null;}},
   setTimeout(){return 1;},clearTimeout(){},requestAnimationFrame(fn){fn();},URL,URLSearchParams,Date,Intl,console,
-  C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup:require('../redesign-preview/draft-backup.cjs'),Recovery:require('../redesign-preview/recovery.cjs'),Entry:require('../redesign-preview/entry-mode.cjs'),
+  Auto:require('../redesign-preview/order-autosave.cjs'),C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup:require('../redesign-preview/draft-backup.cjs'),Recovery:require('../redesign-preview/recovery.cjs'),Entry:require('../redesign-preview/entry-mode.cjs'),
   fixture:structuredClone(source),location:{search:'',href:'https://example.test/redesign-preview/'}});
  let js=fs.readFileSync(require.resolve('../redesign-preview/preview.js'),'utf8');
  js=js.replace(/^import .*;\n/gm,'').replace(/boot\(\)\.catch\([\s\S]*$/,'');vm.runInContext(js,ctx);
@@ -445,7 +445,7 @@ test('both members edit the same pending inventory and quantities across count/l
   h.run(`buildSample('boss');sample=false;member={role:'${role}'};draft=JSON.parse(order.snapshot);order.id=C.cloudOrderId(draft.id,MODE.test);baseQty={...order.quantities};baseUnits={...order.units};rememberStocks();screen='count';query='土豆面片';globalThis.beforeSnapshot=order.snapshot;globalThis.beforeQty=JSON.stringify(order.quantities);`);
   h.run(`openOrderKey('kr:38','stock');typeOrderKey('0');closePad()`);
   assert.equal(h.run('screen'),'count');assert.equal(h.run(`stockShown(product('kr:38'))`),'0');assert.equal(h.run('JSON.stringify(order.quantities)'),h.run('beforeQty'));
-  assert.match(h.run('countHtml()'),/有 1 处改动，点这里保存/);
+  assert.match(h.run('countHtml()'),/有 1 处改动 · 立即保存/);
   h.run(`tryLeave('order')`);assert.match(h.run('searchHits()'),/<b>0<\/b>/);
   h.run(`applyQty('kr:38','2');tryLeave('count')`);assert.match(h.run('countRows()'),/<b>2<\/b>/);
   h.run(`api={save:async(id,base,q,mutation,patch)=>({...C.clone(base),...patch,quantities:{...q},revision:base.revision+1}),history:async()=>[]}`);
@@ -460,9 +460,119 @@ test('inventory save failures, conflicts, in-flight edits and blank vs zero rema
  const h=harness();h.ctx.crypto={randomUUID:()=> 'inventory-failure'};
  h.run(`buildSample('boss');sample=false;member={role:'editor'};baseQty={...order.quantities};rememberStocks();screen='count';applyOrderValue('kr:38','stock','0');api={save:async()=>{throw Object.assign(Error('冲突'),{code:'ccx/conflict'})}}`);
  await assert.rejects(h.run('saveOrder()'));assert.match(h.run('countHtml()'),/本次未保存/);assert.equal(h.run('dirtyCount()'),1);
- h.run(`api.save=(id,base,q,mid,patch)=>new Promise(resolve=>{globalThis.finishSave=()=>resolve({...C.clone(base),...patch,quantities:{...q},revision:base.revision+1})});api.history=async()=>[];`);
+ h.run(`orderAutoBlocked=false;api.save=(id,base,q,mid,patch)=>new Promise(resolve=>{globalThis.finishSave=()=>resolve({...C.clone(base),...patch,quantities:{...q},revision:base.revision+1})});api.history=async()=>[];`);
  const saving=h.run('saveOrder()');assert.match(h.run('countHtml()'),/正在保存到云端/);
  h.run(`applyOrderValue('kr:38','stock','');finishSave()`);await saving;
  assert.equal(h.run(`stocks['kr:38']`),'');assert.equal(h.run('dirtyCount()'),1);assert.match(h.run('countHtml()'),/当前还有修改未保存/);
  const log=h.run(`C.historyHtml(catalog(),[{...order,stockEdits:{'kr:38':''},revision:3},{...order,stockEdits:{'kr:38':'0'},revision:2}],false)`);assert.match(log,/库存 0봉 → 未填写/);
+});
+
+test('new count units use the confirmed 13 stock units without changing catalog/order units or historical source',()=>{
+ const before=JSON.stringify(source),d=Core.create(source,'2026-10-22','count-units');
+ const expected={'kr:43':'개','cn:9':'包','cn:12':'包','cn:13':'包','cn:14':'包','cn:25':'통','cn:33':'包','cn:37':'包','cn:39':'瓶','cn:44':'包','cn:45':'包','cn:46':'包','cn:47':'包'};
+ assert.equal(Object.keys(expected).length,13);
+ for(const p of source.products){assert.equal(d.items[p.id].stockUnit,expected[p.id]??p.unit??'');assert.equal(d.items[p.id].unit,p.unit||'');assert.equal(d.items[p.id].stock,'');}
+ assert.equal(JSON.stringify(source),before);assert.equal(d.catalog.length,129);assert.equal(d.items['cn:56'].stockUnit,'봉');
+});
+function autosaveHarness(role='owner'){
+ const h=harness();h.ctx.crypto={randomUUID:()=> 'autosave-test-id'};h.ctx.navigator={onLine:true};h.window.history={replaceState(){}};
+ h.run(`buildSample('boss');sample=false;member={role:'${role}',name:'tester'};user={uid:'${role}'};baseQty={...order.quantities};baseUnits={...order.units};rememberStocks();api={history:async()=>[]};beginOrderSession(order);globalThis.saves=[];api.save=async(id,base,q,mid,patch)=>{saves.push({q:C.clone(q),mid,patch:C.clone(patch)});return {...C.clone(base),...patch,quantities:{...q},revision:base.revision+1};};`);
+ return h;
+}
+test('both roles debounce shared edits and retain the keypad; no save of an incomplete decimal',async()=>{
+ for(const role of ['owner','editor']){
+  const h=autosaveHarness(role);const timers=new Map();let seq=0;h.ctx.setTimeout=(f,ms)=>{timers.set(++seq,{f,ms});return seq;};h.ctx.clearTimeout=i=>timers.delete(i);
+  h.run(`editId='kr:7';editField='qty';editRaw='1';applyQty(editId,'1');orderEdited()`);
+  assert.equal([...timers.values()].filter(t=>t.ms===1500).length,1);
+  h.run(`editRaw='12';applyQty(editId,'12');orderEdited()`);
+  assert.equal([...timers.values()].filter(t=>t.ms===1500).length,1);assert.equal(h.run('saves.length'),0);
+  h.run(`editRaw='12.';orderEdited()`);await h.run('flushOrder()');assert.equal(h.run('saves.length'),0);
+  assert.match([...h.saved.values()].find(x=>x.includes('ccx-order-edit-1')),/12\./);
+  h.run(`editRaw='12.5';applyQty(editId,editRaw);orderEdited()`);await h.run('flushOrder()');
+  assert.equal(h.run('saves.length'),1);assert.equal(h.run(`saves[0].q['kr:7']`),12500);assert.equal(h.run('editId'),'kr:7');assert.equal(h.run('dirtyCount()'),0);assert.match(h.run('orderSaveMessage()'),/已保存到云端/);
+ }
+});
+test('shared autosave offline, single in-flight request, later input, and retry use no silent overwrites',async()=>{
+ const h=autosaveHarness();h.run(`applyQty('kr:7','2');orderEdited();navigator.onLine=false`);await h.run('flushOrder()');assert.equal(h.run('saves.length'),0);assert.match(h.run('orderSaveMessage()'),/断网/);
+ h.run(`navigator.onLine=true;api.save=(id,base,q,mid,patch)=>new Promise(resolve=>{saves.push({mid});globalThis.finish=()=>resolve({...C.clone(base),...patch,quantities:{...q},revision:base.revision+1})});`);
+ const a=h.run('flushOrder()'),b=h.run('saveOrder()');assert.equal(h.run('saves.length'),1);
+ h.run(`applyQty('kr:7','3');orderEdited();finish()`);await Promise.all([a,b]);assert.equal(h.run(`order.quantities['kr:7']`),3000);assert.equal(h.run(`baseQty['kr:7']`),2000);assert.equal(h.run('dirtyCount()'),1);
+ const stored=JSON.parse([...h.saved.values()].find(x=>x.includes('ccx-order-edit-1')));assert.equal(stored.base.revision,2);assert.equal(stored.working.quantities['kr:7'],3000);
+ h.run(`api.save=async()=>{throw Object.assign(Error('conflict'),{code:'ccx/conflict'})}`);await h.run('flushOrder()');assert.equal(h.run('orderAutoBlocked'),true);const n=h.run('saves.length');await h.run('flushOrder()');assert.equal(h.run('saves.length'),n);
+});
+test('reload restores unsent edits only against the same revision, including stock zero and unfinished input',async()=>{
+ const h=autosaveHarness('editor');h.run(`globalThis.remote=C.clone(order);applyOrderValue('kr:38','stock','0');applyQty('kr:7','2');editId='kr:7';editField='qty';editRaw='2.';orderEdited();order=C.clone(remote);rememberStocks();baseQty={...order.quantities};editId=null;beginOrderSession(order);`);
+ assert.equal(h.run(`stocks['kr:38']`),'0');assert.equal(h.run(`order.quantities['kr:7']`),2000);assert.equal(h.run('editRaw'),'2.');assert.equal(h.run('orderAutoBlocked'),false);
+ h.run(`order={...remote,revision:8,orderStage:'finalized'};editId=null;beginOrderSession(order)`);assert.equal(h.run('orderAutoBlocked'),true);await h.run('flushOrder()');assert.equal(h.run('saves.length'),0);assert.match(h.run('orderSaveMessage()'),/云端已更新或定稿/);
+});
+test('another local tab or storage failure pauses automatic writes without false success',async()=>{
+ const h=autosaveHarness();h.run(`localStorage.setItem(orderLocalKey,'external edit');applyQty('kr:7','2');orderEdited()`);assert.equal(h.run('orderAutoBlocked'),true);await h.run('flushOrder()');assert.equal(h.run('saves.length'),0);assert.equal(h.saved.get(h.run('orderLocalKey')),'external edit');assert.match(h.run('orderSaveMessage()'),/本机备份失败/);
+});
+test('subsequent edits after a successful autosave retain a usable journal and save again',async()=>{
+ const h=autosaveHarness();h.run(`applyQty('kr:7','2');orderEdited()`);await h.run('flushOrder()');
+ h.run(`applyQty('kr:7','3');orderEdited()`);assert.equal(h.run('orderAutoBlocked'),false);await h.run('flushOrder()');assert.equal(h.run('saves.length'),2);assert.equal(h.run('order.revision'),3);assert.equal(h.run('dirtyCount()'),0);
+});
+test('lost acknowledgement retries the same mutation ID; changing account never uploads old edits',async()=>{
+ const h=autosaveHarness();h.run(`applyQty('kr:7','2');orderEdited();let attempts=0;const ok=api.save;api.save=async(...args)=>{if(!attempts++){saves.push({mid:args[3]});throw Error('network');}return ok(...args);}`);
+ await h.run('flushOrder()');await h.run('flushOrder()');assert.equal(h.run('saves[0].mid'),h.run('saves[1].mid'));assert.equal(h.run('dirtyCount()'),0);
+ h.run(`applyQty('kr:7','3');orderEdited();sessionEpoch++;member=null;api=null;user={uid:'different'}`);await h.run('flushOrder()');assert.equal(h.run('saves.length'),2);
+});
+test('finalization waits for the last save and blocks further editing during the final transaction',async()=>{
+ const h=autosaveHarness('editor');h.ctx.confirm=()=>true;
+ h.run(`applyQty('kr:7','2');orderEdited();api.save=(id,base,q,mid,patch)=>new Promise(resolve=>globalThis.saved=()=>resolve({...C.clone(base),...patch,quantities:{...q},revision:2}));api.finalize=(id,base)=>new Promise(resolve=>{globalThis.finalBase=base.revision;globalThis.finalized=()=>resolve({...base,orderStage:'finalized',revision:3});});`);
+ const saving=h.run('flushOrder()'),final=h.run(`changeOrderStage('finalized')`);assert.equal(h.run('globalThis.finalBase'),undefined);
+ h.run('saved()');await saving;await new Promise(resolve=>setImmediate(resolve));assert.equal(h.run('finalBase'),2);
+ assert.throws(()=>h.run(`applyQty('kr:7','4')`),/确认订单状态/);assert.throws(()=>h.run(`applyOrderValue('kr:38','stock','4')`),/确认订单状态/);
+ h.run('finalized()');await final;assert.equal(h.run('order.orderStage'),'finalized');await h.run('flushOrder()');assert.throws(()=>h.run(`applyQty('kr:7','4')`),/定稿/);
+});
+
+test('autosave accepts complete decimal spellings without closing the keypad for either role',async()=>{
+ for(const role of ['owner','editor'])for(const raw of ['1.0','01','1.250']){
+  const h=autosaveHarness(role);h.run(`editId='kr:7';editField='qty';editRaw='${raw}';keypad=true;applyQty(editId,editRaw);orderEdited()`);
+  assert.equal(h.run('unfinishedOrderInput()'),false);await h.run('flushOrder()');
+  assert.equal(h.run('saves.length'),1);assert.equal(h.run('dirtyCount()'),0);assert.equal(h.run('editRaw'),raw);assert.equal(h.run('keypad'),true);
+ }
+});
+test('a manual save cannot bypass a failed local journal write',async()=>{
+ const h=autosaveHarness();h.run(`applyQty('kr:7','2');localStorage.setItem=()=>{throw Error('quota')}`);
+ await assert.rejects(h.run('saveOrder()'),/本机备份失败/);assert.equal(h.run('saves.length'),0);assert.equal(h.run('orderAutoBlocked'),true);
+});
+test('conflict resolution preserves partial input and does not replace edits made while reading',async()=>{
+ const h=autosaveHarness('editor');h.ctx.confirm=()=>true;
+ h.run(`globalThis.remote=C.clone(order);applyQty('kr:7','2');editId='kr:7';editField='qty';editRaw='2.';orderEdited();orderAutoBlocked=true;api.read=()=>new Promise(resolve=>globalThis.finishRead=resolve);`);
+ const reading=h.run('useCloudOrder()');h.run(`editRaw='2.5';applyQty(editId,editRaw);finishRead({...remote,revision:2})`);
+ await assert.rejects(reading,/读取期间/);assert.equal(h.run(`order.quantities['kr:7']`),2500);
+ h.run(`editRaw='2.';api.read=async()=>({...remote,revision:2,orderStage:'finalized'})`);await h.run('useCloudOrder()');
+ assert.equal(h.run('order.revision'),2);assert.equal(h.run('order.orderStage'),'finalized');assert.equal(h.run('orderAutoBlocked'),false);
+ const recovery=[...h.saved.entries()].filter(([k])=>k.includes(':recovery:')).map(([,v])=>JSON.parse(v));
+ assert.equal(recovery.length,1);assert.equal(recovery[0].editor.raw,'2.');assert.equal(recovery[0].working.quantities['kr:7'],2500);
+});
+test('next count clears an old order URL and refuses an unfinished shared edit',()=>{
+ const h=harness(true);h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'next-clean'};let path;
+ h.window.history.replaceState=(a,b,p)=>{path=p;};h.ctx.location.href='https://example.test/ordering/?order=count-previous&v=26';
+ h.run(`member={role:'owner'};flushCloud=()=>{};startFreshCount()`);
+ assert.equal(path,'/ordering/?v=26');assert.equal(h.run('draft.id'),'count-next-clean');assert.equal(h.run('order'),null);
+ h.run(`editId='kr:7';editField='qty';editRaw='2.'`);assert.throws(()=>h.run('startFreshCount()'),/完成当前数字/);
+});
+test('both account screens show the same 13 stock units after submit and reread; historical units remain intact',()=>{
+ for(const role of ['owner','editor']){
+  const h=autosaveHarness(role);h.run(`screen='count';`);
+  for(const [id,unit] of Object.entries(Core.stockDefaults)){
+   assert.equal(h.run(`stockUnitOf(product('${id}'))`),unit);
+   h.run(`query=product('${id}').name`);assert.match(h.run('searchHits()'),new RegExp(unit));
+   assert.equal(h.run(`order.units['${id}']`),source.products.find(p=>p.id===id).unit||'');
+  }
+  h.run(`globalThis.old=JSON.parse(order.snapshot);old.items['cn:9'].stock='2';old.items['cn:9'].stockUnit='箱';order.snapshot=JSON.stringify(old);rememberStocks();`);
+  assert.equal(h.run(`stockUnitOf(product('cn:9'))`),'箱');assert.equal(h.run(`stocks['cn:9']`),'2');
+ }
+});
+
+test('server key ordering is not a conflict and later inventory input survives',async()=>{
+ const h=autosaveHarness('editor');h.run(`applyOrderValue('kr:38','stock','2');applyOrderValue('cn:9','stock','3');orderEdited();api.save=(id,base,q,mid,patch)=>new Promise(resolve=>globalThis.finish=()=>resolve({...C.clone(base),...patch,stockEdits:Object.fromEntries(Object.entries(patch.stockEdits).sort()),quantities:{...q},revision:2}));`);
+ const pending=h.run('flushOrder()');h.run(`applyOrderValue('kr:38','stock','4');orderEdited();finish()`);await pending;
+ assert.equal(h.run('orderAutoBlocked'),false);assert.equal(h.run(`stocks['kr:38']`),'4');assert.equal(h.run('dirtyCount()'),1);
+ const Auto=require('../redesign-preview/order-autosave.cjs');
+ const a={quantities:{a:1000,b:0},units:{a:'箱',b:'包'},stockEdits:{b:'0',a:'2'}};
+ const b={quantities:{b:0,a:1000},units:{b:'包',a:'箱'},stockEdits:{a:'2',b:'0'}};
+ assert.equal(Auto.values(a),Auto.values(b));assert.equal(Auto.choice({working:a},b),'saved');
 });
