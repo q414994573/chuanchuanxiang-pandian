@@ -596,6 +596,24 @@ function scrollActive(){
  if(r2.top<topLimit)window.scrollBy(0,r2.top-topLimit);
 }
 
+// Native search keyboard uses the visual viewport; never replace/focus the input
+// here, so Chinese/Korean composition and the caret survive result updates.
+function scrollSearch(){
+ requestAnimationFrame(()=>{
+  const find=document.getElementById('find');
+  if(!find||document.activeElement!==find)return;
+  const search=document.querySelector('.search');if(!search)return;
+  const vv=window.visualViewport;
+  const visibleTop=vv?vv.offsetTop:0;
+  const visibleBottom=visibleTop+(vv?vv.height:innerHeight);
+  const anchor=document.querySelector('.bar')||document.querySelector('.banner');
+  const anchorBottom=anchor?anchor.getBoundingClientRect().bottom:visibleTop;
+  const target=Math.max(visibleTop,Math.min(anchorBottom,visibleBottom-160))+8;
+  const delta=search.getBoundingClientRect().top-target;
+  if(Math.abs(delta)>2)window.scrollBy(0,delta);
+ });
+}
+
 function blurFind(){
  const find=document.getElementById('find');
  if(find&&document.activeElement===find)find.blur();
@@ -633,6 +651,7 @@ function paintRows(){
  if(screen==='count')syncCatButtons();
  const wrap=document.querySelector('.search');
  if(wrap)wrap.classList.toggle('hasq',!!query);
+ scrollSearch();
 }
 function clearFind(){
  if(textMode&&readPlain()===false)return;
@@ -1156,14 +1175,14 @@ document.body.addEventListener('pointerup',e=>{
 document.body.addEventListener('focusin',e=>{
  if(e.target.id!=='find')return;
  rememberSearchOrigin();
- if(!(keypad||textMode)){wantFind=false;return;}
+ if(!(keypad||textMode)){wantFind=false;scrollSearch();return;}
  if(!wantFind){e.target.blur();return;}
  wantFind=false;
  const y=searchScroll;
  const cat=searchCat;
  setTimeout(()=>{try{if(closePad()===false){blurFind();render();return;}searchScroll=y;searchCat=cat;const f=document.getElementById('find');if(f)f.focus({preventScroll:true});}catch(err){blurFind();toast(err.message||'没有保存');}},0);
 });
-if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{if(textMode)scrollActive();});
+if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{if(textMode)scrollActive();else scrollSearch();});
 document.body.addEventListener('submit',async e=>{
  if(e.target.id==='login'){e.preventDefault();const form=e.target;try{if(!auth)throw Error('云端尚未连接，请联网后刷新重试。本机草稿仍保留。');await signInWithEmailAndPassword(auth,A.accountEmail(form.elements.account.value),form.elements.password.value);}catch(err){toast(A.authErrorText(err.code,err.message)||err.message||'登录失败');}finally{form.elements.password.value='';}}
  if(e.target.id==='pass'){e.preventDefault();const form=e.target;const problem=A.passwordChangeError(form.elements.current.value,form.elements.next.value,form.elements.confirm.value);if(problem){toast(problem);return;}try{await reauthenticateWithCredential(user,EmailAuthProvider.credential(user.email,form.elements.current.value));await updatePassword(user,form.elements.next.value);toast('密码已改');}catch(err){toast(A.authErrorText(err.code,err.message,'password')||err.message);}finally{form.reset();}}
