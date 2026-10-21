@@ -254,11 +254,12 @@ function ensureDraft(){
 function guardTest(id){C.assertCloudOrderId(id,MODE.test);}
 
 function globalOrder(){return order;}
-function sharedCount(){return !!order&&(member?.role==='editor'||sample||countLinkedOrder());}
+// Both tabs represent the explicitly opened order, regardless of the local draft ID.
+function sharedCount(){return !!order;}
 function orderEditing(){return screen==='order'||(screen==='count'&&sharedCount());}
 function stockUnitOf(p){if(screen==='count'&&!sharedCount())return draft?.items[p.id]?.stockUnit||'';return order?(order.stockUnits?.[p.id]??JSON.parse(order.snapshot).items[p.id]?.stockUnit??''):(draft?.items[p.id]?.stockUnit||'');}
 function countLinkedOrder(){return !!(draft?.status==='reviewed'&&order&&!sample&&order.id===C.cloudOrderId(draft.id,MODE.test));}
-function countUnit(p){return countLinkedOrder()?(order.units[p.id]||''):(draft.items[p.id].unit||(C.units.choices[p.id]?'':p.unit)||'');}
+function countUnit(p){return sharedCount()?(order.units[p.id]||''):(draft.items[p.id].unit||(C.units.choices[p.id]?'':p.unit)||'');}
 function countNotice(){
  if(draft?.status!=='reviewed')return '';
  const linked=countLinkedOrder();
@@ -279,7 +280,7 @@ function cellRaw(p,which){
 }
 function cellText(p,which){
  if(which==='stock')return p.hasStock?stockShown(p):'';
- if(countLinkedOrder())return order.quantities[p.id]>0?C.textQuantity(order.quantities[p.id]):'';
+ if(sharedCount())return order.quantities[p.id]>0?C.textQuantity(order.quantities[p.id]):'';
  return draft.items[p.id].quantity||'';
 }
 function cellLabel(p,which){
@@ -471,6 +472,7 @@ function openOrderKey(id,which='qty'){
  if(which==='stock'&&!canEditStock(product(id))){toast('这格库存只能查看');return;}
  if(textMode&&readPlain()===false)return;
  if(editId&&commitOrderEdit()===false)return;
+ if(order&&which==='stock'&&screen!=='count'){toast('请到盘货页修改库存');return;}
  if(order&&which==='stock'&&!confirm('确认修改这项实际库存？订货数量不会改变。'))return;
  blurFind();
  editId=id;editField=which;editSnap=orderValue(id,which);editRaw=editSnap;keypad=true;textMode=false;if(!sharedCount()||screen!=='count')screen='order';render();scrollActive();
@@ -835,7 +837,7 @@ function blockHtml(cat){
   const caret=picking&&!textMode?'<i class="caret" aria-hidden="true"></i>':'';
   const unit=E((order?order.units[p.id]:draft?.items[p.id]?.unit||p.unit)||'');
   const editor=order?.orderStage==='finalized'?`<span class="num">${E(shown)}${unit}</span>`:dead?`<button class="ghost" type="button" data-act="restore" data-id="${E(p.id)}">恢复</button>`:(picking&&textMode?`<input class="plain on" value="${E(shown)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<button class="num${picking?' on':''}" type="button" data-act="edit" data-id="${E(p.id)}">${picking?`<b>${E(shown)}${caret}</b>${unit}`:`${E(shown)}${unit}`}</button>`);
-  return `<div class="order ${Flow.stripe(i)} ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${E(detailLine(p,c?changeNote(c):''))}</div>${order&&p.hasStock?searchInput(p,'stock'):''}</div><div>${editor}${unitPicker(p,'qty')}</div></div>`;
+  return `<div class="order ${Flow.stripe(i)} ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${E(detailLine(p,c?changeNote(c):''))}</div></div><div>${editor}${unitPicker(p,'qty')}</div></div>`;
  };
  const body=[...active,...gray].map(row).join('');
  const empty=yellowOnly?'这一块没有她改的。':'本分类暂无订货商品。';
@@ -855,13 +857,13 @@ function searchHits(countView=false){
 }
 function searchInput(p,which){
  const stock=which==='stock',label=stock?'库存':'订货';
- const readonly=order?.orderStage==='finalized'||stock&&!canEditStock(p);
+ const readonly=order?.orderStage==='finalized'||stock&&(screen==='order'&&!!order||!canEditStock(p));
  const on=keypad&&editId===p.id&&editField===which&&!readonly;
  const value=on?editRaw:(stock?stockShown(p):qtyOf(p.id));
  const unit=stock?((stockUnitOf(p))||''):((order?order.units[p.id]:draft?.items[p.id]?.unit||p.unit)||'');
  const inner=on&&textMode?`<input class="plain" aria-label="${E(p.name+' '+label)}" value="${E(value)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<b>${E(value)}${on?'<i class="caret" aria-hidden="true"></i>':''}</b>`;
  const attrs=readonly?'aria-disabled="true"':`data-act="edit" data-search="true" data-id="${E(p.id)}" data-field="${which}"`;
- return `<div class="search-cell"><small>${label}${readonly?' · 只读':''}</small><div class="cell ${on?'on':''}" ${attrs} role="button" ${readonly?'':'tabindex="0"'} aria-label="${E(p.name+' '+label)}">${inner}${unit?`<small>${E(unit)}</small>`:''}</div>${unitPicker(p,which)}</div>`;
+ return `<div class="search-cell"><small>${label}${readonly?' · 只读':''}</small><div class="cell ${on?'on':''}" ${attrs} role="button" ${readonly?'':'tabindex="0"'} aria-label="${E(p.name+' '+label)}">${inner}${unit?`<small>${E(unit)}</small>`:''}</div>${stock&&order&&screen==='order'?'':unitPicker(p,which)}</div>`;
 }
 function orderSaveMessage(){
  const n=orderSaveNotice;
@@ -895,7 +897,7 @@ function moreHtml(){
  const historyTools=toolSection('history','历史资料',`<p>这里只查看以前确认的记录，不代表当前库存。新版云端订单请用上方“查订单”。</p>${toolButton('查看基准存档','pane','查看最初确认的历史订单快照，仅供查证，不会替换当前盘货。','data-pane="archive"')}${toolButton('查看旧历史档案','pane','查看原来保留的历史记录，不会改变当前订单。','data-pane="history"')}${['archive','history'].includes(morePane)?morePaneHtml():''}${legacy}`);
  const account=member?toolSection('account','账号设置',accountTools):'';
  const home=toolSection('home','添加到手机桌面','<p>iPhone：用 Safari 打开，选择分享 → 添加到主屏幕。安卓：在浏览器菜单中选择添加到主屏幕或安装应用。名称是“천천향 盘货”。如果在聊天软件里打开，请先转到手机浏览器。</p>');
- return `${who}${date}${completed&&restart?'<div class="card">'+restart+'</div>':''}<div class="card"><h2>查订单</h2><div id="cloudList">${api&&!sample?entryHtml():'<p class="muted">'+(sample?'样例不查询云端订单。':'登录后可按日期查看已提交订单。')+'</p>'}</div><p class="muted">${E(status)}</p></div><div class="card">${toolButton('修改记录','pane','查看当前打开的订单由谁修改、改了哪些内容。','data-pane="log"')}</div>${morePane==='log'?morePaneHtml():''}${backups}${account}${historyTools}${!completed&&restart?toolSection('restart','作废与重新填写',restart):''}${home}${!PRODUCTION?toolSection('demo','测试样例','<button class="ghost" data-act="sample">看一张样例订单（不写入云端）</button>'):''}`;
+ return `${who}${order&&draft?.status==='draft'&&canCount()&&!sample?'<div class="card"><p>另有一份未提交盘货：'+E(draft.date)+'</p><button class="ghost" type="button" data-act="return-draft">返回未提交盘货</button></div>':''}${date}${completed&&restart?'<div class="card">'+restart+'</div>':''}<div class="card"><h2>查订单</h2><div id="cloudList">${api&&!sample?entryHtml():'<p class="muted">'+(sample?'样例不查询云端订单。':'登录后可按日期查看已提交订单。')+'</p>'}</div><p class="muted">${E(status)}</p></div><div class="card">${toolButton('修改记录','pane','查看当前打开的订单由谁修改、改了哪些内容。','data-pane="log"')}</div>${morePane==='log'?morePaneHtml():''}${backups}${account}${historyTools}${!completed&&restart?toolSection('restart','作废与重新填写',restart):''}${home}${!PRODUCTION?toolSection('demo','测试样例','<button class="ghost" data-act="sample">看一张样例订单（不写入云端）</button>'):''}`;
 }
 document.body.addEventListener('toggle',e=>{if(e.target.dataset?.moreSection)moreSections[e.target.dataset.moreSection]=e.target.open;},true);
 
@@ -1100,7 +1102,7 @@ function advanceOrder(){
   textMode=false;
   if(which==='stock'){openOrderKey(id,'qty');return;}
   const next=list[at+1];
-  if(next)openOrderKey(next.id,canEditStock(next)?'stock':'qty');
+  if(next)openOrderKey(next.id,canEditStock(next)&&(!order||screen==='count')?'stock':'qty');
   else{keypad=false;render();}
   return;
  }
@@ -1110,6 +1112,14 @@ function advanceOrder(){
  textMode=false;
  if(ids[at+1])openOrderKey(ids[at+1]);
  else{keypad=false;render();}
+}
+function returnToDraft(){
+ if(!canCount()||sample||draft?.status!=='draft')return;
+ if(readPlain()===false||commitOrderEdit()===false)return;
+ if(dirtyCount())throw Error('请先保存当前订单的修改，再返回未提交盘货');
+ order=null;history=[];baseQty={};baseUnits={};stocks={};stockBase={};stockBaseUnits={};orderDirty=false;orderSaveNotice=null;preparedExport=null;heldPrev={};ack={};
+ editId=null;editRaw=null;keypad=false;textMode=false;query='';screen='count';
+ const url=new URL(location.href);url.searchParams.delete('order');historyReplace(url);render();
 }
 function startFreshCount(){
  if(!canCount()||sample)throw Error('请由大伟操作正式盘货');
@@ -1200,6 +1210,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='save'){busy=true;await saveOrder();return;}
   if(act==='sample'){if(PRODUCTION)return;buildSample('order');render();return;}
   if(act==='pane'){morePane=morePane===b.dataset.pane?'':b.dataset.pane;render();return;}
+  if(act==='return-draft'){returnToDraft();return;}
   if(act==='fresh'){startFreshCount();return;}
   if(act==='set-date'){const v=document.getElementById('countDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('请选日期');return;}if(draft.status==='reviewed'){toast('已经提交，日期不能改');return;}draft.date=v;persistLocal();toast('日期已改');return;}
   if(act==='logout'){await signOut(auth);order=null;return;}
