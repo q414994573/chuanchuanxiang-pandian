@@ -125,3 +125,16 @@ label input{display:block;width:100%;min-height:48px;margin-top:4px;border:1px s
 /* Allow even a single search hit to scroll above the native phone keyboard. */
 body:has(#find:focus) #app{padding-bottom:calc(100vh + env(safe-area-inset-bottom))}
 body:has(#find:focus) .dock,body:has(#find:focus) .tabs{display:none}
+
+/* Order lookup stays in More; help never changes the selected order. */
+.latest-action{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.latest-action>.ghost{flex:1}
+.action-help{position:relative}
+.action-help>summary{display:flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;cursor:pointer;color:var(--muted);list-style:none}
+.action-help>summary::-webkit-details-marker{display:none}
+.action-help>p{position:absolute;right:0;top:100%;z-index:50;width:min(280px,75vw);padding:12px;margin:0;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 3px 12px #0002;font-size:14px}
+button:disabled{opacity:.5;cursor:default}
+.order-save-status{margin:0 0 6px;font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+.search .cancel{white-space:nowrap}
+
+#app:has(.order-save-status){padding-bottom:calc(var(--tabs) + 200px + env(safe-area-inset-bottom))}

@@ -31,13 +31,14 @@ let backupUid=null,cloudBase,cloudReady=false,cloudReading=false,cloudWriting=fa
 let cloudPhase='waiting',cloudAt=null,retryDelay=5000,sessionEpoch=0;
 let latestOrder=null,latestMessage='',latestRequest=0,directoryRecords=[],directoryCursor=null,directoryMore=false,directoryDate='',directoryMessage='',directoryRequest=0;
 let preparedExport=null,moreToolsOpen=false;
+let orderSaveNotice=null;
 
 const testOrders=records=>Entry.orders(records,MODE.test);
 function fixedEntryUrl(){const url=new URL(location.href);url.searchParams.delete('order');url.searchParams.delete('sample');return url.href;}
 function latestText(){return latestOrder?`云端最新：${latestOrder.date} 已提交 · ${latestOrder.orderStage==='finalized'?'已定稿':'待老板娘审核'}${order&&order.id!==latestOrder.id?' · 有另一份最新订单':''}`:'尚未检查最新订单';}
 function entryHtml(){
  if(!member||sample)return '';
- return `<div class="card" data-order-entry><strong data-latest-title>${E(latestText())}</strong><p class="muted" data-latest-note>${E(latestMessage)}</p><details><summary>最新订单、日期查找与固定入口</summary><div class="pair"><button class="ghost" data-act="check-latest">检查新订单</button><button class="ghost" data-act="latest-order">打开最新订单</button></div><button class="ghost" data-act="fixed-link">复制固定入口</button><label>订单日期<input id="orderDate" type="date" value="${E(directoryDate)}"></label><div class="pair"><button class="ghost" data-act="find-date">查找</button><button class="ghost" data-act="all-orders">查看全部日期</button></div><div data-order-list>${directoryHtml()}</div></details></div>`;
+ return `<div class="card" data-order-entry><strong data-latest-title>${E(latestText())}</strong><p class="muted" data-latest-note>${E(latestMessage)}</p><details><summary>最新订单、日期查找与固定入口</summary><div class="latest-action"><button class="ghost" data-act="latest-order">查看最新订单</button><details class="action-help"><summary aria-label="查看最新订单的说明">ⓘ</summary><p>打开最近提交的订单，并进入“订单”页面。若当前有未保存的修改，会先提醒保存。</p></details></div><button class="ghost" data-act="fixed-link">复制固定入口</button><label>订单日期<input id="orderDate" type="date" value="${E(directoryDate)}"></label><div class="pair"><button class="ghost" data-act="find-date">查找</button><button class="ghost" data-act="all-orders">查看全部日期</button></div><div data-order-list>${directoryHtml()}</div></details></div>`;
 }
 function directoryHtml(){return `<p class="muted">${E(directoryMessage)}</p>`+directoryRecords.map(d=>`<button class="ghost" style="width:100%;margin-top:8px" data-act="open-cloud" data-id="${E(d.id)}">${E(d.date)} · ${d.orderStage==='finalized'?'已定稿':'待老板娘审核'} · ${E(d.id.slice(-6))}</button>`).join('')+(directoryMore?'<button class="ghost" data-act="older-orders">加载更早订单</button>':'');}
 function paintEntry(){document.querySelectorAll('[data-latest-title]').forEach(el=>{el.textContent=latestText();});document.querySelectorAll('[data-latest-note]').forEach(el=>{el.textContent=latestMessage;});}
@@ -47,7 +48,7 @@ async function checkLatest(){
  latestMessage='正在检查…';paintEntry();
  try{let cursor=null,found=null;do{const page=await client.listPage(cursor);if(request!==latestRequest||epoch!==sessionEpoch)return null;found=testOrders(page.records)[0]||null;if(found||!page.hasMore)break;cursor=page.cursor;}while(cursor);
   if(request!==latestRequest||epoch!==sessionEpoch)return null;
-  latestOrder=found;latestMessage=found?'按提交时间排列；检查不会切换当前订单。':`还没有提交的${MODE.test?'测试':''}订单。`;paintEntry();return found;
+  latestOrder=found;latestMessage=found?'按提交时间排列；点击“查看最新订单”即可打开。':`还没有提交的${MODE.test?'测试':''}订单。`;paintEntry();return found;
  }catch(e){if(request===latestRequest&&epoch===sessionEpoch){latestMessage='检查失败：'+(e.message||'请重试');paintEntry();}return null;}
 }
 async function findOrders(date='',append=false){
@@ -296,7 +297,7 @@ function captureEntered(){
 }
 function openCount(i,which){
  if(!draft)return;
- if(draft.status==='reviewed'){toast('已经提交。要改数量，去今日订单');screen='order';keypad=false;textMode=false;render();return;}
+ if(draft.status==='reviewed'){toast('已经提交。要改数量，去订单');screen='order';keypad=false;textMode=false;render();return;}
  blurFind();
  const prev=pos;
  if(!(keypad&&pos===i&&field===which))leaveCountCell();
@@ -623,7 +624,7 @@ function blurFind(){
 function skipAct(){skipActUntil=Date.now()+450;}
 function actSkipped(){return Date.now()<skipActUntil;}
 function searchBar(placeholder){
- return `<div class="search${query?' hasq':''}"><div class="findwrap"><input class="find" id="find" placeholder="${placeholder}" value="${E(query)}" enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off"><button class="clear" type="button" data-act="clear-find" aria-label="清空" tabindex="-1">✕</button></div><button class="cancel" type="button" data-act="cancel-find">取消</button></div>`;
+ return `<div class="search${query?' hasq':''}"><div class="findwrap"><input class="find" id="find" placeholder="${placeholder}" value="${E(query)}" enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off"><button class="clear" type="button" data-act="clear-find" aria-label="清空" tabindex="-1">✕</button></div><button class="cancel" type="button" data-act="cancel-find">${screen==='order'?'返回订单':'取消'}</button></div>`;
 }
 function rememberSearchOrigin(){
  if(searchCat==null)searchCat=screen==='order'?orderCat:viewCat;
@@ -708,10 +709,10 @@ function render(){
  if(keypad||textMode)scrollActive();
 }
 function countHtml(){
- if(!canCount())return `<div class="card"><h1>盘货由大伟来做</h1><p>你打开他发来的链接，直接改今日订单。库存可以看，不能改。</p><button class="primary" type="button" data-act="goto-order">去今日订单</button></div>`;
+ if(!canCount())return `<div class="card"><h1>盘货由大伟来做</h1><p>你打开他发来的链接，直接改订单。库存可以看，不能改。</p><button class="primary" type="button" data-act="goto-order">去订单</button></div>`;
  try{ensureDraft();}catch(e){toast(e.message);}
  if(!draft)return `<div class="card">${backupStatusHtml()}<p>原内容仍保留。请下载备份后再处理，不要清除网站数据。</p></div>`;
- return `<div class="bar">${backupStatusHtml()}<div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看今日订单':'下一个没盘的'}</button></div>${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
+ return `<div class="bar">${backupStatusHtml()}<div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看订单':'下一个没盘的'}</button></div>${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
 }
 function catButtonsHtml(){
  const counts=query&&draft?Flow.searchHitCounts(draft.catalog,p=>S.matches(p,query,aliasesOf(p))):null;
@@ -742,13 +743,13 @@ function countRows(){
  return html+endNote('list');
 }
 function orderHtml(){
- return entryHtml()+exportPanel()+orderContentHtml();
+ return exportPanel()+orderContentHtml();
 }
 function orderContentHtml(){
  const link=new URLSearchParams(location.search).get('order');
  if(link&&!order&&!sample)return `<div class="card"><h1>登录后看这份订单</h1><p>${E(status)}</p><button class="primary" type="button" data-act="tab" data-tab="more">去登录</button></div>`;
- if(member?.role==='editor'&&!order&&!sample)return '<div class="card"><h1>还没有打开已提交订单</h1><p>可在上方检查最新订单，或按日期查找。</p></div>';
- if(!order&&!draft)return `<div class="card"><h1>今日还没有订单</h1><p>${canCount()?'先在盘货里过一遍。':'请用大伟发来的链接打开。'}</p></div>`;
+ if(member?.role==='editor'&&!order&&!sample)return '<div class="card"><h1>还没有打开已提交订单</h1><p>请到“更多 → 查订单”查看最新订单，或按日期查找。</p></div>';
+ if(!order&&!draft)return `<div class="card"><h1>还没有打开订单</h1><p>${canCount()?'先在盘货里过一遍。':'请用大伟发来的链接打开。'}</p></div>`;
  if(!order&&draft)return draftOrderHtml();
  const head=sample?'样例 · 不会写入云端':`${E(order.date)} · ${order.orderStage==='finalized'?'已定稿 · 由老板娘自行发送':'待老板娘审核'} · ${E(order.updatedByName||'')} · 第 ${order.revision} 版`;
  return orderShell(head,dockHtml());
@@ -809,9 +810,11 @@ function blockHtml(cat){
   return `<div class="order ${Flow.stripe(i)} ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${E(detailLine(p,c?changeNote(c):''))}</div></div><div>${editor}${unitPicker(p,'qty')}</div></div>`;
  };
  const body=[...active,...gray].map(row).join('');
- const empty=yellowOnly?'这一块没有她改的。':'这一家这次不订。';
- const exportNote=sample?'样例内容，不是正式订单':order?(order.orderStage==='finalized'?'复制或分享前会核对云端版本；请自行在 KakaoTalk 发送。':'请先保存修改，由老板娘确认定稿后再复制或分享。'):'盘货草稿预览，尚未提交或定稿。';
- return `<div class="card"><p class="muted">${exportNote}</p><div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}">复制</button><button class="ghost" type="button" data-act="share" data-cat="${cat}">分享</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
+ const empty=yellowOnly?'这一块没有她改的。':'本分类暂无订货商品。';
+ const exportDisabled=!!order&&!sample&&order.orderStage!=='finalized';
+ const exportLabel=order&&!sample?'本类订货文字':'';
+ const exportNote=sample?'样例内容，不是正式订单':order?(order.orderStage==='finalized'?'复制或分享前会核对云端版本；请自行在 KakaoTalk 发送。':'老板娘定稿后可复制订货文字。'):'盘货草稿预览，尚未提交或定稿。';
+ return `<div class="card"><p class="muted">${exportNote}</p><div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}" ${exportDisabled?'disabled':''}>复制${exportLabel}</button><button class="ghost" type="button" data-act="share" data-cat="${cat}" ${exportDisabled?'disabled':''}>分享${exportLabel}</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
 }
 function searchHits(){
  return catalog().filter(p=>S.matches(p,query,aliasesOf(p))).map((p,i)=>{
@@ -833,12 +836,19 @@ function searchInput(p,which){
  const attrs=readonly?'aria-disabled="true"':`data-act="edit" data-search="true" data-id="${E(p.id)}" data-field="${which}"`;
  return `<div class="search-cell"><small>${label}${readonly?' · 只读':''}</small><div class="cell ${on?'on':''}" ${attrs} role="button" ${readonly?'':'tabindex="0"'} aria-label="${E(p.name+' '+label)}">${inner}${unit?`<small>${E(unit)}</small>`:''}</div>${unitPicker(p,which)}</div>`;
 }
+function orderSaveMessage(){
+ const n=orderSaveNotice;
+ if(!n||!order||sample||n.id!==order.id||n.epoch!==sessionEpoch)return '';
+ if(n.phase==='saved'&&dirtyCount())return '前一批修改已保存到云端；当前还有修改未保存。';
+ return n.message;
+}
+function orderSaveHtml(){const message=orderSaveMessage();return message?`<p class="order-save-status" role="status" aria-live="polite">${E(message)}</p>`:'';}
 function dockHtml(){
  if(!order)return '';
  if(order.orderStage==='finalized')return `<div class="dock"><p>已定稿，可按分类复制发送。</p>${member?.role==='editor'?'<button class="ghost" type="button" data-act="reopen">重新修改</button>':''}</div>`;
  const n=dirtyCount();
  const text=n?`有 ${n} 处改动，点这里保存`:'保存';
- return `<div class="dock">${sample?'<p class="muted">样例不会写入云端</p>':''}<button class="primary" type="button" data-act="save">${text}</button>${!sample&&member?.role==='editor'?'<button class="ghost" type="button" data-act="finalize">确认定稿</button>':''}</div>`;
+ return `<div class="dock">${orderSaveHtml()}${sample?'<p class="muted">样例不会写入云端</p>':''}<button class="primary" type="button" data-act="save" ${orderSaveNotice?.phase==='saving'&&orderSaveNotice.id===order.id&&orderSaveNotice.epoch===sessionEpoch?'disabled':''}>${text}</button>${!sample&&member?.role==='editor'?'<button class="ghost" type="button" data-act="finalize">确认定稿</button>':''}</div>`;
 }
 function dirtyCount(){
  if(!order||sample)return 0;
@@ -891,13 +901,13 @@ function blockText(cat){
  const date=order?order.date:draft.date;
  return S.supplierText(date,rows)+(rows.length?'':'\n这次不订');
 }
-async function copyOnly(text){
+async function copyOnly(text,successMessage='已复制，可以贴到 KakaoTalk'){
  try{await navigator.clipboard.writeText(text);}catch(e){
   const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);
   try{ta.select();if(!document.execCommand('copy'))throw Error('复制失败，请重试；没有发送给供货商。');}
   finally{ta.remove();}
  }
- toast('已复制，可以贴到 KakaoTalk');
+ toast(successMessage);
 }
 async function supplierExport(cat,sharing=false){
  preparedExport=null;
@@ -960,13 +970,27 @@ async function saveOrder(){
  let patch;if(isOwner()&&C.stockChanged(order.snapshot,stocks))patch={snapshot:C.applyStock(order.snapshot,stocks)};
  const sentUnits={...order.units};patch={...patch,units:sentUnits};
  const current=order,epoch=sessionEpoch,client=api;
- const data=await client.save(current.id,current,q,crypto.randomUUID(),patch);
+ orderSaveNotice={id:current.id,epoch,phase:'saving',message:'正在保存到云端…'};render();
+ let data;
+ try{data=await client.save(current.id,current,q,crypto.randomUUID(),patch);}
+ catch(e){
+  if(epoch===sessionEpoch&&order===current){
+   const message=e.code==='ccx/conflict'?'云端订单已被修改，本次未保存，请先备份并核对。':'未能确认云端保存成功，请保留当前修改，联网后核对并重试。';
+   orderSaveNotice={id:current.id,epoch,phase:'failed',message};render();
+  }
+  throw e;
+ }
  if(epoch!==sessionEpoch||order!==current)return;
  const further=Object.keys(q).some(id=>current.quantities[id]!==q[id]||current.units[id]!==sentUnits[id]);
- if(further&&Object.keys(q).some(id=>data.quantities[id]!==q[id]||data.units[id]!==sentUnits[id]))throw Error('本次保存已完成，但云端随后又有更新；已保留你的后续输入，请核对云端版本');
+ if(further&&Object.keys(q).some(id=>data.quantities[id]!==q[id]||data.units[id]!==sentUnits[id])){
+  const message='本次保存已完成，但云端随后又有更新；已保留你的后续输入，请核对云端版本';
+  orderSaveNotice={id:current.id,epoch,phase:'changed',message};render();throw Error(message);
+ }
  order=further?{...data,quantities:{...current.quantities},units:{...current.units}}:data;
  rememberStocks();baseQty={...data.quantities};baseUnits={...data.units};if(!further)heldPrev={};orderDirty=further;
- const message=further?'前一批修改已保存；刚输入的内容还需保存':'已保存';
+ const at=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
+ orderSaveNotice={id:data.id,epoch,phase:'saved',message:'已保存到云端 · '+at};
+ const message=further?'前一批修改已保存；刚输入的内容还需保存':'已保存到云端';
  toast(message);render();
  try{const versions=await client.history(data.id);if(epoch!==sessionEpoch||order?.id!==data.id)return;history=versions;render();}
  catch(e){if(epoch===sessionEpoch&&order?.id===data.id)toast(message+'；修改记录暂未读到');}
@@ -983,6 +1007,7 @@ async function openOrder(id,fixed=false){
  const epoch=sessionEpoch,previous=order,previousQty=JSON.stringify([order?.quantities,order?.units]),previousRaw=editRaw;
  const data=await api.read(id);if(epoch!==sessionEpoch)return;
  if(order!==previous||JSON.stringify([order?.quantities,order?.units])!==previousQty||editRaw!==previousRaw)throw Error('读取期间你又修改了内容，已保留当前输入。请保存后再打开。');
+ orderSaveNotice=null;
  order=data;rememberStocks();baseQty={...data.quantities};baseUnits={...data.units};heldPrev={};ack={};orderDirty=false;history=[];screen='order';keypad=false;textMode=false;editId=null;editRaw=null;query='';
  const url=new URL(location.href);if(fixed)url.searchParams.delete('order');else url.searchParams.set('order',id);url.searchParams.delete('sample');historyReplace(url);
  render();
@@ -1061,10 +1086,11 @@ function tryLeave(next){
 
 document.body.addEventListener('click',async e=>{
  if(releaseLocked)return;
+ if(!e.target.closest('.action-help'))document.querySelectorAll('.action-help[open]').forEach(el=>{el.open=false;});
  if(e.target.closest('input.plain,select[data-unit]'))return;
  const b=e.target.closest('[data-act]');
  if(!b){if((keypad||textMode)&&!e.target.closest('.pad')&&!e.target.closest('input,button,a,label'))closePad();return;}
- if(busy)return;
+ if(busy||b.disabled)return;
  const act=b.dataset.act;
  try{
   if(act==='backup-export'){backupRecovery();return;}
@@ -1073,8 +1099,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='restore-file'){busy=true;await restoreBackupFile(document.getElementById('restoreFile')?.files?.[0]);return;}
   if(act==='export-close'){preparedExport=null;render();return;}
   if(act==='export-copy'||act==='export-share'){await deliverPrepared(act==='export-share');return;}
-  if(act==='fixed-link'){await copyOnly(fixedEntryUrl());return;}
-  if(act==='check-latest'){await checkLatest();return;}
+  if(act==='fixed-link'){await copyOnly(fixedEntryUrl(),'已复制');return;}
   if(act==='find-date'){const date=document.getElementById('orderDate')?.value;if(!date){toast('请先选择日期');return;}await findOrders(date);return;}
   if(act==='all-orders'){const input=document.getElementById('orderDate');if(input)input.value='';await findOrders();return;}
   if(act==='older-orders'){await findOrders(directoryDate,true);return;}
@@ -1147,6 +1172,7 @@ document.body.addEventListener('input',e=>{
  if(e.target.id==='find'){rememberSearchOrigin();query=e.target.value;paintRows();}
 });
 document.body.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){document.querySelectorAll('.action-help[open]').forEach(el=>{el.open=false;});}
  if(!e.target.classList.contains('plain')&&(e.key==='Enter'||e.key===' ')){
   const cell=e.target.closest('[data-search="true"]');
   if(cell){e.preventDefault();openFromRow(cell);return;}
