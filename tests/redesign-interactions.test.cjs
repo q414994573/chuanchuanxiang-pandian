@@ -23,6 +23,36 @@ test('cloud order URL uses browser history even when audit history is an array',
  h.run(`history=[];historyReplace(new URL('https://example.test/redesign-preview/?order=test-count-one'))`);
  assert.equal(path,'/redesign-preview/?order=test-count-one');
 });
+test('fixed entry scans beyond a production-only page and checks without replacing edits',async()=>{
+ const h=harness();h.run(`member={role:'editor'};order={id:'test-count-old',quantities:{x:2000}};orderDirty=true;let calls=0;api={listPage:async cursor=>{calls++;return cursor?{records:[{id:'test-count-new',date:'2026-10-21'}],hasMore:false}:{records:[{id:'count-live'}],cursor:'next',hasMore:true}}};`);
+ await h.run('checkLatest()');assert.equal(h.run('latestOrder.id'),'test-count-new');assert.equal(h.run('order.id'),'test-count-old');assert.equal(h.run('order.quantities.x'),2000);
+ assert.equal(h.run('calls'),2);assert.match(h.run('latestText()'),/另一份/);
+ h.ctx.location.href='https://example.test/redesign-preview/?order=test-count-old&sample=boss';
+ assert.equal(h.run('fixedEntryUrl()'),'https://example.test/redesign-preview/');
+ h.run(`api.listPage=async()=>{throw Error('断网')}`);await h.run('checkLatest()');assert.match(h.run('latestMessage'),/检查失败/);assert.equal(h.run('order.id'),'test-count-old');
+});
+test('date results preserve multiple same-day orders and ignore late responses',async()=>{
+ const h=harness();h.run(`member={role:'editor'};api={onDate:date=>new Promise(resolve=>{globalThis.pendingDates=globalThis.pendingDates||{};pendingDates[date]=resolve})};`);
+ const first=h.run(`findOrders('2026-10-20')`),second=h.run(`findOrders('2026-10-21')`);
+ h.run(`pendingDates['2026-10-21']([{id:'test-count-a',date:'2026-10-21'},{id:'test-count-b',date:'2026-10-21'},{id:'count-live',date:'2026-10-21'}])`);await second;
+ h.run(`pendingDates['2026-10-20']([{id:'test-count-stale'}])`);await first;
+ assert.equal(h.run('directoryRecords.length'),2);assert.equal(h.run('directoryDate'),'2026-10-21');assert.doesNotMatch(h.run('directoryHtml()'),/stale|count-live/);
+});
+test('latest-order action does not discard input started while checking the server',async()=>{
+ const h=harness();h.run(`member={role:'editor'};dirtyCount=()=>0;checkLatest=()=>new Promise(resolve=>globalThis.resolveLatest=resolve);openOrder=async()=>{globalThis.opened=true};`);
+ const button={dataset:{act:'latest-order'}};
+ const click=h.handlers.click({target:{closest:s=>s==='[data-act]'?button:null}});
+ h.run(`editId='cn:9';editRaw='12';resolveLatest({id:'test-count-new'})`);await click;
+ assert.equal(h.run('globalThis.opened'),undefined);assert.match(h.run('lastToast'),/保留/);
+});
+test('opening a fixed entry preserves its URL and rejects edits made while reading',async()=>{
+ const h=harness();let path;h.window.history={replaceState(a,b,p){path=p;}};
+ h.run(`globalThis.fixtureOrder={id:'test-count-one',snapshot:JSON.stringify(draft),quantities:{},units:{},revision:1};api={read:()=>new Promise(resolve=>globalThis.resolveRead=resolve),history:async()=>[]};`);
+ const reading=h.run(`openOrder('test-count-one',true)`);h.run(`editRaw='12';resolveRead(fixtureOrder)`);
+ await assert.rejects(reading,/保留当前输入/);assert.equal(h.run('order'),null);
+ h.run(`editRaw=null;api.read=async()=>fixtureOrder`);await h.run(`openOrder('test-count-one',true)`);assert.equal(path,'/redesign-preview/');
+ await h.run(`openOrder('test-count-one')`);assert.equal(path,'/redesign-preview/?order=test-count-one');
+});
 test('finalization requires saved edits, boss role and a successful server response',async()=>{
  const h=harness();h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'workflow-test-mutation'};
  h.run(`member={role:'editor'};order={id:'test-count-one',revision:2,quantities:{},units:{}};dirtyCount=()=>1;api={finalize:async()=>{throw Error('断网')}};`);

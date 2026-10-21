@@ -1,4 +1,4 @@
-import {doc,collection,getDocFromServer,getDocsFromServer,query,orderBy,limit,runTransaction,serverTimestamp} from 'firebase/firestore';
+import {doc,collection,getDocFromServer,getDocsFromServer,query,orderBy,limit,startAfter,where,runTransaction,serverTimestamp} from 'firebase/firestore';
 import Core from './core.cjs';
 // Canonical ID-sorted thousandths sequence keeps rules validation bounded for 129 products.
 const encode=q=>Object.keys(q).sort().map(k=>String(q[k])).join(',');
@@ -26,5 +26,16 @@ export function store(db,uid,group='orders',actorName=''){
    tx.update(r,next);tx.set(doc(r,'revisions',mutationId),next);
   });return read(id);
  }
- return {create,save,read,list,history,finalize};
+ // Stable submission ordering: editing yesterday's order must not make it today's latest.
+ async function listPage(cursor=null){
+  online();const constraints=[orderBy('createdAt','desc'),limit(30)];if(cursor)constraints.push(startAfter(cursor));
+  const s=await getDocsFromServer(query(collection(db,group),...constraints));
+  return {records:s.docs.map(x=>({id:x.id,...decode(x.data())})),cursor:s.docs.at(-1)||null,hasMore:s.docs.length===30};
+ }
+ async function onDate(date){
+  online();if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw Error('请选择订单日期');
+  const s=await getDocsFromServer(query(collection(db,group),where('date','==',date)));
+  return s.docs.map(x=>({id:x.id,...decode(x.data())})).sort((a,b)=>(b.createdAt?.toMillis()||0)-(a.createdAt?.toMillis()||0)||b.id.localeCompare(a.id));
+ }
+ return {create,save,read,list,history,finalize,listPage,onDate};
 }
