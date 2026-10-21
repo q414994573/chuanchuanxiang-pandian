@@ -611,3 +611,22 @@ test('sticky search does not scroll toward its own parent and keeps a single inp
   assert.ok(html.indexOf('id="find"')<html.indexOf('id="rows"'));
  }
 });
+
+test('draft previous and next stay in filtered cells and preserve zero and blanks',()=>{
+ const h=harness();h.run(`screen='count';member={role:'owner'};viewCat='kr';query='豆腐';globalThis.cells=countNavigationCells();pos=cells[0].i;field=cells[0].which;keypad=true;captureEntered();`);
+ assert.ok(h.run('cells.length')>1);
+ const first=h.run('pos');h.run(`writeCell('0');nextCell();nextCell(-1)`);
+ assert.equal(h.run('pos'),first);assert.equal(h.run('field'),'stock');assert.equal(h.run('draft.items[draft.catalog[pos].id].stock'),'0');
+ assert.match(h.run('countPad()'),/data-act="prev" disabled/);
+ h.run(`nextCell(-1)`);assert.equal(h.run('pos'),first);
+ h.run(`writeCell('1.');nextCell()`);assert.equal(h.run('pos'),first);assert.equal(h.run('field'),'stock');
+ h.run(`writeCell('');nextCell();nextCell(-1)`);assert.equal(h.run('draft.items[draft.catalog[pos].id].stock'),'');
+});
+test('order search moves backward through editable cells and skips shared read-only stock',()=>{
+ const h=harness();h.run(`query='鸡精';openOrderKey('cn:9','qty');advanceOrder(-1)`);
+ assert.equal(h.run('editField'),'stock');assert.equal(h.run('editId'),'cn:9');
+ h.run(`advanceOrder();`);assert.equal(h.run('editField'),'qty');
+ h.run(`buildSample('boss');query='鸡精';screen='order';`);
+ assert.equal(h.run(`orderNavigationCells().every(c=>c.which==='qty')`),true);
+ h.run(`order.orderStage='finalized'`);assert.equal(h.run('orderNavigationCells().length'),0);
+});
