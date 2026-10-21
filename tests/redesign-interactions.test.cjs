@@ -659,3 +659,8 @@ test('shared current read after logout cannot restore the previous session',asyn
  const h=harness();h.ctx.confirm=()=>true;h.run(`peerEnabled=true;backupRecovery=()=>{};peerApi={read:()=>new Promise(resolve=>globalThis.resolvePeerRead=resolve)};globalThis.oldDraft=C.clone(draft);`);
  const opening=h.run('peerUseRemote()');h.run(`sessionEpoch++;draft=null;resolvePeerRead({localId:oldDraft.id,revision:2,stage:'draft',draft:oldDraft})`);await opening;assert.equal(h.run('draft'),null);
 });
+test('shared count and order both direct signed-out users to the same login entry',()=>{
+ const h=harness();h.run(`peerEnabled=true;member=null;user=null;`);
+ assert.match(h.run('countHtml()'),/登录后共同盘货/);assert.match(h.run('orderContentHtml()'),/登录后共同盘货/);
+ assert.doesNotMatch(h.run('countHtml()'),/打开已提交订单/);
+});
