@@ -1073,7 +1073,7 @@ function blockHtml(cat){
  const empty=yellowOnly?'这一块没有她改的。':'本分类暂无订货商品。';
  const exportDisabled=!sample&&(!order||order.orderStage!=='finalized');
  const exportLabel=order&&!sample?'本类订货文字':'';
- const exportNote=sample?'样例内容，不是正式订单':order?(order.orderStage==='finalized'?'复制或分享前会核对云端版本；请自行在 KakaoTalk 发送。':'定稿后可复制订货文字。'):'盘货草稿预览；提交并由定稿后，才可复制、分享订货文字。';
+ const exportNote=sample?'样例内容，不是正式订单':order?(order.orderStage==='finalized'?'复制或分享前会核对云端版本；请自行在 KakaoTalk 发送。':'定稿后可复制订货文字。'):'共同盘货草稿；任一方定稿后，双方都可复制、分享订货文字。';
  return `<div class="card"><p class="muted">${exportNote}</p><div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}" ${exportDisabled?'disabled':''}>复制${exportLabel}</button><button class="ghost" type="button" data-act="share" data-cat="${cat}" ${exportDisabled?'disabled':''}>分享${exportLabel}</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
 }
 function searchHits(countView=false){
@@ -1121,7 +1121,7 @@ function moreHtml(){
  const completed=draft?.status==='reviewed';
  const restart=draft&&canCount()&&!sample?toolButton(completed?'开始下一次盘货':peerEnabled?'打开当前盘货':'作废当前盘货','fresh',completed?'保留这份盘货的本机副本，开始一份空白盘货。不会删除已提交的云端订单。':(peerEnabled?'双方共同维护同一份草稿，已有草稿时打开它。':'放弃当前未提交的盘货，重新填写。操作前会确认并保留本机副本；这不是删除云端订单。')):'';
  const legacy=PRODUCTION&&canCount()?toolSection('legacy','旧版资料与入口',legacyImportHtml()):'';
- const backupDraft=canCount()&&draft?`<p>这部手机上的盘货：${E(draft.date)}${completed?'（已复核的本机记录）':'（尚未提交）'}</p>${toolButton('保存这份盘货备份','backup-export','下载这部手机上的盘货记录，包括库存和订货数量。请将文件保存到手机；请同时核对云端同步状态。')}`:'';
+ const backupDraft=canCount()&&draft?`<p>这部手机上的盘货：${E(draft.date)}${completed?'（已复核的本机记录）':(peerEnabled?'（未定稿）':'（尚未提交）')}</p>${toolButton('保存这份盘货备份','backup-export','下载这部手机上的盘货记录，包括库存和订货数量。请将文件保存到手机；请同时核对云端同步状态。')}`:'';
  const backupOrder=order?`<p>当前打开的订单：${E(order.date)} · 第 ${order.revision} 版</p>${toolButton('保存这份订单备份','order-backup','下载当前打开的订单，包括尚未保存的修改。下载备份不会把修改上传云端。')}`:'';
  const restore=canCount()?`<label>选择之前保存的备份文件<input type="file" id="restoreFile" accept=".json,application/json"></label>${toolButton('从备份文件恢复','restore-file','将文件恢复成一份单独的盘货，需重新核对后提交。先保留当前盘货副本，不覆盖已有云端订单。')}`:'';
  const backups=!sample?toolSection('backup','数据备份与恢复',backupDraft+backupOrder+restore+(!draft&&!order?'<p>打开盘货或订单后，可以保存备份。</p>':'')):'';
