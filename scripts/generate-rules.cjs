@@ -1,5 +1,10 @@
 const fs=require('fs');
-const ids=JSON.parse(fs.readFileSync('current-order.json')).products.map(p=>p.id);
+const products=JSON.parse(fs.readFileSync('current-order.json')).products;
+const ids=products.map(p=>p.id);
+const stockIds=products.filter(p=>p.hasStock).map(p=>p.id);
+const stockPattern='(~|[0-9]{1,36}([.][0-9]{1,3})?|)';
+const runs=[];for(const id of ids.slice().sort()){const pattern=products.find(p=>p.id===id).hasStock?stockPattern:'~';if(runs.at(-1)?.pattern===pattern)runs.at(-1).count++;else runs.push({pattern,count:1});}
+const productionStock=runs.map(r=>r.pattern+(r.count>1?'(,'+r.pattern+'){'+(r.count-1)+'}':'')).join(',');
 fs.writeFileSync('firestore.rules',`rules_version = '2';
 service cloud.firestore {
  match /databases/{database}/documents {
@@ -10,7 +15,11 @@ service cloud.firestore {
   function sandbox(d) { return d.units.keys().hasOnly(['test:a','test:b','test:c']) && d.units.size() == 3 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){2}$'); }
   function unitChange() { return request.resource.data.units == resource.data.units || (groupSafeUnits()); }
   function groupSafeUnits() { return request.resource.data.units.diff(resource.data.units).affectedKeys().hasOnly(['cn:45','other:11']) && request.resource.data.units['cn:45'] in ['', '박스', '봉'] && request.resource.data.units['other:11'] in ['', '세트', '몸통만']; }
-  function shape(d,group) { return d.keys().hasOnly(['schema','date','snapshot','quantities','units','createdBy','createdAt','updatedBy','updatedAt','updatedByName','revision','mutationId','orderStage'])
+  function inventory(d,group) { let edits=d.get('stockEdits',''); let units=d.get('stockUnits',{}); return edits is string && units is map
+    && units.keys().hasOnly(['cn:45']) && units.get('cn:45','') in ['', '박스','봉']
+    && (edits == '' || (group == 'orders' ? edits.matches('^${productionStock}$') : edits.matches('^${[stockPattern,stockPattern,stockPattern].join(',')}$'))); }
+  function shape(d,group) { return d.keys().hasOnly(['schema','date','snapshot','quantities','units','createdBy','createdAt','updatedBy','updatedAt','updatedByName','revision','mutationId','orderStage','stockEdits','stockUnits'])
+    && inventory(d,group)
     && d.get('orderStage','pending') in ['pending','finalized']
     && d.schema == 'ccx-cloud-1' && d.date is string && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
     && d.snapshot is string && d.snapshot.size() < 500000 && d.quantities is string && d.units is map
@@ -33,8 +42,8 @@ service cloud.firestore {
     && request.resource.data.revision == resource.data.revision + 1 && audit()
     && ((resource.data.get('orderStage','pending') == 'pending'
        && unitChange()
-       && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','units','revision','updatedBy','updatedAt','updatedByName','mutationId'])
-        || (owner() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','units','snapshot','revision','updatedBy','updatedAt','updatedByName','mutationId']))))
+       && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','units','stockEdits','stockUnits','revision','updatedBy','updatedAt','updatedByName','mutationId'])
+        || (owner() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','units','snapshot','stockEdits','stockUnits','revision','updatedBy','updatedAt','updatedByName','mutationId']))))
       || (get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'editor'
         && request.resource.data.get('orderStage','pending') != resource.data.get('orderStage','pending')
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['orderStage','revision','updatedBy','updatedAt','updatedByName','mutationId'])));
