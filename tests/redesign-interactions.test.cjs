@@ -396,3 +396,27 @@ test('failed new-count local write keeps original draft and current order',()=>{
  h.run(`member={role:'owner'};globalThis.oldDraft=draft;globalThis.write=localStorage.setItem;localStorage.setItem=(k,v)=>{if(k===KEY)throw Error('quota');write(k,v)};`);
  assert.throws(()=>h.run('startFreshCount()'),/本机保存失败/);assert.equal(h.run('draft===oldDraft'),true);
 });
+
+test('submitted count list and search show linked order quantities without rewriting original count',()=>{
+ const h=harness(true);h.run(`member={role:'owner'};draft.status='reviewed';screen='count';const p=draft.catalog.find(p=>p.name==='감자수제비');globalThis.testId=p.id;globalThis.original=JSON.stringify(draft);order={id:C.cloudOrderId(draft.id,MODE.test),snapshot:JSON.stringify(draft),quantities:{[testId]:2000},units:Object.fromEntries(draft.catalog.map(p=>[p.id,p.unit])),orderStage:'pending'};baseQty={...order.quantities};baseUnits={...order.units};`);
+ assert.equal(h.run('countLinkedOrder()'),true);assert.equal(h.run(`cellText(draft.catalog.find(p=>p.id===testId),'qty')`),'2');
+ assert.match(h.run('countRows()'),/<b>2<\/b>/);h.run(`query='土豆面片'`);assert.match(h.run('countRows()'),/<b>2<\/b>/);
+ assert.equal(h.run('JSON.stringify(draft)'),h.run('original'));
+ h.run(`order.quantities[testId]=3500`);assert.match(h.run('countNotice()'),/有修改未保存/);assert.match(h.run('countRows()'),/<b>3.5<\/b>/);
+ h.run(`order.quantities[testId]=0`);assert.equal(h.run(`cellText(draft.catalog.find(p=>p.id===testId),'qty')`),'');
+ assert.equal(h.run(`cellText(draft.catalog.find(p=>p.id===testId),'stock')`),'');
+});
+test('unrelated historical order and new count cannot leak quantities or stock into count display',()=>{
+ const h=harness(true);h.run(`screen='count';draft.status='reviewed';order={id:'count-other',quantities:{'kr:7':2000},units:{'kr:7':'wrong'}};stocks={'kr:7':'99'};`);
+ assert.equal(h.run('countLinkedOrder()'),false);assert.match(h.run('countNotice()'),/不是最新订货数量/);
+ assert.equal(h.run(`cellText(draft.catalog.find(p=>p.id==='kr:7'),'stock')`),'');
+ assert.equal(h.run(`cellText(draft.catalog.find(p=>p.id==='kr:7'),'qty')`),'');
+ h.run(`order.id=C.cloudOrderId(draft.id,MODE.test);draft.status='draft'`);assert.equal(h.run('countLinkedOrder()'),false);assert.equal(h.run('countNotice()'),'');
+});
+test('linked reviewed count shows selected order unit read-only, keeping stock unit and original unit',()=>{
+ const h=harness(true);h.run(`screen='count';draft.status='reviewed';draft.items['cn:45'].unit='박스';draft.items['cn:45'].stockUnit='봉';order={id:C.cloudOrderId(draft.id,MODE.test),quantities:{'cn:45':2000},units:{'cn:45':'봉'}};`);
+ assert.equal(h.run(`countUnit(draft.catalog.find(p=>p.id==='cn:45'))`),'봉');
+ const cell=h.run(`countCell(draft.catalog.find(p=>p.id==='cn:45'),0,'qty')`);
+ assert.match(cell,/<b>2<\/b>/);assert.match(cell,/<small>봉<\/small>/);assert.doesNotMatch(cell,/data-act|<select/);
+ assert.equal(h.run(`draft.items['cn:45'].unit`),'박스');
+});
