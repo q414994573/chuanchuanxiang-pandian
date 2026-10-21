@@ -205,3 +205,50 @@ test('text stock 0 is inventory zero, cloud text quantity blocks close/save and 
  assert.equal(local.run('localSaveFailed'),true);
  local.run('localStorage.setItem=realSave;commitOrderEdit()');assert.equal(local.run('localSaveFailed'),false);
 });
+
+test('template unit choices persist independently, export correctly and lock submitted inventory',()=>{
+ const h=harness();h.run(`member={role:'owner'};selectUnit('cn:45','stock','봉');selectUnit('cn:45','qty','박스');applyQty('cn:45','2');`);
+ assert.equal(h.run(`draft.items['cn:45'].stockUnit`),'봉');assert.equal(h.run(`draft.items['cn:45'].unit`),'박스');
+ assert.match(h.run(`blockText('cn')`),/연근분모자 2박스/);
+ assert.match(h.run(`countRows()`),/data-row/);
+ assert.equal(JSON.parse(h.saved.get(h.run('KEY'))).draft.items['cn:45'].unit,'박스');
+ assert.throws(()=>h.run(`selectUnit('cn:45','qty','袋')`),/模板/);
+ h.run(`buildSample('boss');sample=false;baseQty={...order.quantities};member={role:'editor'};globalThis.originalStock=order.snapshot;selectUnit('other:11','qty','몸통만');applyQty('other:11','3');`);
+ assert.equal(h.run('dirtyCount()'),1);assert.match(h.run(`blockText('other')`),/탕용기\(소\) 3몸통만/);
+ assert.equal(h.run('order.snapshot===originalStock'),true);
+ assert.throws(()=>h.run(`selectUnit('cn:45','stock','박스')`),/只能查看/);
+ h.run(`order.orderStage='finalized'`);assert.throws(()=>h.run(`selectUnit('other:11','qty','세트')`),/只能查看/);
+});
+test('unit-only edits save, remain dirty on failure and record old and new units',async()=>{
+ const h=harness();h.ctx.crypto={randomUUID:()=> 'unit-only-save'};
+ h.run(`buildSample('boss');sample=false;baseQty={...order.quantities};member={role:'editor'};selectUnit('cn:45','qty','봉');api={save:async()=>{throw Error('断网')}};`);
+ await assert.rejects(h.run('saveOrder()'),/断网/);assert.equal(h.run('dirtyCount()'),1);
+ h.run(`api={save:async(id,base,q,mid,patch)=>({...base,quantities:{...q},units:{...patch.units},revision:2}),history:async()=>[]};`);
+ await h.run('saveOrder()');assert.equal(h.run('dirtyCount()'),0);assert.equal(h.run(`baseUnits['cn:45']`),'봉');
+ const html=h.run(`C.historyHtml(catalog(),[{revision:2,quantities:{'cn:45':2000},units:{'cn:45':'봉'}},{revision:1,quantities:{'cn:45':2000},units:{'cn:45':'박스'}}],false)`);
+ assert.match(html,/2박스 → 2봉/);
+});
+
+for(const failure of ['network','json','http','shape']){
+ test(`preview config ${failure} failure preserves local recovery while production stays locked`,async()=>{
+  for(const production of [false,true]){
+   const h=harness(production),requests=[];
+   h.run(`draft.items['cn:9'].quantity='12';draft.items['cn:9'].decision='order';draft.items['kr:3'].stock='0';globalThis.envelope=JSON.stringify({draft,pos:2,field:'qty'});localStorage.setItem(KEY,envelope);draft=null;loadArchives=()=>{};`);
+   h.ctx.fetch=async url=>{requests.push(url);if(url.includes('firebase-config')){
+    if(failure==='network')throw Error('offline');
+    return {ok:failure!=='http',json:async()=>{if(failure==='json')throw SyntaxError('bad JSON');return failure==='shape'?null:{enabled:true};}};
+   }return {ok:true,json:async()=>url.includes('aliases')?{items:[]}:structuredClone(source)};};
+   await h.run('boot()');
+   assert.equal(h.run('releaseLocked'),production);
+   assert.equal(h.saved.get(h.run('KEY')),h.run('envelope'));
+   if(production){assert.equal(h.run('draft'),null);assert.equal(requests.length,1);assert.match(h.run('app.innerHTML'),/正式入口准备中/);}
+   else{
+    assert.equal(h.run(`draft.items['cn:9'].quantity`),'12');assert.equal(h.run(`draft.items['kr:3'].stock`),'0');
+    assert.match(h.run('backupMessage()'),/配置加载失败.*暂未备份/);
+    assert.match(h.run('moreHtml()'),/下载本机草稿备份/);
+    h.run(`Core().edit(draft,'cn:9','quantity','13');persistLocal()`);
+    assert.equal(JSON.parse(h.saved.get(h.run('KEY'))).draft.items['cn:9'].quantity,'13');
+   }
+  }
+ });
+}

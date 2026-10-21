@@ -58,7 +58,7 @@ test('preview large names match the 129 original names, order, and units',()=>{
  assert.equal(Flow.countTitleHtml({name:'鸡精',alias:'鸡精',unit:'包'},s=>s).includes('>鸡精<'),true);
 
  const js=read('redesign-preview/preview.js');
- assert.match(js,/Flow\.countTitleHtml\(p,E\)/);
+ assert.match(js,/Flow\.countTitleHtml\(\{\.\.\.p,unit:draft\.items\[p\.id\]\.unit/);
  assert.match(js,/Flow\.boldName\(p,E\)/);
  assert.match(js,/Flow\.smallName\(p\)/);
  assert.equal(js.includes('showName'),false);

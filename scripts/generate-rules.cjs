@@ -8,6 +8,8 @@ service cloud.firestore {
   function qty(v) { return v.matches('^(0|[1-9][0-9]{0,8}|1000000000)$'); }
   function production(d) { return d.units.keys().hasOnly(${JSON.stringify(ids)}) && d.units.size() == 129 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){128}$'); }
   function sandbox(d) { return d.units.keys().hasOnly(['test:a','test:b','test:c']) && d.units.size() == 3 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){2}$'); }
+  function unitChange() { return request.resource.data.units == resource.data.units || (groupSafeUnits()); }
+  function groupSafeUnits() { return request.resource.data.units.diff(resource.data.units).affectedKeys().hasOnly(['cn:45','other:11']) && request.resource.data.units['cn:45'] in ['', '박스', '봉'] && request.resource.data.units['other:11'] in ['', '세트', '몸통만']; }
   function shape(d,group) { return d.keys().hasOnly(['schema','date','snapshot','quantities','units','createdBy','createdAt','updatedBy','updatedAt','updatedByName','revision','mutationId','orderStage'])
     && d.get('orderStage','pending') in ['pending','finalized']
     && d.schema == 'ccx-cloud-1' && d.date is string && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
@@ -30,8 +32,9 @@ service cloud.firestore {
    allow update: if permitted() && shape(request.resource.data,group)
     && request.resource.data.revision == resource.data.revision + 1 && audit()
     && ((resource.data.get('orderStage','pending') == 'pending'
-       && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','revision','updatedBy','updatedAt','updatedByName','mutationId'])
-        || (owner() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','snapshot','revision','updatedBy','updatedAt','updatedByName','mutationId']))))
+       && unitChange()
+       && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','units','revision','updatedBy','updatedAt','updatedByName','mutationId'])
+        || (owner() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','units','snapshot','revision','updatedBy','updatedAt','updatedByName','mutationId']))))
       || (get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'editor'
         && request.resource.data.get('orderStage','pending') != resource.data.get('orderStage','pending')
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['orderStage','revision','updatedBy','updatedAt','updatedByName','mutationId'])));

@@ -119,3 +119,5 @@ label input{display:block;width:100%;min-height:48px;margin-top:4px;border:1px s
  .cats button{font-size:12px}
 }
 :where(.tabs)[hidden]{display:none!important}
+
+.unit-picker{display:block;font-size:11px;margin:5px 0;color:#555}.unit-picker select{display:block;width:100%;max-width:190px;min-width:0;font:inherit;font-size:13px;min-height:44px;border:1px solid #ccc;border-radius:6px;background:#fff;color:#222}.search-cell{min-width:0}

@@ -79,6 +79,21 @@ await assert.rejects(prod.save(first.id,current,current.quantities,'mutation-off
 Object.defineProperty(navigator,'onLine',{value:true,configurable:true});
 assert.equal((await prod.read(first.id)).revision,3);
 console.log('PASS 129-product rules, authorized edit, invalid quantity denied; no production service used');
+// Independent emulator order: both dropdown choices, unit-only edits, stale conflict and audit.
+const unitStart=await prod.create('emulator-unit-options',full,'unit-create-001');
+const unitFirst=await prodBoss.save(unitStart.id,unitStart,{...unitStart.quantities,'cn:45':2000,'other:11':3000},'unit-choice-001',{units:{...unitStart.units,'cn:45':'박스','other:11':'세트'}});
+const unitNext=await prodBoss.save(unitFirst.id,unitFirst,unitFirst.quantities,'unit-choice-002',{units:{...unitFirst.units,'cn:45':'봉','other:11':'몸통만'}});
+assert.equal(unitNext.snapshot,unitStart.snapshot);assert.equal((await prod.read(unitNext.id)).units['other:11'],'몸통만');
+await assert.rejects(prod.save(unitFirst.id,unitFirst,unitFirst.quantities,'unit-stale-001',{units:unitFirst.units}),/较新版本/);
+await assert.rejects(prodBoss.save(unitNext.id,unitNext,unitNext.quantities,'unit-invalid-001',{units:{...unitNext.units,'cn:45':'袋'}}),/模板/);
+// Bypass client checks to verify the rules themselves reject an invented dropdown value.
+const unitRaw=(await getDoc(doc(boss,'orders',unitNext.id))).data();
+const ub=writeBatch(boss),ur=doc(boss,'orders',unitNext.id),ud={...unitRaw,units:{...unitRaw.units,'cn:45':'袋'},revision:unitRaw.revision+1,updatedAt:serverTimestamp(),mutationId:'unit-forged-001'};
+ub.set(ur,ud);ub.set(doc(ur,'revisions',ud.mutationId),ud);await assertFails(ub.commit());
+const unitFinal=await prodBoss.finalize(unitNext.id,unitNext,'unit-final-001');
+await assert.rejects(prodBoss.save(unitFinal.id,unitFinal,unitFinal.quantities,'unit-locked-001',{units:{...unitFinal.units,'cn:45':'박스'}}),e=>e.code==='permission-denied');
+const unitHistory=await prod.history(unitNext.id);assert.equal(unitHistory[1].units['cn:45'],'봉');assert.equal(unitHistory[2].units['cn:45'],'박스');
+console.log('PASS dropdown units, unchanged stock, unit-only audit, stale conflict, server validation and finalized lock');
 const draftBody=JSON.stringify({marker:'preview-draft',savedAt:1,note:'only the owner keeps this count'});
 const draftDoc={schema:'ccx-draft-1',date:'2026-10-20',localId:'count-draft-preview-001',pos:4,field:'qty',body:draftBody,updatedAt:serverTimestamp()};
 await assertSucceeds(setDoc(doc(chef,'countDrafts','chef'),draftDoc));
