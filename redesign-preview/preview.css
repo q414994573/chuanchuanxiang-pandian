@@ -158,3 +158,6 @@ input[type="file"]{max-width:100%;width:100%;font-size:14px}
 /* Opaque full-width sticky surface, with aligned inner controls. */
 .bar{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px}
 .bar .count-stage{margin:5px 0 7px;font-size:12px;line-height:1.35}
+
+.cell-navigation{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cell-navigation .go:disabled{opacity:.4;cursor:default}

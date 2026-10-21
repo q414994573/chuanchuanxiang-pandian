@@ -445,16 +445,21 @@ function finishTyping(){
  if(field==='qty'&&cur==='0'){Core().edit(draft,p.id,'quantity','');toast('订货写 0 不算订，留空就是不订');}
  return true;
 }
-function nextCell(){
- if(!draft)return;
+function countNavigationCells(){
+ if(!draft||draft.status!=='draft')return [];
+ return draft.catalog.flatMap((p,i)=>p.cat===viewCat&&S.matches(p,query,aliasesOf(p))?Flow.countFields(p).map(which=>({id:p.id,i,which})):[]);
+}
+function nextCell(direction=1){
+ if(!draft||draft.status!=='draft')return;
  if(!finishTyping()){textMode=false;keypad=true;render();scrollActive();return;}
- if(field==='stock'){leaveCountCell();field='qty';moduleEnd=false;captureEntered();persistLocal();render();scrollActive();return;}
+ const cells=countNavigationCells(),at=cells.findIndex(c=>c.i===pos&&c.which===field),target=cells[at+direction];
+ if(at<0)return;
  leaveCountCell();
- const prev=pos;markSeen(draft.catalog[pos].id);
- const step=Flow.advance(draft.catalog,pos);
- if(step.stay){moduleEnd=true;captureEntered();persistLocal();render();scrollActive();return;}
- pos=step.index;field=draft.catalog[pos].hasStock?'stock':'qty';moduleEnd=false;
- captureEntered();persistLocal();if(prev!==pos)flushCloud();render();scrollActive();
+ if(direction>0&&field==='qty')markSeen(draft.catalog[pos].id);
+ if(!target){moduleEnd=direction>0&&!query;persistLocal();render();scrollActive();if(direction>0)toast('已到本列表最后一格');return;}
+ const previous=pos;
+ pos=target.i;field=target.which;moduleEnd=false;
+ captureEntered();persistLocal();if(previous!==pos)flushCloud();render();scrollActive();
 }
 function showCat(cat){
  if((!draft&&!sharedCount())||!cat)return;
@@ -678,12 +683,17 @@ function endNote(where){
  const cat=draft.catalog[pos]?.cat||viewCat;
  return `<button class="endgo" type="button" data-act="endgo">${E(Flow.endLabel(cat))}</button>`;
 }
+function navigationButtons(shared){
+ const cells=shared?orderNavigationCells():countNavigationCells();
+ const at=cells.findIndex(c=>shared?c.id===editId&&c.which===editField:c.i===pos&&c.which===field);
+ return `<div class="cell-navigation"><button class="go" type="button" data-act="${shared?'order-prev':'prev'}" ${at<=0?'disabled':''}>上一格</button><button class="go" type="button" data-act="${shared?'order-next':'next'}">下一格</button></div>`;
+}
 function countPad(){
- return `<div class="pad">${padBar()}${undoHtml()}${endNote('pad')}${keysHtml()}<button class="go" type="button" data-act="next">下一格</button></div>`;
+ return `<div class="pad">${padBar()}${undoHtml()}${endNote('pad')}${keysHtml()}${navigationButtons(false)}</div>`;
 }
 function orderPad(){
  const step=editField==='qty'?'<div class="step"><button type="button" data-act="minus">−1</button><button type="button" data-act="plus">+1</button><button type="button" data-act="zero">本次不订</button></div>':'';
- return `<div class="pad">${padBar()}${undoHtml()}${step}${keysHtml()}<button class="go" type="button" data-act="order-next">下一格</button></div>`;
+ return `<div class="pad">${padBar()}${undoHtml()}${step}${keysHtml()}${navigationButtons(true)}</div>`;
 }
 function scrollActive(){
  const row=document.querySelector('.line.on, .order.on');if(!row)return;
@@ -1216,26 +1226,23 @@ function closePad(){
  keypad=false;textMode=false;render();
  return true;
 }
-function advanceOrder(){
+function orderNavigationCells(){
+ if(order?.orderStage==='finalized')return [];
+ if(query||(screen==='count'&&sharedCount()))return catalog().filter(p=>(screen!=='count'||p.cat===viewCat)&&S.matches(p,query,aliasesOf(p))).flatMap(p=>{
+  const fields=canEditStock(p)&&(!order||screen==='count')?['stock','qty']:['qty'];
+  return fields.map(which=>({id:p.id,which}));
+ });
+ return [...document.querySelectorAll('.order')].filter(row=>row.querySelector('.num, input.plain')).map(row=>({id:row.dataset.id,which:'qty'}));
+}
+function advanceOrder(direction=1){
+ if(order?.orderStage==='finalized')return;
  if(textMode&&readPlain()===false)return;
- if(query||(screen==='count'&&sharedCount())){
-  const id=editId,which=editField;
-  const list=catalog().filter(p=>(screen!=='count'||p.cat===viewCat)&&S.matches(p,query,aliasesOf(p)));
-  const at=list.findIndex(p=>p.id===id);
-  if(commitOrderEdit()===false)return;
-  textMode=false;
-  if(which==='stock'){openOrderKey(id,'qty');return;}
-  const next=list[at+1];
-  if(next)openOrderKey(next.id,canEditStock(next)&&(!order||screen==='count')?'stock':'qty');
-  else{keypad=false;render();}
-  return;
- }
- const ids=[...document.querySelectorAll('.order')].filter(row=>row.querySelector('.num, input.plain')).map(row=>row.dataset.id);
- const at=ids.indexOf(editId);
+ const cells=orderNavigationCells(),at=cells.findIndex(c=>c.id===editId&&c.which===editField),target=cells[at+direction];
+ if(at<0||!target&&direction<0)return;
  if(commitOrderEdit()===false){textMode=false;keypad=true;render();return;}
  textMode=false;
- if(ids[at+1])openOrderKey(ids[at+1]);
- else{keypad=false;render();}
+ if(target)openOrderKey(target.id,target.which);
+ else{keypad=false;render();toast('已到最后一格');}
 }
 function returnToDraft(){
  if(!canCount()||sample||draft?.status!=='draft')return;
@@ -1305,6 +1312,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='cancel-find'){cancelFind();return;}
   if(act==='key'){if(orderEditing()&&editId){typeOrderKey(b.dataset.key);return;}typeKey(b.dataset.key);return;}
   if(act==='next'){nextCell();return;}
+  if(act==='prev'){nextCell(-1);return;}
   if(act==='close'){closePad();return;}
   if(act==='mode'){
    if(b.dataset.mode==='num'){if(readPlain()===false)return;textMode=false;keypad=true;render();scrollActive();}
@@ -1326,6 +1334,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='plus'){stepQty(1);return;}
   if(act==='zero'){cancelLine(editId);return;}
   if(act==='order-next'){advanceOrder();return;}
+  if(act==='order-prev'){advanceOrder(-1);return;}
   if(act==='restore'){restoreLine(b.dataset.id);return;}
   if(act==='warn'){query='';const p=product(b.dataset.id);if(p)orderCat=p.cat;openOrderKey(b.dataset.id);return;}
   if(act==='ack'){const id=b.dataset.id;const qty=qtyOf(id);if(order)ack[id]=qty;else{draft.ackWrong[id]=qty;persistLocal();}render();return;}
