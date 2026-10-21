@@ -142,3 +142,12 @@ button:disabled{opacity:.5;cursor:default}
 .card[data-more-section]>summary{font-weight:800;min-height:44px;display:list-item;cursor:pointer;padding:10px 0}
 .card .latest-action{margin:8px 0}
 input[type="file"]{max-width:100%;width:100%;font-size:14px}
+
+/* The two count columns always carry their own saved units. */
+.count-columns{display:grid;grid-template-columns:minmax(0,1fr) 74px 74px;gap:6px;padding-top:6px;color:var(--muted);font-size:13px;font-weight:700}
+.count-columns span:not(:first-child){text-align:center}
+.cell.unit-cell{display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:36px}
+.unit-cell b,.unit-cell .plain{min-width:0}
+.unit-cell .plain{flex:1;width:0}
+.cell-unit{flex-shrink:0;font-size:12px;line-height:1.2;color:var(--muted);max-width:3em;overflow-wrap:anywhere}
+@media(max-width:380px){.count-columns{grid-template-columns:minmax(0,1fr) 64px 64px}}

@@ -435,7 +435,7 @@ test('linked reviewed count shows selected order unit read-only, keeping stock u
  const h=harness(true);h.run(`screen='count';draft.status='reviewed';draft.items['cn:45'].unit='박스';draft.items['cn:45'].stockUnit='봉';order={id:C.cloudOrderId(draft.id,MODE.test),quantities:{'cn:45':2000},units:{'cn:45':'봉'}};`);
  assert.equal(h.run(`countUnit(draft.catalog.find(p=>p.id==='cn:45'))`),'봉');
  const cell=h.run(`countCell(draft.catalog.find(p=>p.id==='cn:45'),0,'qty')`);
- assert.match(cell,/<b>2<\/b>/);assert.match(cell,/<small>봉<\/small>/);assert.doesNotMatch(cell,/data-act|<select/);
+ assert.match(cell,/<b>2<\/b>/);assert.match(cell,/<span class="cell-unit">봉<\/span>/);assert.doesNotMatch(cell,/data-act|<select/);
  assert.equal(h.run(`draft.items['cn:45'].unit`),'박스');
 });
 
@@ -575,4 +575,20 @@ test('server key ordering is not a conflict and later inventory input survives',
  const a={quantities:{a:1000,b:0},units:{a:'箱',b:'包'},stockEdits:{b:'0',a:'2'}};
  const b={quantities:{b:0,a:1000},units:{b:'包',a:'箱'},stockEdits:{a:'2',b:'0'}};
  assert.equal(Auto.values(a),Auto.values(b));assert.equal(Auto.choice({working:a},b),'saved');
+});
+
+test('count cells show separate saved units without changing blank, zero or historical values',()=>{
+ const h=harness();h.run(`screen='count';member={role:'owner'};globalThis.p=product('kr:43');globalThis.i=draft.catalog.findIndex(x=>x.id===p.id);`);
+ assert.match(h.run(`countCell(p,i,'stock')`),/<b><\/b><span class="cell-unit">개<\/span>/);
+ assert.match(h.run(`countCell(p,i,'qty')`),/<b><\/b><span class="cell-unit">봉<\/span>/);
+ h.run(`Core().edit(draft,p.id,'stock','0');Core().edit(draft,p.id,'quantity','1');`);
+ assert.match(h.run(`countCell(p,i,'stock')`),/<b>0<\/b>/);
+ assert.match(h.run(`countCell(p,i,'qty')`),/<b>1<\/b>/);
+ h.run(`draft.items[p.id].stockUnit='봉';globalThis.before=JSON.stringify(draft);`);
+ assert.match(h.run(`countCell(p,i,'stock')`),/cell-unit">봉/);
+ assert.equal(h.run('JSON.stringify(draft)'),h.run('before'));
+ assert.doesNotMatch(h.run('countRows()'),/土豆 · 봉/);
+ assert.match(h.run('countHtml()'),/count-columns/);
+ h.run(`draft.status='reviewed'`);
+ assert.match(h.run(`countCell(p,i,'stock')`),/aria-disabled="true".*cell-unit">봉/);
 });

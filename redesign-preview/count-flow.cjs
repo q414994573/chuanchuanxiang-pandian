@@ -89,6 +89,7 @@ function sheetRows(products) {
 function countTitleHtml(p, esc) {
   const e = esc || (s => String(s ?? ''));
   const small = smallName(p);
+  if (p?.hideUnit) return `<b><i class="dot"></i>${e(largeName(p))}</b>${small ? `<small>${e(small)}</small>` : ''}`;
   const unit = p && p.unit ? String(p.unit) : '单位未定';
   return `<b><i class="dot"></i>${e(largeName(p))}</b><small>${small ? e(small) + ' · ' : ''}${e(unit)}</small>`;
 }
