@@ -15,19 +15,19 @@ test('redesign preview stays off the production pages and only writes test order
  const js=read('redesign-preview/preview.js');
  const css=read('redesign-preview/preview.css');
  const bundle=read('redesign-preview/preview.bundle.js');
- assert.match(js,/cloudOrderId\(draft\.id,true\)/);
- assert.match(js,/assertCloudOrderId\(id,true\)/);
- assert.match(js,/ccx-redesign-draft-v2/);
- assert.match(js,/countDrafts/);
+ assert.match(js,/cloudOrderId\(draft\.id,MODE\.test\)/);
+ assert.match(js,/assertCloudOrderId\(id,MODE\.test\)/);
+ assert.match(read('redesign-preview/entry-mode.cjs'),/ccx-redesign-draft-v2/);
+ assert.match(read('redesign-preview/entry-mode.cjs'),/countDrafts/);
  assert.equal(js.includes('ccx-count-session:'),false);
  assert.equal(js.includes('ccx-cloud-test-session:'),false);
- assert.match(js,/startsWith\('test-'\)/);
+ assert.match(js,/Entry.orders\(records,MODE.test\)/);
  assert.match(js,/样例不会写入云端/);
  assert.match(page,/manifest\.webmanifest/);
  assert.match(read('redesign-preview/manifest.webmanifest'),/천천향 盘货/);
  assert.equal(index.includes('manifest.webmanifest'),false);
  assert.match(bundle,/ccx-redesign-draft-v2/);
- assert.equal(bundle.includes('ccx-count-session:'),false);
+ assert.match(bundle,/ccx-count-session:/); // Read-only legacy import is gated to production mode.
  const blob=page+js+css;
  assert.equal(blob.includes('最低备货'),false);
  assert.equal(blob.includes('重点商品'),false);

@@ -8,11 +8,14 @@ import S from './search.cjs';
 import Flow from './count-flow.cjs';
 import Backup from './draft-backup.cjs';
 import Recovery from './recovery.cjs';
+import Entry from './entry-mode.cjs';
 
 const Core=()=>window.CountCore;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CATS=[['kr','韩国','韩国食品'],['cn','中国','中国食品'],['other','其他','其他商品']];
-const KEY='ccx-redesign-draft-v2';
+const PRODUCTION=document.documentElement?.dataset.orderMode==='production';
+const MODE=Entry.settings(PRODUCTION),KEY=MODE.key;
+let releaseLocked=PRODUCTION;
 const app=document.getElementById('app');
 let source,aliasById=new Map(),draft,pos=0,field='stock',screen='count',keypad=false,textMode=false,viewCat='kr',orderCat='kr',moduleEnd=false,entered=null;
 let catScroll={kr:0,cn:0,other:0},orderScroll={kr:0,cn:0,other:0};
@@ -29,7 +32,7 @@ let cloudPhase='waiting',cloudAt=null,retryDelay=5000,sessionEpoch=0;
 let latestOrder=null,latestMessage='',latestRequest=0,directoryRecords=[],directoryCursor=null,directoryMore=false,directoryDate='',directoryMessage='',directoryRequest=0;
 let preparedExport=null;
 
-const testOrders=records=>records.filter(d=>String(d.id).startsWith('test-'));
+const testOrders=records=>Entry.orders(records,MODE.test);
 function fixedEntryUrl(){const url=new URL(location.href);url.searchParams.delete('order');url.searchParams.delete('sample');return url.href;}
 function latestText(){return latestOrder?`${latestOrder.date} 已提交 · ${latestOrder.orderStage==='finalized'?'已定稿':'待老板娘审核'}${order&&order.id!==latestOrder.id?' · 有另一份最新订单':''}`:'尚未检查最新订单';}
 function entryHtml(){
@@ -44,7 +47,7 @@ async function checkLatest(){
  latestMessage='正在检查…';paintEntry();
  try{let cursor=null,found=null;do{const page=await client.listPage(cursor);if(request!==latestRequest||epoch!==sessionEpoch)return null;found=testOrders(page.records)[0]||null;if(found||!page.hasMore)break;cursor=page.cursor;}while(cursor);
   if(request!==latestRequest||epoch!==sessionEpoch)return null;
-  latestOrder=found;latestMessage=found?'按提交时间排列；检查不会切换当前订单。':'还没有提交的测试订单。';paintEntry();return found;
+  latestOrder=found;latestMessage=found?'按提交时间排列；检查不会切换当前订单。':`还没有提交的${MODE.test?'测试':''}订单。`;paintEntry();return found;
  }catch(e){if(request===latestRequest&&epoch===sessionEpoch){latestMessage='检查失败：'+(e.message||'请重试');paintEntry();}return null;}
 }
 async function findOrders(date='',append=false){
@@ -54,7 +57,7 @@ async function findOrders(date='',append=false){
  try{const result=date?{records:await client.onDate(date),cursor:null,hasMore:false}:await client.listPage(append?directoryCursor:null);
   if(request!==directoryRequest||epoch!==sessionEpoch)return;
   directoryRecords=[...new Map([...directoryRecords,...testOrders(result.records)].map(d=>[d.id,d])).values()];directoryCursor=result.cursor;directoryMore=result.hasMore;
-  directoryMessage=directoryRecords.length?`${date||'全部日期'} · 已列出 ${directoryRecords.length} 份`:(directoryMore?'本页没有测试订单，可继续加载更早订单。':'这个日期范围没有已提交订单。');paintDirectory();
+  directoryMessage=directoryRecords.length?`${date||'全部日期'} · 已列出 ${directoryRecords.length} 份`:(directoryMore?'本页没有本入口的订单，可继续加载更早订单。':'这个日期范围没有已提交订单。');paintDirectory();
  }catch(e){if(request===directoryRequest&&epoch===sessionEpoch){directoryMessage='读取失败：'+(e.message||'请重试');paintDirectory();}}
 }
 
@@ -143,6 +146,15 @@ function downloadOrderBackup(){
  a.href=url;a.download=`川川香-订单备份-${order.date}-v${order.revision}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  toast('已生成备份，请保存文件；恢复时会创建独立盘货');
 }
+function legacyImportHtml(){
+ try{const rows=Entry.legacyDrafts(localStorage,source);return `<div class="card"><h2>旧版记录</h2><p>旧入口和原记录继续保留。选择后恢复为独立盘货，需重新检查；已经提交的订单可直接按日期查询。</p><a href="../">打开旧版入口</a>${rows.length?`<select id="legacyDraft" aria-label="旧版本机盘货">${rows.map(r=>`<option value="${E(r.key)}">${E(r.draft.date)} · ${E(r.draft.id.slice(-8))}</option>`).join('')}</select><button class="ghost" data-act="legacy-import">载入所选旧版盘货</button>`:'<p>这个浏览器没有找到旧版本机记录。其他手机的记录请先在旧版导出备份，再到这里恢复。</p>'}</div>`;}catch(e){return '<p>旧版本机记录暂时读不到，请在旧版导出备份后恢复。</p>';}
+}
+async function importLegacy(){
+ if(!PRODUCTION||member?.role!=='owner')throw Error('请在正式入口由大伟登录后操作');
+ const key=document.getElementById('legacyDraft')?.value;
+ const selected=Entry.legacyDrafts(localStorage,source).find(r=>r.key===key);if(!selected)throw Error('旧记录已改变，请重新打开列表');
+ await restoreBackupFile({size:selected.raw.length,text:async()=>selected.raw});
+}
 async function restoreBackupFile(file){
  if(member?.role!=='owner'||sample)throw Error('请大伟登录后恢复备份');
  if(localBlocked||localConflict||cloudWriting||cloudReading||cloudConflict)throw Error('请先解决当前草稿的备份或冲突，再恢复文件');
@@ -179,7 +191,7 @@ async function flushCloud(){
  if(!cloudReady){await pullDraft();return;}
  const record=draftRecord(),nextToken=Backup.token(record),expected=cloudBase,epoch=sessionEpoch;
  if(nextToken===cloudBase){cloudPending=false;cloudPhase='saved';paintBackupStatus();return;}
- const ref=doc(db,'countDrafts',user.uid);
+ const ref=doc(db,MODE.draftCollection,user.uid);
  cloudWriting=true;cloudPhase='saving';paintBackupStatus();
  try{
   await runTransaction(db,tx=>Backup.compareAndSave(tx,ref,expected,{...record,updatedAt:serverTimestamp()}));
@@ -198,7 +210,7 @@ async function pullDraft(forceRemote=false,preferLocal=false){
  const epoch=sessionEpoch,serial=localSerial;
  cloudReading=true;cloudPhase='reading';paintBackupStatus();
  try{
-  const snap=await getDocFromServer(doc(db,'countDrafts',user.uid));
+  const snap=await getDocFromServer(doc(db,MODE.draftCollection,user.uid));
   if(epoch!==sessionEpoch)return;
   const record=snap.exists()?snap.data():null,remote=Backup.body(record);
   if(record&&(!remote?.draft||!Core().validate(remote.draft,source)))throw Error('云端草稿格式不匹配');
@@ -233,7 +245,7 @@ function ensureDraft(){
  draft.seen={};draft.ackWrong={};draft.savedAt=Date.now();
  pos=0;field='stock';persistLocal();
 }
-function guardTest(id){C.assertCloudOrderId(id,true);if(!String(id).startsWith('test-'))throw Error('预览不能打开正式订单');}
+function guardTest(id){C.assertCloudOrderId(id,MODE.test);}
 
 function stockShown(p){
  if(order)return String(stocks[p.id]??'');
@@ -785,11 +797,12 @@ function dirtyCount(){
 function moreHtml(){
  const who=member?`<div class="card"><h1>${E(member.name)}</h1><p class="muted">${member.role==='owner'?'盘货负责人':'订单编辑者'}</p><button class="ghost" type="button" data-act="logout">退出登录</button></div><div class="card"><h2>修改密码</h2><form id="pass"><label>当前密码<input name="current" type="password" required></label><label>新密码<input name="next" type="password" required></label><label>再输入一次<input name="confirm" type="password" required></label><button class="ghost" type="submit">保存新密码</button></form></div>`:`<div class="card"><h1>登录</h1><p class="muted">填账号。大伟用 dawei，老板娘用 laobanniang。</p><form id="login"><label>账号<input name="account" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">登录</button></form></div>`;
  const date=draft&&canCount()?`<div class="card"><h2>盘货日期</h2><label>日期<input id="countDate" type="date" value="${E(draft.date)}"></label><button class="ghost" type="button" data-act="set-date">用这个日期</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="fresh">放弃这份盘货，重新开始</button></div>`:'';
+ const legacy=PRODUCTION&&member?.role==='owner'?legacyImportHtml():'';
  const backups=!sample?`<div class="card"><h2>备份与恢复</h2>${canCount()&&draft?'<button class="ghost" data-act="backup-export">下载本机草稿备份</button>':''}${order?'<button class="ghost" data-act="order-backup">下载当前订单备份</button>':''}${member?.role==='owner'?'<label>恢复为独立盘货<input type="file" id="restoreFile" accept=".json,application/json"></label><button class="ghost" data-act="restore-file">读取并恢复备份</button><p>先保留当前内容的本机副本；不会覆盖原云端订单，恢复后需重新检查。</p>':''}</div>`:'';
- return `${who}${date}${backups}<div class="card"><button class="ghost" style="width:100%" type="button" data-act="pane" data-pane="archive">10月18日存档</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="pane" data-pane="history">历史订单</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="pane" data-pane="log">修改记录</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="sample">看一张样例订单（不写入云端）</button><div id="cloudList"></div><p class="muted">${E(status)}</p></div><div class="card"><h2>放到主屏幕</h2><p>用 Safari 打开这个预览，点底部或顶部的分享，再点「添加到主屏幕」。名字是「천천향 盘货」。若现在在 KakaoTalk 里，先在浏览器里打开，再添加。</p></div>${morePaneHtml()}`;
+ return `${who}${date}${backups}${legacy}<div class="card"><button class="ghost" style="width:100%" type="button" data-act="pane" data-pane="archive">10月18日存档</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="pane" data-pane="history">历史订单</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="pane" data-pane="log">修改记录</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="sample">看一张样例订单（不写入云端）</button><div id="cloudList"></div><p class="muted">${E(status)}</p></div><div class="card"><h2>放到主屏幕</h2><p>用 Safari 打开此页面，点底部或顶部的分享，再点「添加到主屏幕」。名字是「천천향 盘货」。若现在在 KakaoTalk 里，先在浏览器里打开，再添加。</p></div>${morePaneHtml()}`;
 }
 function morePaneHtml(){
- if(morePane==='archive')return `<div class="card"><h2>${E(source.date)} 存档</h2><p class="muted">只看已经确认的旧单。空白不是 0。</p><div class="hero" style="background-image:linear-gradient(#0008,#0004),url('../assets/storefront.jpg')"><img src="./logo.jpg" alt="川川香门头LOGO"></div>${source.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')}</div>`;
+ if(morePane==='archive')return `<div class="card"><h2>${E(source.date)} 存档</h2><p class="muted">只看已经确认的旧单。空白不是 0。</p><div class="hero" style="background-image:linear-gradient(#0008,#0004),url('../assets/storefront.jpg')"><img src="../redesign-preview/logo.jpg" alt="川川香门头LOGO"></div>${source.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')}</div>`;
  if(morePane==='history')return archives.length?archives.map(block=>`<div class="card"><h2>${E(block.date)}</h2>${block.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')||'<p>这一天没有订货数字。</p>'}</div>`).join(''):'<p>历史还在读取。</p>';
  if(morePane==='log')return `<div class="card"><h2>修改记录</h2>${order?C.historyHtml(catalog(),history.map((v,i)=>({...v,updatedByName:(v.updatedByName||'授权用户')+((v.orderStage||'pending')!==(history[i+1]?.orderStage||'pending')?(v.orderStage==='finalized'?' · 确认定稿':' · 重新修改'): '')})),isOwner()&&!sample&&order.orderStage!=='finalized').replaceAll('data-cloud="restore"','data-act="restore-rev"'):'<p>先打开一份订单。</p>'}</div>`;
  return '';
@@ -875,7 +888,7 @@ async function confirmShare(){
   draft.status='reviewed';draft.reviewedAt=new Date().toISOString();persistLocal();
  }
  const payload=C.submission(draft,Core(),source);
- const cloudId=C.cloudOrderId(draft.id,true);guardTest(cloudId);
+ const cloudId=C.cloudOrderId(draft.id,MODE.test);guardTest(cloudId);
  const result=await api.create(cloudId,payload,'submit-'+cloudId);
  try{await openOrder(result.id);}catch(e){throw Error('订单已提交，但详情暂未打开：'+e.message+'。请从日期查询重新打开。');}
  if(!order||order.id!==result.id)return;
@@ -986,6 +999,7 @@ function tryLeave(next){
 }
 
 document.body.addEventListener('click',async e=>{
+ if(releaseLocked)return;
  if(e.target.closest('input.plain'))return;
  const b=e.target.closest('[data-act]');
  if(!b){if((keypad||textMode)&&!e.target.closest('.pad')&&!e.target.closest('input,button,a,label'))closePad();return;}
@@ -993,6 +1007,7 @@ document.body.addEventListener('click',async e=>{
  const act=b.dataset.act;
  try{
   if(act==='backup-export'){backupRecovery();return;}
+  if(act==='legacy-import'){busy=true;await importLegacy();return;}
   if(act==='order-backup'){downloadOrderBackup();return;}
   if(act==='restore-file'){busy=true;await restoreBackupFile(document.getElementById('restoreFile')?.files?.[0]);return;}
   if(act==='export-close'){preparedExport=null;render();return;}
@@ -1137,7 +1152,10 @@ async function loadArchives(){
  try{const index=await (await fetch('../order-archives/index.json',{cache:'no-store'})).json();archives=[];for(const entry of index.entries||[]){const data=await (await fetch('../order-archives/'+entry.file,{cache:'no-store'})).json();archives.push({date:entry.date,products:(data.products||[]).map(p=>({name:p.name,alias:p.alias,order:p.order,unit:p.unit}))});}if(screen==='more'&&morePane==='history')render();}catch(e){archives=[];}
 }
 async function boot(){
- const [orderRes,aliasRes]=await Promise.all([fetch('../current-order.json',{cache:'no-store'}),fetch('./aliases.json',{cache:'no-store'})]);
+ const cfg=await (await fetch('./firebase-config.json',{cache:'no-store'})).json();
+ if(PRODUCTION&&!cfg.enabled){app.innerHTML='<div class="card"><h1>新版正式入口准备中</h1><p>尚未启用，不会读取或改写你的盘货数据。</p><a href="../">继续使用原入口</a></div>';document.querySelector('.tabs')?.setAttribute('hidden','');return;}
+ releaseLocked=false;
+ const [orderRes,aliasRes]=await Promise.all([fetch('../current-order.json',{cache:'no-store'}),fetch('../redesign-preview/aliases.json',{cache:'no-store'})]);
  source=await orderRes.json();
  const aliasFile=await aliasRes.json();
  aliasById=new Map(aliasFile.items.map(item=>[item.id,item.aliases]));
@@ -1147,7 +1165,6 @@ async function boot(){
  const sampleKind=params.get('sample');
  if(sampleKind)buildSample(sampleKind==='boss'||sampleKind==='yellow'?sampleKind:'order');
  try{
-  const cfg=await (await fetch('./firebase-config.json',{cache:'no-store'})).json();
   if(!cfg.enabled){status='云端没打开。本机照样能盘货。';render();return;}
   const firebaseApp=initializeApp(cfg.firebase);auth=getAuth(firebaseApp);db=getFirestore(firebaseApp);
   onAuthStateChanged(auth,async u=>{
@@ -1155,7 +1172,7 @@ async function boot(){
    latestRequest++;directoryRequest++;latestOrder=null;latestMessage='';directoryRecords=[];directoryCursor=null;directoryMore=false;directoryMessage='';
    if(u&&backupUid!==u.uid){cloudBase=undefined;cloudAt=null;backupUid=u.uid;}
    user=u;member=null;api=null;
-   if(!u){status='还没登录。本机盘货可以用，云端备份要等大伟登录。';if(!sample)order=null;if(params.get('order')&&!sample){screen='order';status='登录后才能看这份测试订单。';}render();return;}
+   if(!u){status='还没登录。本机盘货可以用，云端备份要等大伟登录。';if(!sample)order=null;if(params.get('order')&&!sample){screen='order';status='登录后才能看这份订单。';}render();return;}
    try{
     const snap=await getDocFromServer(doc(db,'members',u.uid));
     const data=snap.exists()?snap.data():null;

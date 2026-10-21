@@ -1,15 +1,15 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const Core=require('../count-core.js');
 const source=JSON.parse(fs.readFileSync(require.resolve('../current-order.json'),'utf8'));
-function harness(){
+function harness(production=false){
  const handlers={},saved=new Map(),find={blur(){document.activeElement=null;}};
- const document={body:{addEventListener(n,fn){handlers[n]=fn;},classList:{toggle(){},remove(){}}},
+ const document={documentElement:{dataset:{orderMode:production?'production':''}},body:{addEventListener(n,fn){handlers[n]=fn;},classList:{toggle(){},remove(){}}},
   activeElement:find,getElementById(id){return id==='find'?find:{};},
   querySelector(){return null;},querySelectorAll(){return [];},addEventListener(){}};
  const window={CountCore:Core,scrollY:80,scrollTo(x,y){this.scrollY=y;},addEventListener(){}};
  const ctx=vm.createContext({document,window,localStorage:{setItem(k,v){saved.set(k,v);},getItem(k){return saved.get(k)||null;}},
   setTimeout(){return 1;},clearTimeout(){},requestAnimationFrame(fn){fn();},URL,URLSearchParams,Date,Intl,console,
-  C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup:require('../redesign-preview/draft-backup.cjs'),Recovery:require('../redesign-preview/recovery.cjs'),
+  C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup:require('../redesign-preview/draft-backup.cjs'),Recovery:require('../redesign-preview/recovery.cjs'),Entry:require('../redesign-preview/entry-mode.cjs'),
   fixture:structuredClone(source),location:{search:'',href:'https://example.test/redesign-preview/'}});
  let js=fs.readFileSync(require.resolve('../redesign-preview/preview.js'),'utf8');
  js=js.replace(/^import .*;\n/gm,'').replace(/boot\(\)\.catch\([\s\S]*$/,'');vm.runInContext(js,ctx);
@@ -17,6 +17,12 @@ function harness(){
  run(`source=fixture;draft=Core().create(source,'2026-10-20','count-test-interactions');draft.seen={};draft.ackWrong={};screen='order';render=()=>{};scrollActive=()=>{};toast=t=>globalThis.lastToast=t;`);
  return {handlers,ctx,run,saved,find,document,window};
 }
+test('production mode guards IDs and ignores clicks while entry is locked',async()=>{
+ const h=harness(true);assert.equal(h.run('KEY'),'ccx-ordering-draft-v1');assert.equal(h.run('MODE.draftCollection'),'liveCountDrafts');
+ assert.doesNotThrow(()=>h.run(`guardTest('count-existing')`));assert.throws(()=>h.run(`guardTest('test-count-existing')`));
+ h.run(`copyOnly=async()=>{globalThis.copied=true}`);const button={dataset:{act:'fixed-link'}};
+ await h.handlers.click({target:{closest:s=>s==='[data-act]'?button:null}});assert.equal(h.run('globalThis.copied'),undefined);
+});
 test('supplier export keeps category order, current quantities and units, excluding cancelled items despite filters',()=>{
  const h=harness();h.run(`buildSample('boss');order.quantities['cn:9']=3500;order.quantities['cn:5']=0;query='不存在';yellowOnly=true;`);
  const text=h.run(`blockText('cn')`);

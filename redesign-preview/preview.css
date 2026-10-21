@@ -118,3 +118,4 @@ label input{display:block;width:100%;min-height:48px;margin-top:4px;border:1px s
  .cell b{font-size:16px}
  .cats button{font-size:12px}
 }
+:where(.tabs)[hidden]{display:none!important}
