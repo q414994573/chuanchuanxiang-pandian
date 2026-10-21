@@ -10,6 +10,9 @@ service cloud.firestore {
  match /databases/{database}/documents {
   function member() { return request.auth != null && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.active == true && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role in ['owner','editor']; }
   function owner() { return member() && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'owner'; }
+  function sharedHead(id) { return id.matches('^test-.*') ? 'test-current' : 'current'; }
+  function linked(id) { return exists(/databases/$(database)/documents/sharedCounts/$(sharedHead(id))) && get(/databases/$(database)/documents/sharedCounts/$(sharedHead(id))).data.orderId == id; }
+  function sharedFinal(id) { let h=getAfter(/databases/$(database)/documents/sharedCounts/$(sharedHead(id))).data; return h.orderId == id && h.stage == 'finalized' && h.body == request.resource.data.snapshot && h.mutationId == request.resource.data.mutationId && h.updatedAt == request.time; }
   function qty(v) { return v.matches('^(0|[1-9][0-9]{0,8}|1000000000)$'); }
   function production(d) { return d.units.keys().hasOnly(${JSON.stringify(ids)}) && d.units.size() == 129 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){128}$'); }
   function sandbox(d) { return d.units.keys().hasOnly(['test:a','test:b','test:c']) && d.units.size() == 3 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){2}$'); }
@@ -34,19 +37,21 @@ service cloud.firestore {
    function permitted() { return group in ['orders','sandboxOrders'] && member(); }
    function audit() { let d=request.resource.data; return !exists(/databases/$(database)/documents/$(group)/$(id)/revisions/$(d.mutationId)) && getAfter(/databases/$(database)/documents/$(group)/$(id)/revisions/$(d.mutationId)).data == d; }
    allow read: if permitted();
-   allow create: if permitted() && owner() && shape(request.resource.data,group)
-    && request.resource.data.get('orderStage','pending') == 'pending'
+   allow create: if permitted() && shape(request.resource.data,group)
+    && (request.resource.data.get('orderStage','pending') == 'pending' || sharedFinal(id))
     && request.resource.data.createdBy == request.auth.uid && request.resource.data.createdAt == request.time
     && request.resource.data.revision == 1 && audit();
    allow update: if permitted() && shape(request.resource.data,group)
     && request.resource.data.revision == resource.data.revision + 1 && audit()
-    && ((resource.data.get('orderStage','pending') == 'pending'
+    && ((!linked(id) && resource.data.get('orderStage','pending') == 'pending'
        && unitChange()
        && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','units','stockEdits','stockUnits','revision','updatedBy','updatedAt','updatedByName','mutationId'])
-        || (owner() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantities','units','snapshot','stockEdits','stockUnits','revision','updatedBy','updatedAt','updatedByName','mutationId']))))
-      || (get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'editor'
+        ))
+      || (member() && !linked(id)
         && request.resource.data.get('orderStage','pending') != resource.data.get('orderStage','pending')
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['orderStage','revision','updatedBy','updatedAt','updatedByName','mutationId'])));
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['orderStage','revision','updatedBy','updatedAt','updatedByName','mutationId']))
+      || (linked(id) && ((sharedFinal(id) && request.resource.data.createdBy == resource.data.createdBy && request.resource.data.createdAt == resource.data.createdAt)
+       || (getAfter(/databases/$(database)/documents/sharedCounts/$(sharedHead(id))).data.stage == 'draft' && getAfter(/databases/$(database)/documents/sharedCounts/$(sharedHead(id))).data.mutationId == request.resource.data.mutationId && resource.data.orderStage == 'finalized' && request.resource.data.orderStage == 'pending' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['orderStage','revision','updatedBy','updatedAt','updatedByName','mutationId']))))); 
    allow delete: if false;
    match /revisions/{mutation} {
     allow read: if group in ['orders','sandboxOrders'] && member();
@@ -56,6 +61,24 @@ service cloud.firestore {
      && (!exists(/databases/$(database)/documents/$(group)/$(id)) || get(/databases/$(database)/documents/$(group)/$(id)).data.revision < request.resource.data.revision);
     allow update,delete: if false;
    }
+  }
+  match /sharedCounts/{headId} {
+   function validHead() { let d=request.resource.data; return headId in ['current','test-current'] && member()
+    && d.keys().hasOnly(['schema','localId','orderId','date','stage','body','revision','mutationId','updatedBy','updatedByName','updatedAt'])
+    && d.schema == 'ccx-shared-1' && d.localId.matches('^count-[a-zA-Z0-9-]{1,80}$')
+    && d.orderId == (headId == 'current' ? d.localId : 'test-'+d.localId)
+    && d.stage in ['draft','finalized'] && d.body is string && d.body.size() > 20 && d.body.size() < 400000
+    && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') && d.revision is int && d.revision > 0
+    && d.mutationId.matches('^[a-zA-Z0-9-]{10,80}$') && d.updatedBy == request.auth.uid && d.updatedAt == request.time
+    && d.updatedByName == get(/databases/$(database)/documents/members/$(request.auth.uid)).data.name; }
+   function paired() { let d=request.resource.data; let o=getAfter(/databases/$(database)/documents/orders/$(d.orderId)).data; return o.mutationId == d.mutationId && o.updatedAt == request.time && (d.stage == 'finalized' ? o.orderStage == 'finalized' && o.snapshot == d.body : o.orderStage == 'pending'); }
+   allow read: if headId in ['current','test-current'] && member();
+   allow create: if validHead() && request.resource.data.revision == 1 && request.resource.data.stage == 'draft' && !exists(/databases/$(database)/documents/orders/$(request.resource.data.orderId));
+   allow update: if validHead() && request.resource.data.revision == resource.data.revision+1
+    && ((request.resource.data.localId == resource.data.localId && request.resource.data.orderId == resource.data.orderId
+      && ((resource.data.stage == 'draft' && request.resource.data.stage == 'draft') || (request.resource.data.stage != resource.data.stage && paired())))
+     || (resource.data.stage == 'finalized' && request.resource.data.stage == 'draft' && request.resource.data.localId != resource.data.localId && !exists(/databases/$(database)/documents/orders/$(request.resource.data.orderId))));
+   allow delete: if false;
   }
   match /{draftGroup}/{uid} {
     allow read: if draftGroup in ['countDrafts','liveCountDrafts'] && request.auth != null && request.auth.uid == uid && owner();
