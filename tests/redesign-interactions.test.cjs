@@ -252,3 +252,17 @@ for(const failure of ['network','json','http','shape']){
   }
  });
 }
+
+test('More groups every existing tool without changing role permissions or losing order lookup on redraw',()=>{
+ const h=harness(true);h.run(`releaseLocked=false;member={role:'owner',name:'大伟'};api={};`);
+ let html=h.run('moreHtml()'),main=html.split('<details id="moreTools"')[0],tools=html.split('<details id="moreTools"')[1];
+ for(const title of ['账号 · 大伟','盘货日期','查订单','修改记录'])assert.ok(main.includes(title),title);
+ for(const action of ['backup-export','restore-file','fresh','logout','sample']){assert.ok(tools.includes('data-act="'+action+'"'),action);assert.ok(!main.includes('data-act="'+action+'"'),action);}
+ for(const label of ['修改密码','旧版记录','10月18日存档','历史档案（原有存档）','放到主屏幕'])assert.ok(tools.includes(label),label);
+ assert.doesNotMatch(html,/<details id="moreTools"[^>]*\bopen\b/);
+ assert.match(main,/data-act="find-date"/);assert.match(main,/data-act="fixed-link"/);
+ h.handlers.toggle({target:{id:'moreTools',open:true}});h.run(`morePane='archive'`);html=h.run('moreHtml()');assert.match(html,/<details id="moreTools"[^>]*\bopen\b/);assert.match(html,/只看已经确认的旧单/);
+ h.run(`buildSample('boss');sample=false;member={role:'editor',name:'老板娘'};api={};moreToolsOpen=false;`);html=h.run('moreHtml()');
+ for(const action of ['restore-file','fresh','backup-export','legacy-import'])assert.ok(!html.includes('data-act="'+action+'"'),action);
+ assert.match(html,/data-act="order-backup"/);assert.match(html,/id="pass"/);assert.match(html,/data-act="find-date"/);
+});
