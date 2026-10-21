@@ -253,7 +253,16 @@ function ensureDraft(){
 }
 function guardTest(id){C.assertCloudOrderId(id,MODE.test);}
 
+function countLinkedOrder(){return !!(draft?.status==='reviewed'&&order&&!sample&&order.id===C.cloudOrderId(draft.id,MODE.test));}
+function countUnit(p){return countLinkedOrder()?(order.units[p.id]||''):(draft.items[p.id].unit||(C.units.choices[p.id]?'':p.unit)||'');}
+function countNotice(){
+ if(draft?.status!=='reviewed')return '';
+ const linked=countLinkedOrder();
+ const text=linked?`${draft.date} · 订货数量与当前订单一致${dirtyCount()?'（有修改未保存）':''}；库存保留盘货记录。`:`${draft.date} · 原盘货记录；尚未打开对应订单，以下不是最新订货数量。`;
+ return `<p class="backup-status" role="status">${E(text)}</p>`;
+}
 function stockShown(p){
+ if(screen==='count'&&draft){const value=draft.items[p.id]?.stock;return String(value??'').trim()?String(value):String(draft.stockText?.[p.id]??'');}
  if(order)return String(stocks[p.id]??'');
  if(!draft)return '';
  const cur=draft.items[p.id]?.stock??'';
@@ -266,6 +275,7 @@ function cellRaw(p,which){
 }
 function cellText(p,which){
  if(which==='stock')return p.hasStock?stockShown(p):'';
+ if(countLinkedOrder())return order.quantities[p.id]>0?C.textQuantity(order.quantities[p.id]):'';
  return draft.items[p.id].quantity||'';
 }
 function cellLabel(p,which){
@@ -716,7 +726,7 @@ function countHtml(){
  if(!canCount())return `<div class="card"><h1>盘货由大伟来做</h1><p>你打开他发来的链接，直接改订单。库存可以看，不能改。</p><button class="primary" type="button" data-act="goto-order">去订单</button></div>`;
  try{ensureDraft();}catch(e){toast(e.message);}
  if(!draft)return `<div class="card">${backupStatusHtml()}<p>原内容仍保留。请下载备份后再处理，不要清除网站数据。</p></div>`;
- return `<div class="bar">${backupStatusHtml()}<div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看订单':'下一个没盘的'}</button></div>${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
+ return `<div class="bar">${countNotice()}${backupStatusHtml()}<div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看订单':'下一个没盘的'}</button></div>${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
 }
 function catButtonsHtml(){
  const counts=query&&draft?Flow.searchHitCounts(draft.catalog,p=>S.matches(p,query,aliasesOf(p))):null;
@@ -726,6 +736,10 @@ function catButtonsHtml(){
  }).join('');
 }
 function countCell(p,i,which){
+ if(draft?.status==='reviewed'){
+  const value=cellText(p,which),unit=which==='stock'?(draft.items[p.id].stockUnit||''):countUnit(p);
+  return `<div class="cell" aria-label="${E(cellLabel(p,which)+'，只读')}" aria-disabled="true"><b>${E(value)}</b>${C.units.choices[p.id]?`<small>${E(unit)}</small>`:''}</div>`;
+ }
  const on=keypad&&pos===i&&field===which;
  const caret=on&&!textMode?'<i class="caret" aria-hidden="true"></i>':'';
  const inner=on&&textMode?`<input class="plain" value="${E(cellRaw(p,which))}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<b>${E(cellText(p,which))}${caret}</b>`;
@@ -741,7 +755,7 @@ function countRows(){
   const on=keypad&&pos===i;
   const hint=p.name==='고수'?'<p class="warn">香菜：再看一次冰箱。</p>':String(p.name).startsWith('감자수제비')?'<p class="warn">土豆面片按大包记，1大包＝2小包。</p>':'';
   const fields=Flow.countFields(p);
-  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml({...p,unit:draft.items[p.id].unit||(C.units.choices[p.id]?'请选择订货单位':p.unit)},E)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
+  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml({...p,unit:countUnit(p)||(C.units.choices[p.id]?'请选择订货单位':p.unit)},E)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
  }
  if(!n) html='<p class="muted">没有匹配的商品。</p>';
  return html+endNote('list');
