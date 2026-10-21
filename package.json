@@ -11,6 +11,7 @@
     "test": "node --test tests/*.test.cjs",
     "test:rules": "firebase emulators:exec --only firestore --project demo-ccx-collaboration \"node tests/firestore.test.mjs\"",
     "build": "esbuild cloud/app.js --bundle --minify --format=iife --outfile=cloud-app.bundle.js",
+    "build:preview": "esbuild redesign-preview/preview.js --bundle --minify --format=iife --outfile=redesign-preview/preview.bundle.js",
     "rules:generate": "node scripts/generate-rules.cjs"
   },
   "repository": {
