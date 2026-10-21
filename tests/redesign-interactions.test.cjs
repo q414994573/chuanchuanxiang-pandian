@@ -9,7 +9,7 @@ function harness(){
  const window={CountCore:Core,scrollY:80,scrollTo(x,y){this.scrollY=y;},addEventListener(){}};
  const ctx=vm.createContext({document,window,localStorage:{setItem(k,v){saved.set(k,v);},getItem(k){return saved.get(k)||null;}},
   setTimeout(){return 1;},clearTimeout(){},requestAnimationFrame(fn){fn();},URL,URLSearchParams,Date,Intl,console,
-  C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup:require('../redesign-preview/draft-backup.cjs'),
+  C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup:require('../redesign-preview/draft-backup.cjs'),Recovery:require('../redesign-preview/recovery.cjs'),
   fixture:structuredClone(source),location:{search:'',href:'https://example.test/redesign-preview/'}});
  let js=fs.readFileSync(require.resolve('../redesign-preview/preview.js'),'utf8');
  js=js.replace(/^import .*;\n/gm,'').replace(/boot\(\)\.catch\([\s\S]*$/,'');vm.runInContext(js,ctx);
@@ -34,7 +34,9 @@ test('supplier export requires saved finalized current cloud order and never mar
  await assert.rejects(h.run(`supplierExport('kr')`),/云端订单已更新/);assert.equal(copied,'');
  h.run(`api.read=async()=>{throw Error('断网')}`);await assert.rejects(h.run(`supplierExport('kr')`),/断网/);assert.equal(copied,'');
  h.run(`api.read=async()=>({...order})`);await h.run(`supplierExport('kr')`);
- assert.equal(copied,h.run(`blockText('kr')`));assert.equal(h.run('order.orderStage'),'finalized');assert.match(h.run('lastToast'),/已复制/);assert.doesNotMatch(h.run('lastToast'),/已发送/);
+ assert.equal(copied,'');assert.equal(h.run('preparedExport.text'),h.run(`blockText('kr')`));
+ await h.run('deliverPrepared(false)');assert.equal(copied,h.run(`blockText('kr')`));assert.equal(h.run('order.orderStage'),'finalized');assert.match(h.run('lastToast'),/已复制/);assert.doesNotMatch(h.run('lastToast'),/已发送/);
+ h.run(`order.orderStage='pending'`);await assert.rejects(h.run('deliverPrepared(false)'),/订单已变化/);
 });
 test('supplier export rejects account changes during cloud check',async()=>{
  const h=harness();h.ctx.navigator={clipboard:{writeText:async()=>{throw Error('should not copy');}}};
@@ -51,6 +53,27 @@ test('clipboard fallback failure never reports success and removes temporary fie
 test('cancelling system share neither copies nor claims delivery',async()=>{
  const h=harness();h.ctx.navigator={share:async()=>{const e=Error('cancel');e.name='AbortError';throw e;},clipboard:{writeText:async()=>{throw Error('should not copy');}}};
  await h.run(`shareOrCopy('test')`);assert.equal(h.run('globalThis.lastToast'),undefined);
+});
+test('save success survives audit read failure and preserves input made during save',async()=>{
+ const h=harness();h.ctx.crypto={randomUUID:()=> 'save-test-id'};
+ h.run(`buildSample('boss');sample=false;member={role:'editor'};baseQty={...order.quantities};order.quantities['cn:9']=2000;api={save:(id,base,q)=>new Promise(resolve=>globalThis.finishSave=()=>resolve({...base,quantities:{...q},revision:2})),history:async()=>{throw Error('audit offline')}};`);
+ const saving=h.run('saveOrder()');h.run(`order.quantities['cn:9']=3000;finishSave()`);await saving;
+ assert.equal(h.run(`order.quantities['cn:9']`),3000);assert.equal(h.run(`baseQty['cn:9']`),2000);assert.equal(h.run('dirtyCount()'),1);
+ assert.match(h.run('lastToast'),/前一批修改已保存.*还需保存.*修改记录暂未读到/);
+});
+test('late save response does not restore a signed-out order',async()=>{
+ const h=harness();h.ctx.crypto={randomUUID:()=> 'save-test-id'};
+ h.run(`buildSample('boss');sample=false;member={role:'editor'};baseQty={...order.quantities};order.quantities['cn:9']=2000;api={save:(id,base,q)=>new Promise(resolve=>globalThis.finishSave=()=>resolve({...base,quantities:{...q},revision:2})),history:async()=>[]};`);
+ const saving=h.run('saveOrder()');h.run(`sessionEpoch++;order=null;member=null;finishSave()`);await saving;assert.equal(h.run('order'),null);
+});
+test('restore file keeps current draft on storage failure, and creates independent draft on success',async()=>{
+ const h=harness();h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'restored-test'};h.window.history={replaceState(){}};
+ h.run(`member={role:'owner'};globalThis.backupRaw=JSON.stringify({draft});globalThis.oldDraft=draft;globalThis.originalSet=localStorage.setItem;localStorage.setItem=()=>{throw Error('quota')};`);
+ h.ctx.testFile={size:100,text:async()=>h.run('backupRaw')};
+ await assert.rejects(h.run('restoreBackupFile(testFile)'),/quota/);assert.equal(h.run('draft===oldDraft'),true);
+ h.run('localStorage.setItem=originalSet');await h.run('restoreBackupFile(testFile)');
+ assert.equal(h.run('draft.id'),'count-restored-test');assert.equal(h.run('draft.status'),'draft');assert.equal(h.run('order'),null);assert.equal(h.run('allSeen()'),false);
+ assert.equal([...h.saved.keys()].some(k=>k.includes(':recovery:')),true);
 });
 test('cloud order URL uses browser history even when audit history is an array',()=>{
  const h=harness();let path;

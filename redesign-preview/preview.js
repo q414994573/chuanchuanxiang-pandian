@@ -7,6 +7,7 @@ import A from '../cloud/account.cjs';
 import S from './search.cjs';
 import Flow from './count-flow.cjs';
 import Backup from './draft-backup.cjs';
+import Recovery from './recovery.cjs';
 
 const Core=()=>window.CountCore;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -26,6 +27,7 @@ let lastLocalRaw=null,localSerial=0,localBlocked=false,localConflict=false;
 let backupUid=null,cloudBase,cloudReady=false,cloudReading=false,cloudWriting=false,cloudConflict=false;
 let cloudPhase='waiting',cloudAt=null,retryDelay=5000,sessionEpoch=0;
 let latestOrder=null,latestMessage='',latestRequest=0,directoryRecords=[],directoryCursor=null,directoryMore=false,directoryDate='',directoryMessage='',directoryRequest=0;
+let preparedExport=null;
 
 const testOrders=records=>records.filter(d=>String(d.id).startsWith('test-'));
 function fixedEntryUrl(){const url=new URL(location.href);url.searchParams.delete('order');url.searchParams.delete('sample');return url.href;}
@@ -130,6 +132,40 @@ function backupRecovery(){
  const value=localBlocked?lastLocalRaw:JSON.stringify({draft,pos,field,savedAt:draft?.savedAt});
  const blob=new Blob([value||''],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='川川香-本机草稿备份-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function downloadOrderBackup(){
+ if(!order||sample)throw Error('请先打开云端订单');
+ if(textMode&&readPlain()===false)return;
+ if(editId&&commitOrderEdit()===false)return;
+ const value=Recovery.fromOrder(order,source);
+ value.origin.unsaved=dirtyCount()>0;
+ const blob=new Blob([JSON.stringify(value)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=`川川香-订单备份-${order.date}-v${order.revision}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ toast('已生成备份，请保存文件；恢复时会创建独立盘货');
+}
+async function restoreBackupFile(file){
+ if(member?.role!=='owner'||sample)throw Error('请大伟登录后恢复备份');
+ if(localBlocked||localConflict||cloudWriting||cloudReading||cloudConflict)throw Error('请先解决当前草稿的备份或冲突，再恢复文件');
+ if(!file||file.size>2000000)throw Error('请选择小于2MB的JSON备份');
+ const epoch=sessionEpoch,serial=localSerial,current=order,orderRaw=JSON.stringify(order),raw=lastLocalRaw;
+ const restored=Recovery.restore(await file.text(),source,uid());
+ if(epoch!==sessionEpoch||serial!==localSerial||order!==current||JSON.stringify(order)!==orderRaw||lastLocalRaw!==raw||cloudWriting||cloudReading||cloudConflict)throw Error('读取文件期间页面发生变化，请重新选择备份');
+ if(!confirm('将先保留当前本机草稿和订单副本，再恢复成独立盘货；原云端订单不变，恢复后需要重新检查并提交。继续吗？'))return;
+ localStorage.setItem(KEY+':recovery:'+Date.now(),JSON.stringify({draft,pos,field,order}));
+ const previous={draft,pos,field};draft=restored;pos=0;field='stock';
+ try{saveLocalEnvelope();}catch(e){draft=previous.draft;pos=previous.pos;field=previous.field;throw e;}
+ order=null;preparedExport=null;sample=false;editId=null;editRaw=null;keypad=false;textMode=false;query='';screen='count';viewCat='kr';
+ const url=new URL(location.href);url.searchParams.delete('order');url.searchParams.delete('sample');historyReplace(url);
+ persistLocal();render();toast('已恢复独立盘货，请逐项检查后提交；原云端订单未改');
+}
+function exportPanel(){
+ const p=preparedExport;if(!p||!order||p.id!==order.id||p.revision!==order.revision||p.epoch!==sessionEpoch)return '';
+ return `<div class="card" role="region" aria-label="已核对的分类文字"><strong>${E(order.date)} · 第 ${p.revision} 版 · ${p.kind==='link'?'已提交，链接已准备好':'已核对'}</strong><p>请检查下方文字，再复制或分享；网站不会自动发送。${p.kind==='link'?'把订单链接发给老板娘。':'若订单随后重新修改，请重新核对；复制按钮在一分钟后需重新核对。'}</p><textarea readonly aria-label="待发送订货文字" style="width:100%;min-height:160px;box-sizing:border-box">${E(p.text)}</textarea><div class="pair"><button data-act="export-copy">复制这份文字</button><button data-act="export-share">分享这份文字</button></div><button class="ghost" data-act="export-close">收起</button></div>`;
+}
+async function deliverPrepared(sharing){
+ const p=preparedExport;
+ if(!p||!order||p.id!==order.id||p.revision!==order.revision||p.epoch!==sessionEpoch||dirtyCount()||(p.kind!=='link'&&(order.orderStage!=='finalized'||Date.now()-p.checkedAt>60000)))throw Error('订单已变化或核对已过期，请重新核对后复制');
+ if(sharing)await shareOrCopy(p.text);else await copyOnly(p.text);
 }
 function retryCloud(){
  cloudPending=true;cloudPhase='failed';paintBackupStatus();
@@ -645,7 +681,7 @@ function countRows(){
  return html+endNote('list');
 }
 function orderHtml(){
- return entryHtml()+orderContentHtml();
+ return entryHtml()+exportPanel()+orderContentHtml();
 }
 function orderContentHtml(){
  const link=new URLSearchParams(location.search).get('order');
@@ -749,7 +785,8 @@ function dirtyCount(){
 function moreHtml(){
  const who=member?`<div class="card"><h1>${E(member.name)}</h1><p class="muted">${member.role==='owner'?'盘货负责人':'订单编辑者'}</p><button class="ghost" type="button" data-act="logout">退出登录</button></div><div class="card"><h2>修改密码</h2><form id="pass"><label>当前密码<input name="current" type="password" required></label><label>新密码<input name="next" type="password" required></label><label>再输入一次<input name="confirm" type="password" required></label><button class="ghost" type="submit">保存新密码</button></form></div>`:`<div class="card"><h1>登录</h1><p class="muted">填账号。大伟用 dawei，老板娘用 laobanniang。</p><form id="login"><label>账号<input name="account" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">登录</button></form></div>`;
  const date=draft&&canCount()?`<div class="card"><h2>盘货日期</h2><label>日期<input id="countDate" type="date" value="${E(draft.date)}"></label><button class="ghost" type="button" data-act="set-date">用这个日期</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="fresh">放弃这份盘货，重新开始</button></div>`:'';
- return `${who}${date}<div class="card"><button class="ghost" style="width:100%" type="button" data-act="pane" data-pane="archive">10月18日存档</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="pane" data-pane="history">历史订单</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="pane" data-pane="log">修改记录</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="sample">看一张样例订单（不写入云端）</button><div id="cloudList"></div><p class="muted">${E(status)}</p></div><div class="card"><h2>放到主屏幕</h2><p>用 Safari 打开这个预览，点底部或顶部的分享，再点「添加到主屏幕」。名字是「천천향 盘货」。若现在在 KakaoTalk 里，先在浏览器里打开，再添加。</p></div>${morePaneHtml()}`;
+ const backups=!sample?`<div class="card"><h2>备份与恢复</h2>${canCount()&&draft?'<button class="ghost" data-act="backup-export">下载本机草稿备份</button>':''}${order?'<button class="ghost" data-act="order-backup">下载当前订单备份</button>':''}${member?.role==='owner'?'<label>恢复为独立盘货<input type="file" id="restoreFile" accept=".json,application/json"></label><button class="ghost" data-act="restore-file">读取并恢复备份</button><p>先保留当前内容的本机副本；不会覆盖原云端订单，恢复后需重新检查。</p>':''}</div>`:'';
+ return `${who}${date}${backups}<div class="card"><button class="ghost" style="width:100%" type="button" data-act="pane" data-pane="archive">10月18日存档</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="pane" data-pane="history">历史订单</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="pane" data-pane="log">修改记录</button><button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="sample">看一张样例订单（不写入云端）</button><div id="cloudList"></div><p class="muted">${E(status)}</p></div><div class="card"><h2>放到主屏幕</h2><p>用 Safari 打开这个预览，点底部或顶部的分享，再点「添加到主屏幕」。名字是「천천향 盘货」。若现在在 KakaoTalk 里，先在浏览器里打开，再添加。</p></div>${morePaneHtml()}`;
 }
 function morePaneHtml(){
  if(morePane==='archive')return `<div class="card"><h2>${E(source.date)} 存档</h2><p class="muted">只看已经确认的旧单。空白不是 0。</p><div class="hero" style="background-image:linear-gradient(#0008,#0004),url('../assets/storefront.jpg')"><img src="./logo.jpg" alt="川川香门头LOGO"></div>${source.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')}</div>`;
@@ -797,6 +834,7 @@ async function copyOnly(text){
  toast('已复制，可以贴到 KakaoTalk');
 }
 async function supplierExport(cat,sharing=false){
+ preparedExport=null;
  if(!CATS.some(([id])=>id===cat))throw Error('请选择商品分类');
  if(textMode&&readPlain()===false)return;
  if(editId&&commitOrderEdit()===false)return;
@@ -807,6 +845,8 @@ async function supplierExport(cat,sharing=false){
   const fresh=await api.read(current.id);
   if(epoch!==sessionEpoch||order!==current||JSON.stringify(order.quantities)!==quantities||editId)throw Error('页面内容已改变，请重新核对后再复制');
   if(fresh.revision!==current.revision||fresh.orderStage!=='finalized'||JSON.stringify(fresh.quantities)!==quantities)throw Error('云端订单已更新或重新修改，请刷新后核对并定稿；本次没有复制或分享');
+  preparedExport={id:order.id,revision:order.revision,epoch:sessionEpoch,checkedAt:Date.now(),text:blockText(cat)};
+  screen='order';render();window.scrollTo(0,0);toast('云端核对完成，请检查文字后再点复制或分享');return;
  }
  const text=blockText(cat);
  if(sharing)await shareOrCopy(text);else await copyOnly(text);
@@ -837,9 +877,11 @@ async function confirmShare(){
  const payload=C.submission(draft,Core(),source);
  const cloudId=C.cloudOrderId(draft.id,true);guardTest(cloudId);
  const result=await api.create(cloudId,payload,'submit-'+cloudId);
- await openOrder(result.id);
+ try{await openOrder(result.id);}catch(e){throw Error('订单已提交，但详情暂未打开：'+e.message+'。请从日期查询重新打开。');}
+ if(!order||order.id!==result.id)return;
  const counts={kr:orderedCount('kr'),cn:orderedCount('cn'),other:orderedCount('other')};
- await shareOrCopy(S.bossShareText(order.date,counts,shareUrl()));
+ preparedExport={kind:'link',id:order.id,revision:order.revision,epoch:sessionEpoch,text:S.bossShareText(order.date,counts,shareUrl())};
+ render();window.scrollTo(0,0);toast('订单已提交，请复制或分享上方链接给老板娘');
 }
 async function saveOrder(){
  if(textMode&&readPlain()===false)return;
@@ -850,9 +892,17 @@ async function saveOrder(){
  const q={};for(const [id,v] of Object.entries(order.quantities))q[id]=v;
  C.checkQuantities(q,order.units,Object.keys(order.units));
  let patch;if(isOwner()&&C.stockChanged(order.snapshot,stocks))patch={snapshot:C.applyStock(order.snapshot,stocks)};
- const data=await api.save(order.id,order,q,crypto.randomUUID(),patch);
- order=data;rememberStocks();baseQty={...data.quantities};heldPrev={};orderDirty=false;
- history=await api.history(order.id);toast('已保存');render();
+ const current=order,epoch=sessionEpoch,client=api;
+ const data=await client.save(current.id,current,q,crypto.randomUUID(),patch);
+ if(epoch!==sessionEpoch||order!==current)return;
+ const further=Object.keys(q).some(id=>current.quantities[id]!==q[id]);
+ if(further&&Object.keys(q).some(id=>data.quantities[id]!==q[id]))throw Error('本次保存已完成，但云端随后又有更新；已保留你的后续输入，请核对云端版本');
+ order=further?{...data,quantities:{...current.quantities}}:data;
+ rememberStocks();baseQty={...data.quantities};if(!further)heldPrev={};orderDirty=further;
+ const message=further?'前一批修改已保存；刚输入的内容还需保存':'已保存';
+ toast(message);render();
+ try{const versions=await client.history(data.id);if(epoch!==sessionEpoch||order?.id!==data.id)return;history=versions;render();}
+ catch(e){if(epoch===sessionEpoch&&order?.id===data.id)toast(message+'；修改记录暂未读到');}
 }
 async function openOrder(id,fixed=false){
  guardTest(id);sample=false;demoRole=null;
@@ -872,10 +922,12 @@ async function changeOrderStage(stage){
  if(editId&&commitOrderEdit()===false)return;
  if(dirtyCount())throw Error('请先保存修改，再确认定稿');
  if(!confirm(stage==='finalized'?'确认这份订单已经检查完毕？定稿后可按分类复制，发送给供货商。':'重新修改后需要再次定稿；如果已发给供货商，请另行通知对方变更。继续吗？'))return;
- const data=await api.finalize(order.id,order,crypto.randomUUID(),stage);
+ const current=order,epoch=sessionEpoch,client=api;
+ const data=await client.finalize(current.id,current,crypto.randomUUID(),stage);
+ if(epoch!==sessionEpoch||order!==current)return;
  order=data;keypad=false;textMode=false;editId=null;render();
  toast(stage==='finalized'?'已定稿，尚未代你发送给供货商':'已恢复为待审核');
- try{history=await api.history(order.id);render();}catch(e){toast('状态已保存，修改记录暂未读到');}
+ try{const versions=await client.history(data.id);if(epoch!==sessionEpoch||order?.id!==data.id)return;history=versions;render();}catch(e){if(epoch===sessionEpoch&&order?.id===data.id)toast('状态已保存，修改记录暂未读到');}
 }
 function readPlain(){
  const input=document.querySelector('input.plain');if(!input)return true;
@@ -941,6 +993,10 @@ document.body.addEventListener('click',async e=>{
  const act=b.dataset.act;
  try{
   if(act==='backup-export'){backupRecovery();return;}
+  if(act==='order-backup'){downloadOrderBackup();return;}
+  if(act==='restore-file'){busy=true;await restoreBackupFile(document.getElementById('restoreFile')?.files?.[0]);return;}
+  if(act==='export-close'){preparedExport=null;render();return;}
+  if(act==='export-copy'||act==='export-share'){await deliverPrepared(act==='export-share');return;}
   if(act==='fixed-link'){await copyOnly(fixedEntryUrl());return;}
   if(act==='check-latest'){await checkLatest();return;}
   if(act==='find-date'){const date=document.getElementById('orderDate')?.value;if(!date){toast('请先选择日期');return;}await findOrders(date);return;}
