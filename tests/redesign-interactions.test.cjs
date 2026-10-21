@@ -205,3 +205,26 @@ test('text stock 0 is inventory zero, cloud text quantity blocks close/save and 
  assert.equal(local.run('localSaveFailed'),true);
  local.run('localStorage.setItem=realSave;commitOrderEdit()');assert.equal(local.run('localSaveFailed'),false);
 });
+
+test('template unit choices persist independently, export correctly and lock submitted inventory',()=>{
+ const h=harness();h.run(`member={role:'owner'};selectUnit('cn:45','stock','봉');selectUnit('cn:45','qty','박스');applyQty('cn:45','2');`);
+ assert.equal(h.run(`draft.items['cn:45'].stockUnit`),'봉');assert.equal(h.run(`draft.items['cn:45'].unit`),'박스');
+ assert.match(h.run(`blockText('cn')`),/연근분모자 2박스/);
+ assert.match(h.run(`countRows()`),/data-row/);
+ assert.equal(JSON.parse(h.saved.get(h.run('KEY'))).draft.items['cn:45'].unit,'박스');
+ assert.throws(()=>h.run(`selectUnit('cn:45','qty','袋')`),/模板/);
+ h.run(`buildSample('boss');sample=false;baseQty={...order.quantities};member={role:'editor'};globalThis.originalStock=order.snapshot;selectUnit('other:11','qty','몸통만');applyQty('other:11','3');`);
+ assert.equal(h.run('dirtyCount()'),1);assert.match(h.run(`blockText('other')`),/탕용기\(소\) 3몸통만/);
+ assert.equal(h.run('order.snapshot===originalStock'),true);
+ assert.throws(()=>h.run(`selectUnit('cn:45','stock','박스')`),/只能查看/);
+ h.run(`order.orderStage='finalized'`);assert.throws(()=>h.run(`selectUnit('other:11','qty','세트')`),/只能查看/);
+});
+test('unit-only edits save, remain dirty on failure and record old and new units',async()=>{
+ const h=harness();h.ctx.crypto={randomUUID:()=> 'unit-only-save'};
+ h.run(`buildSample('boss');sample=false;baseQty={...order.quantities};member={role:'editor'};selectUnit('cn:45','qty','봉');api={save:async()=>{throw Error('断网')}};`);
+ await assert.rejects(h.run('saveOrder()'),/断网/);assert.equal(h.run('dirtyCount()'),1);
+ h.run(`api={save:async(id,base,q,mid,patch)=>({...base,quantities:{...q},units:{...patch.units},revision:2}),history:async()=>[]};`);
+ await h.run('saveOrder()');assert.equal(h.run('dirtyCount()'),0);assert.equal(h.run(`baseUnits['cn:45']`),'봉');
+ const html=h.run(`C.historyHtml(catalog(),[{revision:2,quantities:{'cn:45':2000},units:{'cn:45':'봉'}},{revision:1,quantities:{'cn:45':2000},units:{'cn:45':'박스'}}],false)`);
+ assert.match(html,/2박스 → 2봉/);
+});

@@ -19,7 +19,7 @@ let releaseLocked=PRODUCTION;
 const app=document.getElementById('app');
 let source,aliasById=new Map(),draft,pos=0,field='stock',screen='count',keypad=false,textMode=false,viewCat='kr',orderCat='kr',moduleEnd=false,entered=null;
 let catScroll={kr:0,cn:0,other:0},orderScroll={kr:0,cn:0,other:0};
-let user=null,member=null,auth,db,api=null,order=null,baseQty={},stocks={},stockBase={},history=[];
+let user=null,member=null,auth,db,api=null,order=null,baseQty={},baseUnits={},stocks={},stockBase={},history=[];
 let query='',status='正在准备…',sample=false,demoRole=null,busy=false,orderDirty=false,editId=null,editSnap=null,editRaw=null;
 let undo=null,heldPrev={},ack={},yellowOn=true,yellowOnly=false,archives=[],cloudTimer=null,cloudPending=false,morePane='';
 let searchScroll=null,searchCat=null,wantFind=false,skipActUntil=0;
@@ -381,6 +381,30 @@ function doUndo(){
  render();scrollActive();
 }
 
+function unitPicker(p,which){
+ const options=C.units.choices[p.id];if(!options)return '';
+ const stock=which==='stock',value=stock?(order?JSON.parse(order.snapshot).items[p.id]?.stockUnit:draft?.items[p.id]?.stockUnit):(order?order.units[p.id]:draft?.items[p.id]?.unit);
+ const locked=order?.orderStage==='finalized'||(stock?!!order||!canEditStock(p):!order&&!canCount());
+ const label=stock?'库存单位':'订货单位';
+ return `<label class="unit-picker">${label}<select data-unit="${E(p.id)}" data-field="${which}" aria-label="${E(p.name+' '+label)}" ${locked?'disabled':''}><option value="">请选择</option>${options.map(([u,n])=>`<option value="${E(u)}" ${value===u?'selected':''}>${E(u+' · '+n)}</option>`).join('')}</select></label>`;
+}
+function selectUnit(id,which,value){
+ const p=product(id),stock=which==='stock';
+ if(!p||!C.units.choices[id]||!C.units.valid(id,value))throw Error('请选择模板规定的单位');
+ if(order?.orderStage==='finalized'||(stock?!canEditStock(p):!order&&!canCount()))throw Error('这项目前只能查看');
+ if(order&&!sample&&!member)throw Error('请先登录');
+ if((stock?stockShown(p):qtyOf(id))&&!value)throw Error('已有数量，请选择单位；不订请清空订货数量');
+ // Do not convert quantities or change inventory when choosing an order unit.
+ if(order){order.units[id]=value;orderDirty=true;}
+ else{Core().edit(draft,id,stock?'stockUnit':'unit',value);persistLocal();}
+ preparedExport=null;render();
+}
+document.body.addEventListener('change',e=>{
+ if(!e.target.dataset?.unit||releaseLocked)return;
+ try{if(busy)throw Error('正在保存，请稍后再选择');selectUnit(e.target.dataset.unit,e.target.dataset.field,e.target.value);}
+ catch(err){toast(err.message);render();}
+});
+
 function qtyOf(id){
  if(order)return C.textQuantity(order.quantities[id]||0);
  const r=draft?.items[id];
@@ -401,7 +425,7 @@ function applyQty(id,text){
   if(!sample)orderDirty=true;
  }else if(draft){
   if(!String(text||'').trim())Core().edit(draft,id,'quantity','');
-  else{const p=product(id);if(!String(p.unit||'').trim())throw Error('这项单位还是空的，不能订');Core().edit(draft,id,'quantity',text);}
+  else{const p=product(id);if(!String(draft.items[id].unit||'').trim())throw Error('请先选择这项的订货单位');Core().edit(draft,id,'quantity',text);}
   markSeen(id);persistLocal();
  }
 }
@@ -479,17 +503,19 @@ function bossChanges(){
  if(latest.updatedByName!=='老板娘'||!history[1])return [];
  const key=`ccx-redesign-yellow:${order.id}:${latest.revision}`;
  if(localStorage.getItem(key))return [];
- return C.changes(catalog(),history[1].quantities,latest.quantities,latest.units||order.units);
+ return C.changes(catalog(),history[1].quantities,latest.quantities,latest.units||order.units,history[1].units||order.units);
 }
 function changeNote(c){
+ if(!c.before&&!c.after)return `老板娘：订货单位 ${c.beforeUnit||'未选'} → ${c.unit||'未选'}`;
  if(!c.before&&c.after)return '老板娘：新加';
  if(c.before&&!c.after)return '老板娘：取消';
- return `老板娘：${C.textQuantity(c.before)||'不订'} → ${C.textQuantity(c.after)||'不订'}`;
+ return `老板娘：${C.textQuantity(c.before)||'不订'}${c.beforeUnit||''} → ${C.textQuantity(c.after)||'不订'}${c.unit||''}`;
 }
 function stockLine(p){
  if(!p.hasStock)return '';
  const text=order?String(stocks[p.id]??''):stockShown(p);
- return String(text).trim()?`库存 ${text}`:'库存没填';
+ const unit=order?JSON.parse(order.snapshot).items[p.id]?.stockUnit:draft?.items[p.id]?.stockUnit;
+ return String(text).trim()?`库存 ${text}${unit||''}`:'库存没填';
 }
 function detailLine(p,note){
  const parts=[];
@@ -676,7 +702,8 @@ function countCell(p,i,which){
  const on=keypad&&pos===i&&field===which;
  const caret=on&&!textMode?'<i class="caret" aria-hidden="true"></i>':'';
  const inner=on&&textMode?`<input class="plain" value="${E(cellRaw(p,which))}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<b>${E(cellText(p,which))}${caret}</b>`;
- return `<div class="cell ${on?'on':''}" data-act="open" data-id="${E(p.id)}" data-i="${i}" data-field="${which}" role="button" aria-label="${E(cellLabel(p,which))}">${inner}</div>`;
+ const cell=`<div class="cell ${on?'on':''}" data-act="open" data-id="${E(p.id)}" data-i="${i}" data-field="${which}" role="button" aria-label="${E(cellLabel(p,which))}">${inner}</div>`;
+ return C.units.choices[p.id]?`<div class="search-cell">${cell}${unitPicker(p,which)}</div>`:cell;
 }
 function countRows(){
  let html='',n=0;
@@ -687,7 +714,7 @@ function countRows(){
   const on=keypad&&pos===i;
   const hint=p.name==='고수'?'<p class="warn">香菜：再看一次冰箱。</p>':String(p.name).startsWith('감자수제비')?'<p class="warn">土豆面片按大包记，1大包＝2小包。</p>':'';
   const fields=Flow.countFields(p);
-  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml(p,E)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
+  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml({...p,unit:draft.items[p.id].unit||(C.units.choices[p.id]?'请选择订货单位':p.unit)},E)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
  }
  if(!n) html='<p class="muted">没有匹配的商品。</p>';
  return html+endNote('list');
@@ -754,9 +781,9 @@ function blockHtml(cat){
   const shown=editId===p.id&&editRaw!=null?editRaw:qtyOf(p.id);
   const picking=editId===p.id&&!dead;
   const caret=picking&&!textMode?'<i class="caret" aria-hidden="true"></i>':'';
-  const unit=E((order?order.units[p.id]:p.unit)||'');
+  const unit=E((order?order.units[p.id]:draft?.items[p.id]?.unit||p.unit)||'');
   const editor=order?.orderStage==='finalized'?`<span class="num">${E(shown)}${unit}</span>`:dead?`<button class="ghost" type="button" data-act="restore" data-id="${E(p.id)}">恢复</button>`:(picking&&textMode?`<input class="plain on" value="${E(shown)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<button class="num${picking?' on':''}" type="button" data-act="edit" data-id="${E(p.id)}">${picking?`<b>${E(shown)}${caret}</b>${unit}`:`${E(shown)}${unit}`}</button>`);
-  return `<div class="order ${Flow.stripe(i)} ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${E(detailLine(p,c?changeNote(c):''))}</div></div><div>${editor}</div></div>`;
+  return `<div class="order ${Flow.stripe(i)} ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${E(detailLine(p,c?changeNote(c):''))}</div></div><div>${editor}${unitPicker(p,'qty')}</div></div>`;
  };
  const body=[...active,...gray].map(row).join('');
  const empty=yellowOnly?'这一块没有她改的。':'这一家这次不订。';
@@ -778,10 +805,10 @@ function searchInput(p,which){
  const readonly=order?.orderStage==='finalized'||stock&&!canEditStock(p);
  const on=keypad&&editId===p.id&&editField===which&&!readonly;
  const value=on?editRaw:(stock?stockShown(p):qtyOf(p.id));
- const unit=stock?((order?JSON.parse(order.snapshot).items[p.id]?.stockUnit:draft?.items[p.id]?.stockUnit)||''):((order?order.units[p.id]:p.unit)||'');
+ const unit=stock?((order?JSON.parse(order.snapshot).items[p.id]?.stockUnit:draft?.items[p.id]?.stockUnit)||''):((order?order.units[p.id]:draft?.items[p.id]?.unit||p.unit)||'');
  const inner=on&&textMode?`<input class="plain" aria-label="${E(p.name+' '+label)}" value="${E(value)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<b>${E(value)}${on?'<i class="caret" aria-hidden="true"></i>':''}</b>`;
  const attrs=readonly?'aria-disabled="true"':`data-act="edit" data-search="true" data-id="${E(p.id)}" data-field="${which}"`;
- return `<div class="search-cell"><small>${label}${readonly?' · 只读':''}</small><div class="cell ${on?'on':''}" ${attrs} role="button" ${readonly?'':'tabindex="0"'} aria-label="${E(p.name+' '+label)}">${inner}${unit?`<small>${E(unit)}</small>`:''}</div></div>`;
+ return `<div class="search-cell"><small>${label}${readonly?' · 只读':''}</small><div class="cell ${on?'on':''}" ${attrs} role="button" ${readonly?'':'tabindex="0"'} aria-label="${E(p.name+' '+label)}">${inner}${unit?`<small>${E(unit)}</small>`:''}</div>${unitPicker(p,which)}</div>`;
 }
 function dockHtml(){
  if(!order)return '';
@@ -792,7 +819,7 @@ function dockHtml(){
 }
 function dirtyCount(){
  if(!order||sample)return 0;
- return catalog().filter(p=>(order.quantities[p.id]||0)!==(baseQty[p.id]||0)||(isOwner()&&String(stocks[p.id]??'')!==String(stockBase[p.id]??''))).length;
+ return catalog().filter(p=>(order.quantities[p.id]||0)!==(baseQty[p.id]||0)||(order.units[p.id]||'')!==(baseUnits[p.id]??order.units[p.id]??'')||(isOwner()&&String(stocks[p.id]??'')!==String(stockBase[p.id]??''))).length;
 }
 function moreHtml(){
  const who=member?`<div class="card"><h1>${E(member.name)}</h1><p class="muted">${member.role==='owner'?'盘货负责人':'订单编辑者'}</p><button class="ghost" type="button" data-act="logout">退出登录</button></div><div class="card"><h2>修改密码</h2><form id="pass"><label>当前密码<input name="current" type="password" required></label><label>新密码<input name="next" type="password" required></label><label>再输入一次<input name="confirm" type="password" required></label><button class="ghost" type="submit">保存新密码</button></form></div>`:`<div class="card"><h1>登录</h1><p class="muted">填账号。大伟用 dawei，老板娘用 laobanniang。</p><form id="login"><label>账号<input name="account" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">登录</button></form></div>`;
@@ -827,14 +854,14 @@ function buildSample(kind){
  const prev={...now};
  if(kind==='yellow'){prev['kr:7']=1000;prev['kr:9']=3000;now['kr:9']=0;prev['cn:9']=0;now['cn:9']=1000;units['cn:9']=units['cn:9']||'箱';}
  order={id:'test-count-sample',date:source.date,revision:kind==='yellow'?2:1,quantities:now,units,snapshot:JSON.stringify(d),updatedByName:kind==='yellow'?'老板娘':'大伟',schema:'ccx-cloud-1'};
- baseQty={...now};
+ baseQty={...now};baseUnits={...units};
  if(kind!=='yellow'){baseQty['kr:26']=1000;heldPrev['kr:26']='1';}
  history=kind==='yellow'?[{revision:2,updatedByName:'老板娘',updatedAt:new Date().toISOString(),quantities:now,units},{revision:1,updatedByName:'大伟',updatedAt:new Date(Date.now()-3600000).toISOString(),quantities:prev,units}]:[{revision:1,updatedByName:'大伟',updatedAt:new Date().toISOString(),quantities:now,units}];
  rememberStocks();orderDirty=false;editId=null;keypad=false;textMode=false;orderCat='kr';screen='order';query='';
 }
 
 function blockText(cat){
- const rows=catalog().filter(p=>p.cat===cat&&Flow.showsOnOrder(qtyOf(p.id))).map(p=>({name:p.name,qty:String(qtyOf(p.id)),unit:(order?order.units[p.id]:p.unit)||''}));
+ const rows=catalog().filter(p=>p.cat===cat&&Flow.showsOnOrder(qtyOf(p.id))).map(p=>({name:p.name,qty:String(qtyOf(p.id)),unit:(order?order.units[p.id]:draft?.items[p.id]?.unit||p.unit)||''}));
  const date=order?order.date:draft.date;
  return S.supplierText(date,rows)+(rows.length?'':'\n这次不订');
 }
@@ -854,10 +881,10 @@ async function supplierExport(cat,sharing=false){
  if(order&&!sample){
   if(dirtyCount())throw Error('请先保存修改，再由老板娘确认定稿');
   if(order.orderStage!=='finalized')throw Error('请老板娘确认定稿后，再复制或分享给供货商');
-  const current=order,epoch=sessionEpoch,quantities=JSON.stringify(order.quantities);
+  const current=order,epoch=sessionEpoch,quantities=JSON.stringify(order.quantities),units=JSON.stringify(order.units);
   const fresh=await api.read(current.id);
-  if(epoch!==sessionEpoch||order!==current||JSON.stringify(order.quantities)!==quantities||editId)throw Error('页面内容已改变，请重新核对后再复制');
-  if(fresh.revision!==current.revision||fresh.orderStage!=='finalized'||JSON.stringify(fresh.quantities)!==quantities)throw Error('云端订单已更新或重新修改，请刷新后核对并定稿；本次没有复制或分享');
+  if(epoch!==sessionEpoch||order!==current||JSON.stringify(order.quantities)!==quantities||JSON.stringify(order.units)!==units||editId)throw Error('页面内容已改变，请重新核对后再复制');
+  if(fresh.revision!==current.revision||fresh.orderStage!=='finalized'||JSON.stringify(fresh.quantities)!==quantities||JSON.stringify(fresh.units)!==units)throw Error('云端订单已更新或重新修改，请刷新后核对并定稿；本次没有复制或分享');
   preparedExport={id:order.id,revision:order.revision,epoch:sessionEpoch,checkedAt:Date.now(),text:blockText(cat)};
   screen='order';render();window.scrollTo(0,0);toast('云端核对完成，请检查文字后再点复制或分享');return;
  }
@@ -882,7 +909,7 @@ async function confirmShare(){
   Flow.parkTextStocks(draft,Core());
   for(const p of draft.catalog){
    const r=draft.items[p.id];
-   if(r.decision==='order'){if(!String(p.unit||'').trim())throw Error(p.name+' 单位还是空的，不能订');Core().finish(draft,p.id,false);}
+   if(r.decision==='order'){if(!String(r.unit||'').trim())throw Error(p.name+' 请先选择订货单位');Core().finish(draft,p.id,false);}
    else Core().finish(draft,p.id,true);
   }
   draft.status='reviewed';draft.reviewedAt=new Date().toISOString();persistLocal();
@@ -905,13 +932,14 @@ async function saveOrder(){
  const q={};for(const [id,v] of Object.entries(order.quantities))q[id]=v;
  C.checkQuantities(q,order.units,Object.keys(order.units));
  let patch;if(isOwner()&&C.stockChanged(order.snapshot,stocks))patch={snapshot:C.applyStock(order.snapshot,stocks)};
+ const sentUnits={...order.units};patch={...patch,units:sentUnits};
  const current=order,epoch=sessionEpoch,client=api;
  const data=await client.save(current.id,current,q,crypto.randomUUID(),patch);
  if(epoch!==sessionEpoch||order!==current)return;
- const further=Object.keys(q).some(id=>current.quantities[id]!==q[id]);
- if(further&&Object.keys(q).some(id=>data.quantities[id]!==q[id]))throw Error('本次保存已完成，但云端随后又有更新；已保留你的后续输入，请核对云端版本');
- order=further?{...data,quantities:{...current.quantities}}:data;
- rememberStocks();baseQty={...data.quantities};if(!further)heldPrev={};orderDirty=further;
+ const further=Object.keys(q).some(id=>current.quantities[id]!==q[id]||current.units[id]!==sentUnits[id]);
+ if(further&&Object.keys(q).some(id=>data.quantities[id]!==q[id]||data.units[id]!==sentUnits[id]))throw Error('本次保存已完成，但云端随后又有更新；已保留你的后续输入，请核对云端版本');
+ order=further?{...data,quantities:{...current.quantities},units:{...current.units}}:data;
+ rememberStocks();baseQty={...data.quantities};baseUnits={...data.units};if(!further)heldPrev={};orderDirty=further;
  const message=further?'前一批修改已保存；刚输入的内容还需保存':'已保存';
  toast(message);render();
  try{const versions=await client.history(data.id);if(epoch!==sessionEpoch||order?.id!==data.id)return;history=versions;render();}
@@ -919,10 +947,10 @@ async function saveOrder(){
 }
 async function openOrder(id,fixed=false){
  guardTest(id);sample=false;demoRole=null;
- const epoch=sessionEpoch,previous=order,previousQty=JSON.stringify(order?.quantities),previousRaw=editRaw;
+ const epoch=sessionEpoch,previous=order,previousQty=JSON.stringify([order?.quantities,order?.units]),previousRaw=editRaw;
  const data=await api.read(id);if(epoch!==sessionEpoch)return;
- if(order!==previous||JSON.stringify(order?.quantities)!==previousQty||editRaw!==previousRaw)throw Error('读取期间你又修改了内容，已保留当前输入。请保存后再打开。');
- order=data;rememberStocks();baseQty={...data.quantities};heldPrev={};ack={};orderDirty=false;history=[];screen='order';keypad=false;textMode=false;editId=null;editRaw=null;query='';
+ if(order!==previous||JSON.stringify([order?.quantities,order?.units])!==previousQty||editRaw!==previousRaw)throw Error('读取期间你又修改了内容，已保留当前输入。请保存后再打开。');
+ order=data;rememberStocks();baseQty={...data.quantities};baseUnits={...data.units};heldPrev={};ack={};orderDirty=false;history=[];screen='order';keypad=false;textMode=false;editId=null;editRaw=null;query='';
  const url=new URL(location.href);if(fixed)url.searchParams.delete('order');else url.searchParams.set('order',id);url.searchParams.delete('sample');historyReplace(url);
  render();
  try{const versions=await api.history(id);if(epoch!==sessionEpoch||order?.id!==id)return;history=versions;}catch(e){toast('修改记录没读到');}
@@ -1000,7 +1028,7 @@ function tryLeave(next){
 
 document.body.addEventListener('click',async e=>{
  if(releaseLocked)return;
- if(e.target.closest('input.plain'))return;
+ if(e.target.closest('input.plain,select[data-unit]'))return;
  const b=e.target.closest('[data-act]');
  if(!b){if((keypad||textMode)&&!e.target.closest('.pad')&&!e.target.closest('input,button,a,label'))closePad();return;}
  if(busy)return;
@@ -1064,7 +1092,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='set-date'){const v=document.getElementById('countDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('请选日期');return;}if(draft.status==='reviewed'){toast('已经提交，日期不能改');return;}draft.date=v;persistLocal();toast('日期已改');return;}
   if(act==='logout'){await signOut(auth);order=null;return;}
   if(act==='open-cloud'){if(textMode&&readPlain()===false)return;if(commitOrderEdit()===false)return;if(dirtyCount()&&!confirm('还有修改没保存，确定切换订单吗？'))return;busy=true;await openOrder(b.dataset.id);return;}
-  if(act==='restore-rev'){if(order?.orderStage==='finalized')throw Error('订单已定稿，请老板娘先点重新修改');const v=history.find(x=>x.revision===Number(b.dataset.revision));if(!v)return;order.quantities=C.clone(v.quantities);orderDirty=true;morePane='';screen='order';render();toast('旧数量已放回，还没保存');return;}
+  if(act==='restore-rev'){if(order?.orderStage==='finalized')throw Error('订单已定稿，请老板娘先点重新修改');const v=history.find(x=>x.revision===Number(b.dataset.revision));if(!v)return;C.units.checkChange(order.units,v.units);order.quantities=C.clone(v.quantities);order.units=C.clone(v.units);orderDirty=true;morePane='';screen='order';render();toast('旧数量和订货单位已放回，还没保存');return;}
  }catch(err){toast(err.message||'没做成');}
  finally{busy=false;}
 });

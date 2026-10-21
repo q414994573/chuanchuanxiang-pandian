@@ -17,3 +17,8 @@ test('restore rejects damaged files, changed catalog and invented units',()=>{
  const d=Core.create(source,'2026-10-21','count-original');d.catalog[0].name='假的';assert.throws(()=>R.restore(JSON.stringify(d),source,'count-new'),/目录/);
  const other=Core.create(source,'2026-10-21','count-original');other.items['cn:45'].unit='袋';assert.throws(()=>R.restore(JSON.stringify(other),source,'count-new'),/单位/);
 });
+
+test('backup restores selected template units while keeping stock unit independent',()=>{
+ const d=Core.create(source,'2026-10-21','count-original');d.items['cn:45'].unit='박스';d.items['cn:45'].stockUnit='봉';d.items['other:11'].unit='몸통만';
+ const r=R.restore(JSON.stringify(d),source,'count-new');assert.equal(r.items['cn:45'].unit,'박스');assert.equal(r.items['cn:45'].stockUnit,'봉');assert.equal(r.items['other:11'].unit,'몸통만');
+});
