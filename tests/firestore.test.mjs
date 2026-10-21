@@ -1,6 +1,6 @@
 import {initializeTestEnvironment,assertFails,assertSucceeds} from '@firebase/rules-unit-testing';
 import {readFileSync} from 'node:fs';
-import {doc,setDoc,getDoc,getDocs,updateDoc,deleteDoc,writeBatch,serverTimestamp,collection,runTransaction} from 'firebase/firestore';
+import {doc,setDoc,getDoc,getDocs,updateDoc,deleteDoc,writeBatch,serverTimestamp,collection,runTransaction,Timestamp} from 'firebase/firestore';
 import assert from 'node:assert/strict';
 import {store} from '../cloud/store.js';
 import Backup from '../redesign-preview/draft-backup.cjs';
@@ -42,6 +42,16 @@ assert.equal(reopened.orderStage,'pending');
 await b.save(reopened.id,reopened,{...reopened.quantities,'test:a':1000},'workflow-edit-again');
 assert.equal((await b.history(reopened.id)).length,5);
 console.log('PASS boss-only finalization, immutable final quantities, audit, stale rejection, idempotent retry and reopen');
+await env.withSecurityRulesDisabled(async c=>{
+ const batch=writeBatch(c.firestore());for(let i=0;i<35;i++)batch.set(doc(c.firestore(),'sandboxOrders','test-page-'+i),{...p,date:'1900-01-02',quantities:'5000,0,1000',createdAt:Timestamp.fromMillis(1000+i),updatedAt:Timestamp.fromMillis(99999-i)});await batch.commit();
+});
+let pageCursor=null,pageMore=true;const pageIds=[];
+while(pageMore){const page=await b.listPage(pageCursor);pageIds.push(...page.records.map(x=>x.id));pageMore=page.hasMore;pageCursor=page.cursor;}
+assert.equal(new Set(pageIds).size,pageIds.length);assert.equal(pageIds.filter(x=>x.startsWith('test-page-')).length,35);
+const dated=await b.onDate('1900-01-02');assert.equal(dated.length,35);assert.equal(dated[0].id,'test-page-34');assert.equal(dated.at(-1).id,'test-page-0');
+assert.equal((await b.onDate('1900-01-03')).length,0);
+await assert.rejects(store(anon,'anon','sandboxOrders','陌生人').listPage(),e=>e.code==='permission-denied');
+console.log('PASS submission ordering, pagination beyond 30, exact-date lookup and unauthorized list denial');
 // Only after the isolated three-product chain passes, exercise catalog-sized documents in the LOCAL emulator.
 const products=JSON.parse(readFileSync('current-order.json')).products;
 const full={...p,quantities:Object.fromEntries(products.map(x=>[x.id,1000])),units:Object.fromEntries(products.map(x=>[x.id,x.unit||'']))};

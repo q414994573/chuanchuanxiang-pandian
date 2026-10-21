@@ -25,6 +25,36 @@ let localSaveFailed=false;
 let lastLocalRaw=null,localSerial=0,localBlocked=false,localConflict=false;
 let backupUid=null,cloudBase,cloudReady=false,cloudReading=false,cloudWriting=false,cloudConflict=false;
 let cloudPhase='waiting',cloudAt=null,retryDelay=5000,sessionEpoch=0;
+let latestOrder=null,latestMessage='',latestRequest=0,directoryRecords=[],directoryCursor=null,directoryMore=false,directoryDate='',directoryMessage='',directoryRequest=0;
+
+const testOrders=records=>records.filter(d=>String(d.id).startsWith('test-'));
+function fixedEntryUrl(){const url=new URL(location.href);url.searchParams.delete('order');url.searchParams.delete('sample');return url.href;}
+function latestText(){return latestOrder?`${latestOrder.date} 已提交 · ${latestOrder.orderStage==='finalized'?'已定稿':'待老板娘审核'}${order&&order.id!==latestOrder.id?' · 有另一份最新订单':''}`:'尚未检查最新订单';}
+function entryHtml(){
+ if(!member||sample)return '';
+ return `<div class="card" data-order-entry><strong data-latest-title>${E(latestText())}</strong><p class="muted" data-latest-note>${E(latestMessage)}</p><details><summary>最新订单、日期查找与固定入口</summary><div class="pair"><button class="ghost" data-act="check-latest">检查新订单</button><button class="ghost" data-act="latest-order">打开最新订单</button></div><button class="ghost" data-act="fixed-link">复制固定入口</button><label>订单日期<input id="orderDate" type="date" value="${E(directoryDate)}"></label><div class="pair"><button class="ghost" data-act="find-date">查找</button><button class="ghost" data-act="all-orders">查看全部日期</button></div><div data-order-list>${directoryHtml()}</div></details></div>`;
+}
+function directoryHtml(){return `<p class="muted">${E(directoryMessage)}</p>`+directoryRecords.map(d=>`<button class="ghost" style="width:100%;margin-top:8px" data-act="open-cloud" data-id="${E(d.id)}">${E(d.date)} · ${d.orderStage==='finalized'?'已定稿':'待老板娘审核'} · ${E(d.id.slice(-6))}</button>`).join('')+(directoryMore?'<button class="ghost" data-act="older-orders">加载更早订单</button>':'');}
+function paintEntry(){document.querySelectorAll('[data-latest-title]').forEach(el=>{el.textContent=latestText();});document.querySelectorAll('[data-latest-note]').forEach(el=>{el.textContent=latestMessage;});}
+function paintDirectory(){document.querySelectorAll('[data-order-list]').forEach(el=>{el.innerHTML=directoryHtml();});}
+async function checkLatest(){
+ if(!api||sample)return null;const request=++latestRequest,epoch=sessionEpoch,client=api;
+ latestMessage='正在检查…';paintEntry();
+ try{let cursor=null,found=null;do{const page=await client.listPage(cursor);if(request!==latestRequest||epoch!==sessionEpoch)return null;found=testOrders(page.records)[0]||null;if(found||!page.hasMore)break;cursor=page.cursor;}while(cursor);
+  if(request!==latestRequest||epoch!==sessionEpoch)return null;
+  latestOrder=found;latestMessage=found?'按提交时间排列；检查不会切换当前订单。':'还没有提交的测试订单。';paintEntry();return found;
+ }catch(e){if(request===latestRequest&&epoch===sessionEpoch){latestMessage='检查失败：'+(e.message||'请重试');paintEntry();}return null;}
+}
+async function findOrders(date='',append=false){
+ if(!api||sample)return;const request=++directoryRequest,epoch=sessionEpoch,client=api;
+ if(!append){directoryDate=date;directoryRecords=[];directoryCursor=null;directoryMore=false;}
+ directoryMessage='正在读取…';paintDirectory();
+ try{const result=date?{records:await client.onDate(date),cursor:null,hasMore:false}:await client.listPage(append?directoryCursor:null);
+  if(request!==directoryRequest||epoch!==sessionEpoch)return;
+  directoryRecords=[...new Map([...directoryRecords,...testOrders(result.records)].map(d=>[d.id,d])).values()];directoryCursor=result.cursor;directoryMore=result.hasMore;
+  directoryMessage=directoryRecords.length?`${date||'全部日期'} · 已列出 ${directoryRecords.length} 份`:(directoryMore?'本页没有测试订单，可继续加载更早订单。':'这个日期范围没有已提交订单。');paintDirectory();
+ }catch(e){if(request===directoryRequest&&epoch===sessionEpoch){directoryMessage='读取失败：'+(e.message||'请重试');paintDirectory();}}
+}
 
 function toast(text){const t=document.getElementById('toast');t.textContent=text;t.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>{t.style.display='none';},2200);}
 function today(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());}
@@ -616,8 +646,12 @@ function countRows(){
  return html+endNote('list');
 }
 function orderHtml(){
+ return entryHtml()+orderContentHtml();
+}
+function orderContentHtml(){
  const link=new URLSearchParams(location.search).get('order');
  if(link&&!order&&!sample)return `<div class="card"><h1>登录后看这份订单</h1><p>${E(status)}</p><button class="primary" type="button" data-act="tab" data-tab="more">去登录</button></div>`;
+ if(member?.role==='editor'&&!order&&!sample)return '<div class="card"><h1>还没有打开已提交订单</h1><p>可在上方检查最新订单，或按日期查找。</p></div>';
  if(!order&&!draft)return `<div class="card"><h1>今日还没有订单</h1><p>${canCount()?'先在盘货里过一遍。':'请用大伟发来的链接打开。'}</p></div>`;
  if(!order&&draft)return draftOrderHtml();
  const head=sample?'样例 · 不会写入云端':`${E(order.date)} · ${order.orderStage==='finalized'?'已定稿 · 由老板娘自行发送':'待老板娘审核'} · ${E(order.updatedByName||'')} · 第 ${order.revision} 版`;
@@ -801,12 +835,15 @@ async function saveOrder(){
  order=data;rememberStocks();baseQty={...data.quantities};heldPrev={};orderDirty=false;
  history=await api.history(order.id);toast('已保存');render();
 }
-async function openOrder(id){
+async function openOrder(id,fixed=false){
  guardTest(id);sample=false;demoRole=null;
- const data=await api.read(id);order=data;rememberStocks();baseQty={...data.quantities};heldPrev={};ack={};orderDirty=false;history=[];screen='order';keypad=false;textMode=false;
- const url=new URL(location.href);url.searchParams.set('order',id);url.searchParams.delete('sample');historyReplace(url);
+ const epoch=sessionEpoch,previous=order,previousQty=JSON.stringify(order?.quantities),previousRaw=editRaw;
+ const data=await api.read(id);if(epoch!==sessionEpoch)return;
+ if(order!==previous||JSON.stringify(order?.quantities)!==previousQty||editRaw!==previousRaw)throw Error('读取期间你又修改了内容，已保留当前输入。请保存后再打开。');
+ order=data;rememberStocks();baseQty={...data.quantities};heldPrev={};ack={};orderDirty=false;history=[];screen='order';keypad=false;textMode=false;editId=null;editRaw=null;query='';
+ const url=new URL(location.href);if(fixed)url.searchParams.delete('order');else url.searchParams.set('order',id);url.searchParams.delete('sample');historyReplace(url);
  render();
- try{history=await api.history(id);}catch(e){toast('修改记录没读到');}
+ try{const versions=await api.history(id);if(epoch!==sessionEpoch||order?.id!==id)return;history=versions;}catch(e){toast('修改记录没读到');}
  render();
 }
 function historyReplace(url){window.history.replaceState(null,'',url.pathname+url.search);}
@@ -885,6 +922,12 @@ document.body.addEventListener('click',async e=>{
  const act=b.dataset.act;
  try{
   if(act==='backup-export'){backupRecovery();return;}
+  if(act==='fixed-link'){await copyOnly(fixedEntryUrl());return;}
+  if(act==='check-latest'){await checkLatest();return;}
+  if(act==='find-date'){const date=document.getElementById('orderDate')?.value;if(!date){toast('请先选择日期');return;}await findOrders(date);return;}
+  if(act==='all-orders'){const input=document.getElementById('orderDate');if(input)input.value='';await findOrders();return;}
+  if(act==='older-orders'){await findOrders(directoryDate,true);return;}
+  if(act==='latest-order'){if(dirtyCount()||editId){toast('请先保存当前修改并收起键盘，再打开最新订单');return;}busy=true;const latest=await checkLatest();if(dirtyCount()||editId){toast('已保留刚才的输入，请保存后再打开');return;}if(latest)await openOrder(latest.id,true);return;}
   if(act==='backup-retry'){if(localBlocked||localConflict){toast('请先下载备份，再重新打开页面读取已保存版本');return;}saveLocalEnvelope();cloudReady=false;await pullDraft();return;}
   if(act==='backup-remote'){if(!confirm('将先保留一份本机恢复副本，再读取云端草稿。继续吗？'))return;await pullDraft(true);return;}
   if(act==='backup-local'){if(!confirm('将先在这部手机保留云端草稿副本，再用本机这份内容备份。继续吗？'))return;await pullDraft(false,true);await flushCloud();return;}
@@ -931,7 +974,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='fresh'){if(!confirm('放弃这部手机上的这份盘货？'))return;if(localBlocked||localConflict)throw Error('请先下载备份并重新打开页面');if(draft)localStorage.setItem(KEY+':recovery:'+Date.now(),JSON.stringify({draft,pos,field}));draft=null;editId=null;pos=0;field='stock';viewCat='kr';moduleEnd=false;keypad=false;textMode=false;catScroll={kr:0,cn:0,other:0};ensureDraft();flushCloud();screen='count';render();return;}
   if(act==='set-date'){const v=document.getElementById('countDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('请选日期');return;}if(draft.status==='reviewed'){toast('已经提交，日期不能改');return;}draft.date=v;persistLocal();toast('日期已改');return;}
   if(act==='logout'){await signOut(auth);order=null;return;}
-  if(act==='open-cloud'){if(orderDirty&&!confirm('还有修改没保存，确定切换订单吗？'))return;busy=true;await openOrder(b.dataset.id);return;}
+  if(act==='open-cloud'){if(textMode&&readPlain()===false)return;if(commitOrderEdit()===false)return;if(dirtyCount()&&!confirm('还有修改没保存，确定切换订单吗？'))return;busy=true;await openOrder(b.dataset.id);return;}
   if(act==='restore-rev'){if(order?.orderStage==='finalized')throw Error('订单已定稿，请老板娘先点重新修改');const v=history.find(x=>x.revision===Number(b.dataset.revision));if(!v)return;order.quantities=C.clone(v.quantities);orderDirty=true;morePane='';screen='order';render();toast('旧数量已放回，还没保存');return;}
  }catch(err){toast(err.message||'没做成');}
  finally{busy=false;}
@@ -1014,8 +1057,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 
 async function loadList(){
  const box=document.getElementById('cloudList');if(!box||!api)return;
- try{const records=(await api.list()).filter(d=>String(d.id).startsWith('test-'));box.innerHTML=records.length?'<p class="muted">最近更新的测试订单，可按日期打开</p>'+records.map(d=>`<button class="ghost" style="width:100%;margin-top:8px" type="button" data-act="open-cloud" data-id="${E(d.id)}">${E(d.date)} · ${d.orderStage==='finalized'?'已定稿':'待老板娘审核'} · ${E(d.id.slice(-6))}</button>`).join(''):'<p class="muted">还没有 test- 测试订单。</p>';}
- catch(e){box.innerHTML=`<p class="muted">${E(e.message||'列表没读到')}</p>`;}
+ box.innerHTML=entryHtml();await findOrders(directoryDate);await checkLatest();
 }
 async function loadArchives(){
  try{const index=await (await fetch('../order-archives/index.json',{cache:'no-store'})).json();archives=[];for(const entry of index.entries||[]){const data=await (await fetch('../order-archives/'+entry.file,{cache:'no-store'})).json();archives.push({date:entry.date,products:(data.products||[]).map(p=>({name:p.name,alias:p.alias,order:p.order,unit:p.unit}))});}if(screen==='more'&&morePane==='history')render();}catch(e){archives=[];}
@@ -1036,6 +1078,7 @@ async function boot(){
   const firebaseApp=initializeApp(cfg.firebase);auth=getAuth(firebaseApp);db=getFirestore(firebaseApp);
   onAuthStateChanged(auth,async u=>{
    sessionEpoch++;cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
+   latestRequest++;directoryRequest++;latestOrder=null;latestMessage='';directoryRecords=[];directoryCursor=null;directoryMore=false;directoryMessage='';
    if(u&&backupUid!==u.uid){cloudBase=undefined;cloudAt=null;backupUid=u.uid;}
    user=u;member=null;api=null;
    if(!u){status='还没登录。本机盘货可以用，云端备份要等大伟登录。';if(!sample)order=null;if(params.get('order')&&!sample){screen='order';status='登录后才能看这份测试订单。';}render();return;}
@@ -1045,13 +1088,13 @@ async function boot(){
     if(data&&data.active===true&&['owner','editor'].includes(data.role)&&data.name){
      member=data;api=store(db,u.uid,'orders',data.name);status=data.name+' 已登录';
      if(data.role==='owner')await pullDraft();
-     const id=params.get('order');
+     const id=new URLSearchParams(location.search).get('order');
      if(id&&!sample)await openOrder(id);
      else if(data.role==='editor'&&!sample){
       screen='order';
-      const records=(await api.list()).filter(d=>String(d.id).startsWith('test-'));
-      if(records.length)await openOrder(records[0].id);
-      else status='还没有提交的测试订单';
+      const latest=await checkLatest();
+      if(latest)await openOrder(latest.id,true);
+      else status=latestMessage;
      }
     }else status='登录了，但还不能看订单';
    }catch(err){status=err.message||'登录后没读到权限';}
