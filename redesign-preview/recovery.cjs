@@ -8,7 +8,7 @@ function validate(d,source){
  return d;
 }
 function fromOrder(order,source){
- const d=Core.clone(JSON.parse(order.snapshot));
+ const d=Core.clone(Cloud.inventorySnapshot(order));
  Cloud.checkQuantities(order.quantities,order.units,d.catalog.map(p=>p.id));
  for(const p of d.catalog){const r=d.items[p.id];r.quantity=Cloud.textQuantity(order.quantities[p.id]);r.decision=order.quantities[p.id]>0?'order':'skip';r.unit=order.units[p.id];r.processed=true;}
  d.status='draft';d.sent={};validate(d,source);

@@ -184,10 +184,11 @@ test('cancel search restores original category/scroll; incomplete input cannot s
  h.run(`typeOrderKey('5');cancelFind()`);assert.equal(h.run('query'),'');assert.equal(h.run('orderCat'),'cn');assert.equal(h.window.scrollY,80);
  assert.equal(h.run(`qtyOf('cn:9')`),'2.5');
 });
-test('boss uses same order controls while submitted inventory stays immutable',()=>{
+test('boss can correct inventory with confirmation without changing the submitted snapshot',()=>{
  const h=harness();h.run(`buildSample('boss');query='감자';`);const before=h.run('order.snapshot');
- assert.match(h.run('searchHits()'),/aria-disabled="true"/);
- h.run(`openOrderKey('kr:7','stock')`);assert.equal(h.run('editId'),null);
+ assert.match(h.run('searchHits()'),/data-field="stock"/);
+ h.ctx.confirm=()=>false;h.run(`openOrderKey('kr:7','stock')`);assert.equal(h.run('editId'),null);
+ h.ctx.confirm=()=>true;h.run(`openOrderKey('kr:7','stock');typeOrderKey('0');closePad()`);assert.equal(h.run(`stocks['kr:7']`),'0');
  h.run(`openOrderKey('kr:7');stepQty(1)`);assert.equal(h.run(`qtyOf('kr:7')`),'11');
  h.run(`stepQty(-1)`);assert.equal(h.run(`qtyOf('kr:7')`),'10');
  h.run(`cancelLine('kr:7');doUndo()`);assert.equal(h.run(`qtyOf('kr:7')`),'10');
@@ -217,7 +218,7 @@ test('template unit choices persist independently, export correctly and lock sub
  h.run(`buildSample('boss');sample=false;baseQty={...order.quantities};member={role:'editor'};globalThis.originalStock=order.snapshot;selectUnit('other:11','qty','몸통만');applyQty('other:11','3');`);
  assert.equal(h.run('dirtyCount()'),1);assert.match(h.run(`blockText('other')`),/탕용기\(소\) 3몸통만/);
  assert.equal(h.run('order.snapshot===originalStock'),true);
- assert.throws(()=>h.run(`selectUnit('cn:45','stock','박스')`),/只能查看/);
+ h.ctx.confirm=()=>true;h.run(`selectUnit('cn:45','stock','박스')`);assert.equal(h.run(`order.stockUnits['cn:45']`),'박스');
  h.run(`order.orderStage='finalized'`);assert.throws(()=>h.run(`selectUnit('other:11','qty','세트')`),/只能查看/);
 });
 test('unit-only edits save, remain dirty on failure and record old and new units',async()=>{
@@ -419,4 +420,32 @@ test('linked reviewed count shows selected order unit read-only, keeping stock u
  const cell=h.run(`countCell(draft.catalog.find(p=>p.id==='cn:45'),0,'qty')`);
  assert.match(cell,/<b>2<\/b>/);assert.match(cell,/<small>봉<\/small>/);assert.doesNotMatch(cell,/data-act|<select/);
  assert.equal(h.run(`draft.items['cn:45'].unit`),'박스');
+});
+
+test('both members edit the same pending inventory and quantities across count/list/search, with save feedback',async()=>{
+ for(const role of ['owner','editor']){
+  const h=harness();h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'inventory-save-001'};
+  h.run(`buildSample('boss');sample=false;member={role:'${role}'};draft=JSON.parse(order.snapshot);order.id=C.cloudOrderId(draft.id,MODE.test);baseQty={...order.quantities};baseUnits={...order.units};rememberStocks();screen='count';query='土豆面片';globalThis.beforeSnapshot=order.snapshot;globalThis.beforeQty=JSON.stringify(order.quantities);`);
+  h.run(`openOrderKey('kr:38','stock');typeOrderKey('0');closePad()`);
+  assert.equal(h.run('screen'),'count');assert.equal(h.run(`stockShown(product('kr:38'))`),'0');assert.equal(h.run('JSON.stringify(order.quantities)'),h.run('beforeQty'));
+  assert.match(h.run('countHtml()'),/有 1 处改动，点这里保存/);
+  h.run(`tryLeave('order')`);assert.match(h.run('searchHits()'),/<b>0<\/b>/);
+  h.run(`applyQty('kr:38','2');tryLeave('count')`);assert.match(h.run('countRows()'),/<b>2<\/b>/);
+  h.run(`api={save:async(id,base,q,mutation,patch)=>({...C.clone(base),...patch,quantities:{...q},revision:base.revision+1}),history:async()=>[]}`);
+  await h.run('saveOrder()');assert.equal(h.run('dirtyCount()'),0);assert.match(h.run('countHtml()'),/已保存到云端/);
+  assert.equal(h.run('order.snapshot'),h.run('beforeSnapshot'));assert.equal(h.run(`C.inventorySnapshot(order).items['kr:38'].stock`),'0');
+  h.run(`order=C.clone(order);rememberStocks()`);assert.equal(h.run(`stocks['kr:38']`),'0');
+  assert.equal(h.run(`Recovery.fromOrder(order,source).draft.items['kr:38'].stock`),'0');
+  h.run(`order.orderStage='finalized'`);assert.match(h.run('countRows()'),/aria-disabled="true"/);assert.throws(()=>h.run(`applyOrderValue('kr:38','stock','3')`),/只能查看/);
+ }
+});
+test('inventory save failures, conflicts, in-flight edits and blank vs zero remain visible in count',async()=>{
+ const h=harness();h.ctx.crypto={randomUUID:()=> 'inventory-failure'};
+ h.run(`buildSample('boss');sample=false;member={role:'editor'};baseQty={...order.quantities};rememberStocks();screen='count';applyOrderValue('kr:38','stock','0');api={save:async()=>{throw Object.assign(Error('冲突'),{code:'ccx/conflict'})}}`);
+ await assert.rejects(h.run('saveOrder()'));assert.match(h.run('countHtml()'),/本次未保存/);assert.equal(h.run('dirtyCount()'),1);
+ h.run(`api.save=(id,base,q,mid,patch)=>new Promise(resolve=>{globalThis.finishSave=()=>resolve({...C.clone(base),...patch,quantities:{...q},revision:base.revision+1})});api.history=async()=>[];`);
+ const saving=h.run('saveOrder()');assert.match(h.run('countHtml()'),/正在保存到云端/);
+ h.run(`applyOrderValue('kr:38','stock','');finishSave()`);await saving;
+ assert.equal(h.run(`stocks['kr:38']`),'');assert.equal(h.run('dirtyCount()'),1);assert.match(h.run('countHtml()'),/当前还有修改未保存/);
+ const log=h.run(`C.historyHtml(catalog(),[{...order,stockEdits:{'kr:38':''},revision:3},{...order,stockEdits:{'kr:38':'0'},revision:2}],false)`);assert.match(log,/库存 0봉 → 未填写/);
 });

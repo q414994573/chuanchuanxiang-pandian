@@ -25,6 +25,18 @@ await assertFails(updateDoc(doc(chef,'sandboxOrders','test-order','revisions','m
 assert.equal((await a.history('test-order')).length,2);
 const race=await Promise.allSettled([a.save('test-order',v2,{...v2.quantities,'test:a':4000},'mutation-race-chef'),b.save('test-order',v2,{...v2.quantities,'test:a':6000},'mutation-race-boss')]);assert.equal(race.filter(x=>x.status==='fulfilled').length,1);
 console.log('PASS simulated three-product chain, reread, duplicate, audit, permissions and simultaneous conflict');
+const stockStart=await a.create('test-inventory',p,'inventory-create-001');
+const stockBoss=await b.save(stockStart.id,stockStart,stockStart.quantities,'inventory-boss-001',{stockEdits:{'test:a':'0'}});
+assert.equal(stockBoss.stockEdits['test:a'],'0');assert.deepEqual(stockBoss.quantities,stockStart.quantities);
+const stockChef=await a.save(stockBoss.id,stockBoss,stockBoss.quantities,'inventory-chef-001',{stockEdits:{'test:a':''}});
+assert.equal((await b.read(stockChef.id)).stockEdits['test:a'],'');
+await assert.rejects(b.save(stockBoss.id,stockBoss,stockBoss.quantities,'inventory-stale-001',{stockEdits:{'test:a':'2'}}),/较新版本/);
+for(const edits of [{'invalid':'1'},{'test:a':'-1'},{'test:a':2},{'test:a':'1.2345'}])await assert.rejects(b.save(stockChef.id,stockChef,stockChef.quantities,'inventory-bad-0001',{stockEdits:edits}));
+await assert.rejects(b.save(stockChef.id,stockChef,stockChef.quantities,'inventory-forge-01',{snapshot:'forged'}),e=>e.code==='permission-denied');
+const stockFinal=await b.finalize(stockChef.id,stockChef,'inventory-final-01');
+await assert.rejects(b.save(stockFinal.id,stockFinal,stockFinal.quantities,'inventory-locked-1',{stockEdits:{'test:a':'9'}}),e=>e.code==='permission-denied');
+console.log('PASS shared inventory, blank/zero, immutable catalog, invalid values, stale edits and finalized lock');
+
 // Workflow uses isolated simulated products, including old documents without a stage.
 const pending=await a.create('test-workflow',p,'workflow-create-001');
 await assert.rejects(a.finalize(pending.id,pending,'workflow-owner-denied'),e=>e.code==='permission-denied');
@@ -58,6 +70,12 @@ const full={...p,quantities:Object.fromEntries(products.map(x=>[x.id,1000])),uni
 // Missing units remain blank; use zero for those items rather than inventing units.
 for(const id in full.units)if(!full.units[id])full.quantities[id]=0;
 const prod=store(chef,'chef','orders','大伟'),prodBoss=store(boss,'boss','orders','老板娘');
+const fullStock=await prod.create('test-full-inventory',full,'full-inventory-start');
+const fullEdits=Object.fromEntries(products.filter(p=>p.hasStock).map(p=>[p.id,'0']));
+const fullSaved=await prodBoss.save(fullStock.id,fullStock,fullStock.quantities,'full-inventory-save',{stockEdits:fullEdits,stockUnits:{'cn:45':'봉'}});
+assert.equal(Object.keys(fullSaved.stockEdits).length,products.filter(p=>p.hasStock).length);
+console.log('PASS full catalog inventory permission validation');
+
 const first=await prod.create('emulator-only-catalog',full,'mutation-catalog-001');
 await prodBoss.save(first.id,first,{...first.quantities,[products[0].id]:2000},'mutation-catalog-002');
 const current=await prod.read(first.id), raw=(await getDoc(doc(boss,'orders',first.id))).data();
