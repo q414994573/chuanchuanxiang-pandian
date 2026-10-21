@@ -151,3 +151,6 @@ input[type="file"]{max-width:100%;width:100%;font-size:14px}
 .unit-cell .plain{flex:1;width:0}
 .cell-unit{flex-shrink:0;font-size:12px;line-height:1.2;color:var(--muted);max-width:3em;overflow-wrap:anywhere}
 @media(max-width:380px){.count-columns{grid-template-columns:minmax(0,1fr) 64px 64px}}
+
+.bar .search{margin:6px 0 0}
+.bar .gap{margin-top:6px;min-height:40px;padding:6px}
