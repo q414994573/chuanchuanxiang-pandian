@@ -820,12 +820,13 @@ function render(){
  if(findFocused)document.getElementById('find')?.focus({preventScroll:true});
  if(keypad||textMode)scrollActive();
 }
+function countColumns(){return `<div class="count-columns"><span>商品</span><span>库存</span><span>订货</span></div>`;}
 function countHtml(){
- if(sharedCount())return `<div class="bar"><p>${E(order.date)} · ${order.orderStage==='finalized'?'已定稿':'待老板娘审核'} · 第 ${order.revision} 版</p><div class="cats">${catButtonsHtml()}</div></div>${textBar()}${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&editId&&!textMode?orderPad():''}${dockHtml()}`;
+ if(sharedCount())return `<div class="bar"><p>${E(order.date)} · ${order.orderStage==='finalized'?'已定稿':'待老板娘审核'} · 第 ${order.revision} 版</p><div class="cats">${catButtonsHtml()}</div>${countColumns()}</div>${textBar()}${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&editId&&!textMode?orderPad():''}${dockHtml()}`;
  if(!canCount())return `<div class="card"><h1>请先打开订单</h1><p>打开已提交订单后，定稿前双方都可以修改库存和订货数量。</p><button class="primary" type="button" data-act="goto-order">去订单</button></div>`;
  try{ensureDraft();}catch(e){toast(e.message);}
  if(!draft)return `<div class="card">${backupStatusHtml()}<p>原内容仍保留。请下载备份后再处理，不要清除网站数据。</p></div>`;
- return `<div class="bar">${countNotice()}${backupStatusHtml()}<div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看订单':'下一个没盘的'}</button></div>${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
+ return `<div class="bar">${countNotice()}${backupStatusHtml()}<div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看订单':'下一个没盘的'}</button>${countColumns()}</div>${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
 }
 function catButtonsHtml(){
  const counts=query&&(draft||sharedCount())?Flow.searchHitCounts(sharedCount()?catalog():draft.catalog,p=>S.matches(p,query,aliasesOf(p))):null;
@@ -835,14 +836,16 @@ function catButtonsHtml(){
  }).join('');
 }
 function countCell(p,i,which){
+ const unit=which==='stock'?stockUnitOf(p):countUnit(p);
+ const suffix=`<span class="cell-unit">${E(unit||'单位未定')}</span>`;
  if(draft?.status==='reviewed'){
-  const value=cellText(p,which),unit=which==='stock'?(draft.items[p.id].stockUnit||''):countUnit(p);
-  return `<div class="cell" aria-label="${E(cellLabel(p,which)+'，只读')}" aria-disabled="true"><b>${E(value)}</b>${C.units.choices[p.id]?`<small>${E(unit)}</small>`:''}</div>`;
+  const value=cellText(p,which);
+  return `<div class="cell unit-cell" aria-label="${E(cellLabel(p,which)+'，只读')}" aria-disabled="true"><b>${E(value)}</b>${suffix}</div>`;
  }
  const on=keypad&&pos===i&&field===which;
  const caret=on&&!textMode?'<i class="caret" aria-hidden="true"></i>':'';
  const inner=on&&textMode?`<input class="plain" value="${E(cellRaw(p,which))}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<b>${E(cellText(p,which))}${caret}</b>`;
- const cell=`<div class="cell ${on?'on':''}" data-act="open" data-id="${E(p.id)}" data-i="${i}" data-field="${which}" role="button" aria-label="${E(cellLabel(p,which))}">${inner}</div>`;
+ const cell=`<div class="cell unit-cell ${on?'on':''}" data-act="open" data-id="${E(p.id)}" data-i="${i}" data-field="${which}" role="button" aria-label="${E(cellLabel(p,which))}">${inner}${suffix}</div>`;
  return C.units.choices[p.id]?`<div class="search-cell">${cell}${unitPicker(p,which)}</div>`:cell;
 }
 function countRows(){
@@ -855,7 +858,7 @@ function countRows(){
   const on=keypad&&pos===i;
   const hint=p.name==='고수'?'<p class="warn">香菜：再看一次冰箱。</p>':String(p.name).startsWith('감자수제비')?'<p class="warn">土豆面片按大包记，1大包＝2小包。</p>':'';
   const fields=Flow.countFields(p);
-  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml({...p,unit:countUnit(p)||(C.units.choices[p.id]?'请选择订货单位':p.unit)},E)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
+  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml({...p,hideUnit:true},E)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
  }
  if(!n) html='<p class="muted">没有匹配的商品。</p>';
  return html+endNote('list');
