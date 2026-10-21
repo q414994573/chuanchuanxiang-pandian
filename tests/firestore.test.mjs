@@ -12,7 +12,7 @@ const a=store(chef,'chef','sandboxOrders','大伟'),b=store(boss,'boss','sandbox
 const p={schema:'ccx-cloud-1',date:'2026-10-19',snapshot:JSON.stringify({test:true,stock:['','0','3']}),quantities:{'test:a':5000,'test:b':0,'test:c':1000},units:{'test:a':'袋','test:b':'包','test:c':'个'}};
 const v1=await a.create('test-order',p,'mutation-create-001');assert.equal(v1.revision,1);
 const repeated=await a.create('test-order',p,'mutation-repeat-001');assert.equal(repeated.revision,1);
-const v2=await b.save('test-order',v1,{...v1.quantities,'test:a':3000},'mutation-boss-001');assert.equal(v2.quantities['test:a'],3000);assert.equal(v2.updatedByName,'老板娘');assert.equal((await a.read('test-order')).snapshot,p.snapshot);await assert.rejects(b.create('editor-cannot-create',p,'mutation-editor-create'),e=>e.code==='permission-denied');await assert.rejects(store(chef,'chef','sandboxOrders','老板娘').save('test-order',v2,v2.quantities,'mutation-spoof-name'),e=>e.code==='permission-denied');
+const v2=await b.save('test-order',v1,{...v1.quantities,'test:a':3000},'mutation-boss-001');assert.equal(v2.quantities['test:a'],3000);assert.equal(v2.updatedByName,'老板娘');assert.equal((await a.read('test-order')).snapshot,p.snapshot);await b.create('editor-can-create',p,'mutation-editor-create');await assert.rejects(store(chef,'chef','sandboxOrders','老板娘').save('test-order',v2,v2.quantities,'mutation-spoof-name'),e=>e.code==='permission-denied');
 await assert.rejects(a.save('test-order',v1,{...v1.quantities,'test:b':1000},'mutation-stale-001'),/较新版本/);
 await assertFails(getDoc(doc(anon,'sandboxOrders','test-order')));await assertFails(getDocs(collection(anon,'sandboxOrders')));await assertFails(getDoc(doc(stranger,'sandboxOrders','test-order')));await assertFails(getDoc(doc(paused,'sandboxOrders','test-order')));
 await assertFails(setDoc(doc(stranger,'members','stranger'),{active:true,role:'owner',name:'陌生人'}));
@@ -39,7 +39,7 @@ console.log('PASS shared inventory, blank/zero, immutable catalog, invalid value
 
 // Workflow uses isolated simulated products, including old documents without a stage.
 const pending=await a.create('test-workflow',p,'workflow-create-001');
-await assert.rejects(a.finalize(pending.id,pending,'workflow-owner-denied'),e=>e.code==='permission-denied');
+const ownerWorkflow=await a.create('test-owner-workflow',p,'workflow-owner-create');const ownerFinal=await a.finalize(ownerWorkflow.id,ownerWorkflow,'workflow-owner-final');await a.finalize(ownerFinal.id,ownerFinal,'workflow-owner-reopen','pending');
 const changed=await b.save(pending.id,pending,{...pending.quantities,'test:a':2000},'workflow-boss-edit');
 await assert.rejects(b.finalize(pending.id,pending,'workflow-stale-final'),/较新版本/);
 const final=await b.finalize(pending.id,changed,'workflow-boss-final');
@@ -48,12 +48,12 @@ assert.equal((await a.read(final.id)).orderStage,'finalized');
 assert.equal((await b.finalize(final.id,changed,'workflow-boss-final')).revision,final.revision);
 await assert.rejects(a.save(final.id,final,final.quantities,'workflow-owner-edit'),e=>e.code==='permission-denied');
 await assert.rejects(b.save(final.id,final,final.quantities,'workflow-boss-locked'),e=>e.code==='permission-denied');
-await assert.rejects(a.finalize(final.id,final,'workflow-owner-reopen','pending'),e=>e.code==='permission-denied');
+
 const reopened=await b.finalize(final.id,final,'workflow-boss-reopen','pending');
 assert.equal(reopened.orderStage,'pending');
 await b.save(reopened.id,reopened,{...reopened.quantities,'test:a':1000},'workflow-edit-again');
 assert.equal((await b.history(reopened.id)).length,5);
-console.log('PASS boss-only finalization, immutable final quantities, audit, stale rejection, idempotent retry and reopen');
+console.log('PASS equal-member finalization, immutable final quantities, audit, stale rejection, idempotent retry and reopen');
 await env.withSecurityRulesDisabled(async c=>{
  const batch=writeBatch(c.firestore());for(let i=0;i<35;i++)batch.set(doc(c.firestore(),'sandboxOrders','test-page-'+i),{...p,date:'1900-01-02',quantities:'5000,0,1000',createdAt:Timestamp.fromMillis(1000+i),updatedAt:Timestamp.fromMillis(99999-i)});await batch.commit();
 });
@@ -88,14 +88,14 @@ await forged({quantities:raw.quantities.replace(/^[^,]+/,'-1')},'mutation-negati
 await forged({quantities:raw.quantities+',1'},'mutation-extra-product');
 await forged({quantities:raw.quantities.replace(/^[^,]+/,'1000000001')},'mutation-excess-qty');
 const ownerBase=await prod.read(first.id);
-const stocked=await prod.save(first.id,ownerBase,ownerBase.quantities,'mutation-owner-stock',{snapshot:ownerBase.snapshot.replace('"test":true','"test":true,"stockNote":"owner"')});
-assert.match(stocked.snapshot,/stockNote/);assert.equal(stocked.updatedByName,'大伟');
+await assert.rejects(prod.save(first.id,ownerBase,ownerBase.quantities,'mutation-owner-stock',{snapshot:'changed'}),e=>e.code==='permission-denied');
+const stocked=ownerBase;
 await assert.rejects(prodBoss.save(first.id,stocked,stocked.quantities,'mutation-editor-stock',{snapshot:'changed inventory'}),e=>e.code==='permission-denied');
 assert.equal((await prod.read(first.id)).snapshot,stocked.snapshot);
 Object.defineProperty(navigator,'onLine',{value:false,configurable:true});
 await assert.rejects(prod.save(first.id,current,current.quantities,'mutation-offline-001'),/断网/);
 Object.defineProperty(navigator,'onLine',{value:true,configurable:true});
-assert.equal((await prod.read(first.id)).revision,3);
+assert.equal((await prod.read(first.id)).revision,stocked.revision);
 console.log('PASS 129-product rules, authorized edit, invalid quantity denied; no production service used');
 // Independent emulator order: both dropdown choices, unit-only edits, stale conflict and audit.
 const unitStart=await prod.create('emulator-unit-options',full,'unit-create-001');

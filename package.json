@@ -1,7 +1,7 @@
 {
   "name": "chuanchuanxiang-pandian",
   "version": "1.0.0",
-  "description": "\u7f51\u7ad9\u56fa\u5b9a\u7f51\u5740\uff1ahttps://q414994573.github.io/chuanchuanxiang-pandian/",
+  "description": "网站固定网址：https://q414994573.github.io/chuanchuanxiang-pandian/",
   "main": "count-app.js",
   "directories": {
     "doc": "docs",
@@ -12,7 +12,8 @@
     "test:rules": "firebase emulators:exec --only firestore --project demo-ccx-collaboration \"node tests/firestore.test.mjs\"",
     "build": "esbuild cloud/app.js --bundle --minify --format=iife --outfile=cloud-app.bundle.js",
     "build:preview": "esbuild redesign-preview/preview.js --bundle --minify --format=iife --outfile=redesign-preview/preview.bundle.js",
-    "rules:generate": "node scripts/generate-rules.cjs"
+    "rules:generate": "node scripts/generate-rules.cjs",
+    "test:shared": "firebase emulators:exec --only firestore --project demo-ccx-shared \"node tests/shared-count.test.mjs\""
   },
   "repository": {
     "type": "git",

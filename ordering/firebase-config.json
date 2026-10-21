@@ -7,5 +7,6 @@
     "storageBucket": "chuanchuanxiang-order.firebasestorage.app",
     "messagingSenderId": "981479838460",
     "appId": "1:981479838460:web:12c8db27cd7821f9c6fd79"
-  }
+  },
+  "sharedCounts": true
 }

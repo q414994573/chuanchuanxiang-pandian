@@ -10,7 +10,7 @@ function harness(production=false){
  const window={history:{replaceState(){}},visualViewport:{offsetTop:0,height:400,addEventListener(n,fn){viewportHandlers[n]=fn;}},CountCore:Core,scrollY:80,scrollTo(x,y){this.scrollY=y;},addEventListener(){}};
  const ctx=vm.createContext({document,window,localStorage:{setItem(k,v){saved.set(k,v);},getItem(k){return saved.get(k)??null;}},
   setTimeout(){return 1;},clearTimeout(){},requestAnimationFrame(fn){fn();},URL,URLSearchParams,Date,Intl,console,
-  Auto:require('../redesign-preview/order-autosave.cjs'),C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup:require('../redesign-preview/draft-backup.cjs'),Recovery:require('../redesign-preview/recovery.cjs'),Entry:require('../redesign-preview/entry-mode.cjs'),
+  Shared:require('../redesign-preview/shared-draft.cjs'),Auto:require('../redesign-preview/order-autosave.cjs'),C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup:require('../redesign-preview/draft-backup.cjs'),Recovery:require('../redesign-preview/recovery.cjs'),Entry:require('../redesign-preview/entry-mode.cjs'),
   fixture:structuredClone(source),location:{search:'',href:'https://example.test/redesign-preview/'}});
  let js=fs.readFileSync(require.resolve('../redesign-preview/preview.js'),'utf8');
  js=js.replace(/^import .*;\n/gm,'').replace(/boot\(\)\.catch\([\s\S]*$/,'');vm.runInContext(js,ctx);
@@ -124,10 +124,10 @@ test('finalization requires saved edits, boss role and a successful server respo
  await assert.rejects(h.run(`changeOrderStage('finalized')`),/先保存/);
  h.run('dirtyCount=()=>0');await assert.rejects(h.run(`changeOrderStage('finalized')`),/断网/);
  assert.equal(h.run('order.orderStage'),undefined);
- h.run(`member={role:'owner'}`);await assert.rejects(h.run(`changeOrderStage('finalized')`),/老板娘/);
+ h.run(`member={role:'owner'}`);await assert.rejects(h.run(`changeOrderStage('finalized')`),/授权账号/);
  h.run(`member={role:'editor'};api={finalize:async()=>({...order,orderStage:'finalized',revision:3}),history:async()=>[]};`);
  await h.run(`changeOrderStage('finalized')`);
- assert.equal(h.run('order.orderStage'),'finalized');assert.match(h.run('dockHtml()'),/重新修改/);
+ assert.equal(h.run('order.orderStage'),'finalized');assert.match(h.run('dockHtml()'),/解除定稿/);
  assert.throws(()=>h.run(`applyQty('cn:9','3')`),/已定稿/);
  h.run(`openOrderKey('cn:9')`);assert.equal(h.run('keypad'),false);
 });
@@ -355,7 +355,7 @@ test('search return label does not change close-keypad or retained quantity beha
 });
 test('pending supplier buttons are disabled; finalized and draft exports retain distinct behavior',()=>{
  const h=harness();h.run(`buildSample('boss');sample=false;member={role:'editor'};`);
- let html=h.run(`blockHtml('kr')`);assert.match(html,/老板娘定稿后可复制订货文字/);
+ let html=h.run(`blockHtml('kr')`);assert.match(html,/定稿后可复制订货文字/);
  for(const act of ['copy','share'])assert.match(html,new RegExp('data-act="'+act+'"[^>]*disabled'));
  h.run(`order.orderStage='finalized'`);html=h.run(`blockHtml('kr')`);
  assert.doesNotMatch(html,/data-act="(?:copy|share)"[^>]*disabled/);assert.match(html,/复制本类订货文字/);assert.match(html,/分享本类订货文字/);
@@ -597,8 +597,8 @@ test('draft supplier exports are disabled and blocked for both copy and share',a
  const h=harness();h.run(`member={role:'owner'};copyOnly=async()=>{throw Error('clipboard touched')};shareOrCopy=async()=>{throw Error('share touched')};`);
  assert.match(h.run(`blockHtml('kr')`),/data-act="copy"[^>]*disabled/);
  assert.match(h.run(`blockHtml('kr')`),/data-act="share"[^>]*disabled/);
- await assert.rejects(h.run(`supplierExport('kr')`),/先提交盘货/);
- await assert.rejects(h.run(`supplierExport('kr',true)`),/先提交盘货/);
+ await assert.rejects(h.run(`supplierExport('kr')`),/先完成盘货/);
+ await assert.rejects(h.run(`supplierExport('kr',true)`),/先完成盘货/);
 });
 test('sticky search does not scroll toward its own parent and keeps a single input in each screen',()=>{
  const h=harness();let scrolled=false;const search={};h.window.scrollBy=()=>{scrolled=true;};
@@ -629,4 +629,33 @@ test('order search moves backward through editable cells and skips shared read-o
  h.run(`buildSample('boss');query='鸡精';screen='order';`);
  assert.equal(h.run(`orderNavigationCells().every(c=>c.which==='qty')`),true);
  h.run(`order.orderStage='finalized'`);assert.equal(h.run('orderNavigationCells().length'),0);
+});
+
+test('peer roles share count rights and current draft status, keeping history open on updates',()=>{
+ const h=harness();h.run(`peerEnabled=true;member={role:'owner'};peerApi={};peerBase={localId:draft.id,revision:1,stage:'draft',draft:C.clone(draft)};`);
+ assert.equal(h.run('canCount()'),true);h.run(`member={role:'editor'}`);assert.equal(h.run('canCount()'),true);
+ assert.match(h.run('currentStageText()'),/双方实时同步/);
+ h.run(`peerViewing=false;globalThis.before=C.clone(draft);globalThis.remote={...peerBase,revision:2,draft:C.clone(draft)};remote.draft.items['kr:43'].stock='8';peerReceive(remote)`);
+ assert.equal(h.run(`draft.items['kr:43'].stock`),'');assert.equal(h.run('peerLatest.revision'),2);
+});
+test('peer remote cell conflict preserves local input and does not falsely report saved',()=>{
+ const h=harness();h.run(`peerEnabled=true;member={role:'owner'};peerApi={};peerBase={localId:draft.id,revision:1,stage:'draft',draft:C.clone(draft)};draft.items['kr:43'].stock='3';globalThis.remote={...peerBase,revision:2,draft:C.clone(peerBase.draft)};remote.draft.items['kr:43'].stock='4';peerReceive(remote)`);
+ assert.equal(h.run(`draft.items['kr:43'].stock`),'3');assert.equal(h.run('cloudConflict'),true);assert.equal(h.run('peerBase.revision'),1);
+});
+test('peer autosave preserves input typed while request is in flight',async()=>{
+ const h=harness();h.run(`peerEnabled=true;member={role:'editor'};peerBase={localId:draft.id,revision:1,stage:'draft',draft:C.clone(draft)};draft.items['kr:43'].stock='3';peerApi={save:()=>new Promise(resolve=>globalThis.saveDone=resolve)};`);
+ const saving=h.run('peerSave()');h.run(`globalThis.remote={...peerBase,revision:2,draft:C.clone(draft)};draft.items['cn:9'].quantity='2';draft.items['cn:9'].decision='order';saveDone(remote)`);await saving;
+ assert.equal(h.run(`draft.items['cn:9'].quantity`),'2');assert.equal(h.run('cloudPending'),true);assert.equal(h.run('peerBase.revision'),2);
+});
+test('shared startup keeps conflicting legacy local draft and still subscribes',async()=>{
+ const h=harness();h.run(`peerEnabled=true;member={role:'owner'};paintBackupStatus=()=>{};Core().edit(draft,'kr:43','stock','3');globalThis.remoteDraft=Core().create(source,'2026-10-22','count-remote');peerApi={read:async()=>({localId:remoteDraft.id,revision:1,stage:'draft',draft:remoteDraft}),watch:()=>{globalThis.watched=true;return ()=>{}}};`);
+ await h.run('peerStart()');assert.equal(h.run('watched'),true);assert.equal(h.run('cloudConflict'),true);assert.equal(h.run(`draft.items['kr:43'].stock`),'3');
+});
+test('shared save from an old login cannot clear the new login flight',async()=>{
+ const h=harness();h.run(`peerEnabled=true;paintBackupStatus=()=>{};peerBase={localId:draft.id,revision:1,stage:'draft',draft:C.clone(draft)};Core().edit(draft,'kr:43','stock','3');peerApi={save:()=>new Promise(resolve=>globalThis.resolvePeer=resolve)};`);
+ const saving=h.run('peerSave()');h.run(`sessionEpoch++;peerFlight='new-login-flight';resolvePeer({...peerBase,revision:2})`);await saving;assert.equal(h.run('peerFlight'),'new-login-flight');
+});
+test('shared current read after logout cannot restore the previous session',async()=>{
+ const h=harness();h.ctx.confirm=()=>true;h.run(`peerEnabled=true;backupRecovery=()=>{};peerApi={read:()=>new Promise(resolve=>globalThis.resolvePeerRead=resolve)};globalThis.oldDraft=C.clone(draft);`);
+ const opening=h.run('peerUseRemote()');h.run(`sessionEpoch++;draft=null;resolvePeerRead({localId:oldDraft.id,revision:2,stage:'draft',draft:oldDraft})`);await opening;assert.equal(h.run('draft'),null);
 });
