@@ -228,3 +228,27 @@ test('unit-only edits save, remain dirty on failure and record old and new units
  const html=h.run(`C.historyHtml(catalog(),[{revision:2,quantities:{'cn:45':2000},units:{'cn:45':'봉'}},{revision:1,quantities:{'cn:45':2000},units:{'cn:45':'박스'}}],false)`);
  assert.match(html,/2박스 → 2봉/);
 });
+
+for(const failure of ['network','json','http','shape']){
+ test(`preview config ${failure} failure preserves local recovery while production stays locked`,async()=>{
+  for(const production of [false,true]){
+   const h=harness(production),requests=[];
+   h.run(`draft.items['cn:9'].quantity='12';draft.items['cn:9'].decision='order';draft.items['kr:3'].stock='0';globalThis.envelope=JSON.stringify({draft,pos:2,field:'qty'});localStorage.setItem(KEY,envelope);draft=null;loadArchives=()=>{};`);
+   h.ctx.fetch=async url=>{requests.push(url);if(url.includes('firebase-config')){
+    if(failure==='network')throw Error('offline');
+    return {ok:failure!=='http',json:async()=>{if(failure==='json')throw SyntaxError('bad JSON');return failure==='shape'?null:{enabled:true};}};
+   }return {ok:true,json:async()=>url.includes('aliases')?{items:[]}:structuredClone(source)};};
+   await h.run('boot()');
+   assert.equal(h.run('releaseLocked'),production);
+   assert.equal(h.saved.get(h.run('KEY')),h.run('envelope'));
+   if(production){assert.equal(h.run('draft'),null);assert.equal(requests.length,1);assert.match(h.run('app.innerHTML'),/正式入口准备中/);}
+   else{
+    assert.equal(h.run(`draft.items['cn:9'].quantity`),'12');assert.equal(h.run(`draft.items['kr:3'].stock`),'0');
+    assert.match(h.run('backupMessage()'),/配置加载失败.*暂未备份/);
+    assert.match(h.run('moreHtml()'),/下载本机草稿备份/);
+    h.run(`Core().edit(draft,'cn:9','quantity','13');persistLocal()`);
+    assert.equal(JSON.parse(h.saved.get(h.run('KEY'))).draft.items['cn:9'].quantity,'13');
+   }
+  }
+ });
+}

@@ -15,7 +15,7 @@ const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const CATS=[['kr','韩国','韩国食品'],['cn','中国','中国食品'],['other','其他','其他商品']];
 const PRODUCTION=document.documentElement?.dataset.orderMode==='production';
 const MODE=Entry.settings(PRODUCTION),KEY=MODE.key;
-let releaseLocked=PRODUCTION;
+let releaseLocked=PRODUCTION,configFailed=false;
 const app=document.getElementById('app');
 let source,aliasById=new Map(),draft,pos=0,field='stock',screen='count',keypad=false,textMode=false,viewCat='kr',orderCat='kr',moduleEnd=false,entered=null;
 let catScroll={kr:0,cn:0,other:0},orderScroll={kr:0,cn:0,other:0};
@@ -117,6 +117,7 @@ function backupMessage(){
  if(localConflict)return '另一页面修改了草稿，已暂停覆盖，请先下载当前备份';
  if(localSaveFailed)return '本机保存失败！请保留页面、下载备份并重试';
  if(cloudConflict)return '本机已保存 · 两份草稿不同，云端备份已暂停';
+ if(configFailed)return '本机已保存 · 云端配置加载失败，暂未备份云端；可继续盘货或下载备份';
  if(!user||member?.role!=='owner')return '本机已保存 · 登录大伟账号后备份云端';
  if(typeof navigator!=='undefined'&&navigator.onLine===false)return '本机已保存 · 当前离线，联网后重试';
  if(cloudPhase==='reading')return '本机已保存 · 正在核对云端草稿';
@@ -1161,7 +1162,7 @@ document.body.addEventListener('focusin',e=>{
 });
 if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{if(textMode)scrollActive();});
 document.body.addEventListener('submit',async e=>{
- if(e.target.id==='login'){e.preventDefault();const form=e.target;try{await signInWithEmailAndPassword(auth,A.accountEmail(form.elements.account.value),form.elements.password.value);}catch(err){toast(A.authErrorText(err.code,err.message)||err.message||'登录失败');}finally{form.elements.password.value='';}}
+ if(e.target.id==='login'){e.preventDefault();const form=e.target;try{if(!auth)throw Error('云端尚未连接，请联网后刷新重试。本机草稿仍保留。');await signInWithEmailAndPassword(auth,A.accountEmail(form.elements.account.value),form.elements.password.value);}catch(err){toast(A.authErrorText(err.code,err.message)||err.message||'登录失败');}finally{form.elements.password.value='';}}
  if(e.target.id==='pass'){e.preventDefault();const form=e.target;const problem=A.passwordChangeError(form.elements.current.value,form.elements.next.value,form.elements.confirm.value);if(problem){toast(problem);return;}try{await reauthenticateWithCredential(user,EmailAuthProvider.credential(user.email,form.elements.current.value));await updatePassword(user,form.elements.next.value);toast('密码已改');}catch(err){toast(A.authErrorText(err.code,err.message,'password')||err.message);}finally{form.reset();}}
 });
 window.addEventListener('beforeunload',e=>{if(localSaveFailed||orderDirty||editId&&editRaw!==orderValue(editId,editField)){e.preventDefault();e.returnValue='';}});
@@ -1180,7 +1181,15 @@ async function loadArchives(){
  try{const index=await (await fetch('../order-archives/index.json',{cache:'no-store'})).json();archives=[];for(const entry of index.entries||[]){const data=await (await fetch('../order-archives/'+entry.file,{cache:'no-store'})).json();archives.push({date:entry.date,products:(data.products||[]).map(p=>({name:p.name,alias:p.alias,order:p.order,unit:p.unit}))});}if(screen==='more'&&morePane==='history')render();}catch(e){archives=[];}
 }
 async function boot(){
- const cfg=await (await fetch('./firebase-config.json',{cache:'no-store'})).json();
+ let cfg={enabled:false};
+ try{
+  const response=await fetch('./firebase-config.json',{cache:'no-store'});
+  if(!response.ok)throw Error('云端配置请求失败');
+  const parsed=await response.json();
+  if(!parsed||typeof parsed!=='object'||typeof parsed.enabled!=='boolean')throw Error('云端配置格式错误');
+  cfg=parsed;
+ }catch(e){configFailed=true;}
+
  if(PRODUCTION&&!cfg.enabled){app.innerHTML='<div class="card"><h1>新版正式入口准备中</h1><p>尚未启用，不会读取或改写你的盘货数据。</p><a href="../">继续使用原入口</a></div>';document.querySelector('.tabs')?.setAttribute('hidden','');return;}
  releaseLocked=false;
  const [orderRes,aliasRes]=await Promise.all([fetch('../current-order.json',{cache:'no-store'}),fetch('../redesign-preview/aliases.json',{cache:'no-store'})]);
@@ -1193,7 +1202,7 @@ async function boot(){
  const sampleKind=params.get('sample');
  if(sampleKind)buildSample(sampleKind==='boss'||sampleKind==='yellow'?sampleKind:'order');
  try{
-  if(!cfg.enabled){status='云端没打开。本机照样能盘货。';render();return;}
+  if(!cfg.enabled){status=configFailed?'云端配置加载失败，尚未连接云端。本机草稿仍可继续盘货或下载备份；联网后刷新重试。':'云端没打开。本机照样能盘货。';render();return;}
   const firebaseApp=initializeApp(cfg.firebase);auth=getAuth(firebaseApp);db=getFirestore(firebaseApp);
   onAuthStateChanged(auth,async u=>{
    sessionEpoch++;cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
