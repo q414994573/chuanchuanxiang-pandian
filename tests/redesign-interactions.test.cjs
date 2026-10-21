@@ -6,7 +6,8 @@ function harness(production=false){
  const document={documentElement:{dataset:{orderMode:production?'production':''}},body:{addEventListener(n,fn){handlers[n]=fn;},classList:{toggle(){},remove(){}}},
   activeElement:find,getElementById(id){return id==='find'?find:{};},
   querySelector(){return null;},querySelectorAll(){return [];},addEventListener(){}};
- const window={CountCore:Core,scrollY:80,scrollTo(x,y){this.scrollY=y;},addEventListener(){}};
+ const viewportHandlers={};
+ const window={visualViewport:{offsetTop:0,height:400,addEventListener(n,fn){viewportHandlers[n]=fn;}},CountCore:Core,scrollY:80,scrollTo(x,y){this.scrollY=y;},addEventListener(){}};
  const ctx=vm.createContext({document,window,localStorage:{setItem(k,v){saved.set(k,v);},getItem(k){return saved.get(k)||null;}},
   setTimeout(){return 1;},clearTimeout(){},requestAnimationFrame(fn){fn();},URL,URLSearchParams,Date,Intl,console,
   C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup:require('../redesign-preview/draft-backup.cjs'),Recovery:require('../redesign-preview/recovery.cjs'),Entry:require('../redesign-preview/entry-mode.cjs'),
@@ -15,7 +16,7 @@ function harness(production=false){
  js=js.replace(/^import .*;\n/gm,'').replace(/boot\(\)\.catch\([\s\S]*$/,'');vm.runInContext(js,ctx);
  const run=s=>vm.runInContext(s,ctx);
  run(`source=fixture;draft=Core().create(source,'2026-10-20','count-test-interactions');draft.seen={};draft.ackWrong={};screen='order';render=()=>{};scrollActive=()=>{};toast=t=>globalThis.lastToast=t;`);
- return {handlers,ctx,run,saved,find,document,window};
+ return {handlers,viewportHandlers,ctx,run,saved,find,document,window};
 }
 test('production mode guards IDs and ignores clicks while entry is locked',async()=>{
  const h=harness(true);assert.equal(h.run('KEY'),'ccx-ordering-draft-v1');assert.equal(h.run('MODE.draftCollection'),'liveCountDrafts');
@@ -265,4 +266,25 @@ test('More groups every existing tool without changing role permissions or losin
  h.run(`buildSample('boss');sample=false;member={role:'editor',name:'老板娘'};api={};moreToolsOpen=false;`);html=h.run('moreHtml()');
  for(const action of ['restore-file','fresh','backup-export','legacy-import'])assert.ok(!html.includes('data-act="'+action+'"'),action);
  assert.match(html,/data-act="order-backup"/);assert.match(html,/id="pass"/);assert.match(html,/data-act="find-date"/);
+});
+
+test('search lifts results above native keyboard without changing order or input; resize follows viewport',()=>{
+ const h=harness();let top=430;const moves=[];
+ h.window.scrollBy=(x,y)=>{moves.push(y);top-=y;};
+ h.document.querySelector=s=>s==='.search'?{getBoundingClientRect:()=>({top})}:s==='.banner'?{getBoundingClientRect:()=>({bottom:58})}:null;
+ h.run(`buildSample('boss');globalThis.beforeSearch=JSON.stringify(order);query='土豆';`);
+ h.handlers.focusin({target:{id:'find'}});
+ assert.equal(top,66);assert.equal(h.document.activeElement,h.find);
+ assert.equal(h.run('JSON.stringify(order)===beforeSearch'),true);
+ h.window.visualViewport.offsetTop=25;h.window.visualViewport.height=300;top=350;
+ h.viewportHandlers.resize();assert.equal(top,66);
+ h.document.activeElement=null;const count=moves.length;h.viewportHandlers.resize();assert.equal(moves.length,count);
+});
+test('search viewport respects counting sticky bar and ignores unfocused/keypad mode',()=>{
+ const h=harness();let top=500;
+ h.window.scrollBy=(x,y)=>{top-=y;};
+ h.document.querySelector=s=>s==='.search'?{getBoundingClientRect:()=>({top})}:s==='.bar'?{getBoundingClientRect:()=>({bottom:190})}:null;
+ h.run(`screen='count';scrollSearch()`);assert.equal(top,198);
+ h.run(`textMode=true;scrollActive=()=>{globalThis.numericScrolled=true}`);
+ top=500;h.viewportHandlers.resize();assert.equal(h.run('numericScrolled'),true);assert.equal(top,500);
 });
