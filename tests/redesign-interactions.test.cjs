@@ -17,6 +17,41 @@ function harness(){
  run(`source=fixture;draft=Core().create(source,'2026-10-20','count-test-interactions');draft.seen={};draft.ackWrong={};screen='order';render=()=>{};scrollActive=()=>{};toast=t=>globalThis.lastToast=t;`);
  return {handlers,ctx,run,saved,find,document,window};
 }
+test('supplier export keeps category order, current quantities and units, excluding cancelled items despite filters',()=>{
+ const h=harness();h.run(`buildSample('boss');order.quantities['cn:9']=3500;order.quantities['cn:5']=0;query='不存在';yellowOnly=true;`);
+ const text=h.run(`blockText('cn')`);
+ assert.match(text,/鸡精 3.5箱/);assert.doesNotMatch(text,/辣椒段|대파|탕용기/);
+ const expected=h.run(`catalog().filter(p=>p.cat==='cn'&&order.quantities[p.id]>0).map(p=>p.name+' '+C.textQuantity(order.quantities[p.id])+order.units[p.id])`).join('\n');
+ assert.equal(text.split('\n').slice(1).join('\n'),expected);
+});
+test('supplier export requires saved finalized current cloud order and never marks it sent',async()=>{
+ const h=harness();let copied='';h.ctx.navigator={clipboard:{writeText:async t=>{copied=t;}}};
+ h.run(`buildSample('boss');sample=false;member={role:'editor'};baseQty={...order.quantities};api={read:async()=>({...order})};`);
+ await assert.rejects(h.run(`supplierExport('kr')`),/定稿/);
+ h.run(`order.orderStage='finalized';order.quantities['kr:7']+=1000`);
+ await assert.rejects(h.run(`supplierExport('kr')`),/先保存/);
+ h.run(`baseQty={...order.quantities};api.read=async()=>({...order,revision:99})`);
+ await assert.rejects(h.run(`supplierExport('kr')`),/云端订单已更新/);assert.equal(copied,'');
+ h.run(`api.read=async()=>{throw Error('断网')}`);await assert.rejects(h.run(`supplierExport('kr')`),/断网/);assert.equal(copied,'');
+ h.run(`api.read=async()=>({...order})`);await h.run(`supplierExport('kr')`);
+ assert.equal(copied,h.run(`blockText('kr')`));assert.equal(h.run('order.orderStage'),'finalized');assert.match(h.run('lastToast'),/已复制/);assert.doesNotMatch(h.run('lastToast'),/已发送/);
+});
+test('supplier export rejects account changes during cloud check',async()=>{
+ const h=harness();h.ctx.navigator={clipboard:{writeText:async()=>{throw Error('should not copy');}}};
+ h.run(`buildSample('boss');sample=false;baseQty={...order.quantities};order.orderStage='finalized';api={read:()=>new Promise(resolve=>globalThis.finishRead=resolve)};`);
+ const pending=h.run(`supplierExport('kr')`);h.run(`sessionEpoch++;finishRead({...order})`);
+ await assert.rejects(pending,/页面内容已改变/);
+});
+test('clipboard fallback failure never reports success and removes temporary field',async()=>{
+ const h=harness();let removed=0;h.ctx.navigator={clipboard:{writeText:async()=>{throw Error('denied');}}};
+ h.document.createElement=()=>({select(){},remove(){removed++;}});h.document.body.appendChild=()=>{};h.document.execCommand=()=>false;
+ await assert.rejects(h.run(`copyOnly('test')`),/复制失败/);assert.equal(h.run('globalThis.lastToast'),undefined);assert.equal(removed,1);
+ h.document.execCommand=()=>true;await h.run(`copyOnly('test')`);assert.match(h.run('lastToast'),/已复制/);assert.equal(removed,2);
+});
+test('cancelling system share neither copies nor claims delivery',async()=>{
+ const h=harness();h.ctx.navigator={share:async()=>{const e=Error('cancel');e.name='AbortError';throw e;},clipboard:{writeText:async()=>{throw Error('should not copy');}}};
+ await h.run(`shareOrCopy('test')`);assert.equal(h.run('globalThis.lastToast'),undefined);
+});
 test('cloud order URL uses browser history even when audit history is an array',()=>{
  const h=harness();let path;
  h.window.history={replaceState(a,b,p){path=p;}};

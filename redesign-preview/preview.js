@@ -461,8 +461,7 @@ function shareUrl(){
 }
 async function shareOrCopy(text){
  if(navigator.share){try{await navigator.share({text});return;}catch(e){if(e.name==='AbortError')return;}}
- try{await navigator.clipboard.writeText(text);}catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}
- toast('已复制，可以贴到 KakaoTalk');
+ await copyOnly(text);
 }
 function rowsOf(cat){
  const changes=new Map(bossChanges().map(c=>[c.id,c]));
@@ -713,7 +712,8 @@ function blockHtml(cat){
  };
  const body=[...active,...gray].map(row).join('');
  const empty=yellowOnly?'这一块没有她改的。':'这一家这次不订。';
- return `<div class="card"><div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}">复制</button><button class="ghost" type="button" data-act="share" data-cat="${cat}">分享</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
+ const exportNote=sample?'样例内容，不是正式订单':order?(order.orderStage==='finalized'?'复制或分享前会核对云端版本；请自行在 KakaoTalk 发送。':'请先保存修改，由老板娘确认定稿后再复制或分享。'):'盘货草稿预览，尚未提交或定稿。';
+ return `<div class="card"><p class="muted">${exportNote}</p><div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}">复制</button><button class="ghost" type="button" data-act="share" data-cat="${cat}">分享</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
 }
 function searchHits(){
  return catalog().filter(p=>S.matches(p,query,aliasesOf(p))).map((p,i)=>{
@@ -789,8 +789,27 @@ function blockText(cat){
  return S.supplierText(date,rows)+(rows.length?'':'\n这次不订');
 }
 async function copyOnly(text){
- try{await navigator.clipboard.writeText(text);}catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}
+ try{await navigator.clipboard.writeText(text);}catch(e){
+  const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);
+  try{ta.select();if(!document.execCommand('copy'))throw Error('复制失败，请重试；没有发送给供货商。');}
+  finally{ta.remove();}
+ }
  toast('已复制，可以贴到 KakaoTalk');
+}
+async function supplierExport(cat,sharing=false){
+ if(!CATS.some(([id])=>id===cat))throw Error('请选择商品分类');
+ if(textMode&&readPlain()===false)return;
+ if(editId&&commitOrderEdit()===false)return;
+ if(order&&!sample){
+  if(dirtyCount())throw Error('请先保存修改，再由老板娘确认定稿');
+  if(order.orderStage!=='finalized')throw Error('请老板娘确认定稿后，再复制或分享给供货商');
+  const current=order,epoch=sessionEpoch,quantities=JSON.stringify(order.quantities);
+  const fresh=await api.read(current.id);
+  if(epoch!==sessionEpoch||order!==current||JSON.stringify(order.quantities)!==quantities||editId)throw Error('页面内容已改变，请重新核对后再复制');
+  if(fresh.revision!==current.revision||fresh.orderStage!=='finalized'||JSON.stringify(fresh.quantities)!==quantities)throw Error('云端订单已更新或重新修改，请刷新后核对并定稿；本次没有复制或分享');
+ }
+ const text=blockText(cat);
+ if(sharing)await shareOrCopy(text);else await copyOnly(text);
 }
 async function confirmShare(){
  if(textMode&&readPlain()===false)return;
@@ -964,8 +983,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='ack'){const id=b.dataset.id;const qty=qtyOf(id);if(order)ack[id]=qty;else{draft.ackWrong[id]=qty;persistLocal();}render();return;}
   if(act==='yellow-only'){yellowOnly=!yellowOnly;query='';render();return;}
   if(act==='yellow-ok'){yellowOn=false;yellowOnly=false;if(order)localStorage.setItem(`ccx-redesign-yellow:${order.id}:${history[0]?.revision||0}`,'1');render();return;}
-  if(act==='copy'){await copyOnly(blockText(b.dataset.cat));return;}
-  if(act==='share'){await shareOrCopy(blockText(b.dataset.cat));return;}
+  if(act==='copy'||act==='share'){busy=true;await supplierExport(b.dataset.cat,act==='share');return;}
   if(act==='finalize'||act==='reopen'){busy=true;await changeOrderStage(act==='finalize'?'finalized':'pending');return;}
   if(act==='confirm'){busy=true;await confirmShare();return;}
   if(act==='save'){busy=true;await saveOrder();return;}
