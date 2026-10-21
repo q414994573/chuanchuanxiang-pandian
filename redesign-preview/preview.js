@@ -719,6 +719,8 @@ function scrollSearch(){
   const visibleTop=vv?vv.offsetTop:0;
   const visibleBottom=visibleTop+(vv?vv.height:innerHeight);
   const anchor=document.querySelector('.bar')||document.querySelector('.banner');
+  // The sticky search already follows the viewport; scrolling it toward its own parent bottom would jump.
+  if(anchor?.contains?.(search))return;
   const anchorBottom=anchor?anchor.getBoundingClientRect().bottom:visibleTop;
   const target=Math.max(visibleTop,Math.min(anchorBottom,visibleBottom-160))+8;
   const delta=search.getBoundingClientRect().top-target;
@@ -822,11 +824,11 @@ function render(){
 }
 function countColumns(){return `<div class="count-columns"><span>商品</span><span>库存</span><span>订货</span></div>`;}
 function countHtml(){
- if(sharedCount())return `<div class="bar"><p>${E(order.date)} · ${order.orderStage==='finalized'?'已定稿':'待老板娘审核'} · 第 ${order.revision} 版</p><div class="cats">${catButtonsHtml()}</div>${countColumns()}</div>${textBar()}${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&editId&&!textMode?orderPad():''}${dockHtml()}`;
+ if(sharedCount())return `<p>${E(order.date)} · ${order.orderStage==='finalized'?'已定稿':'待老板娘审核'} · 第 ${order.revision} 版</p><div class="bar">${textBar()}<div class="cats">${catButtonsHtml()}</div>${searchBar('搜中文、韩文，或开头辅音')}${countColumns()}</div><div id="rows">${countRows()}</div>${keypad&&editId&&!textMode?orderPad():''}${dockHtml()}`;
  if(!canCount())return `<div class="card"><h1>请先打开订单</h1><p>打开已提交订单后，定稿前双方都可以修改库存和订货数量。</p><button class="primary" type="button" data-act="goto-order">去订单</button></div>`;
  try{ensureDraft();}catch(e){toast(e.message);}
  if(!draft)return `<div class="card">${backupStatusHtml()}<p>原内容仍保留。请下载备份后再处理，不要清除网站数据。</p></div>`;
- return `<div class="bar">${countNotice()}${backupStatusHtml()}<div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看订单':'下一个没盘的'}</button>${countColumns()}</div>${searchBar('搜中文、韩文，或开头辅音')}<div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
+ return `${countNotice()}${backupStatusHtml()}<div class="bar"><div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看订单':'下一个没盘的'}</button>${searchBar('搜中文、韩文，或开头辅音')}${countColumns()}</div><div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
 }
 function catButtonsHtml(){
  const counts=query&&(draft||sharedCount())?Flow.searchHitCounts(sharedCount()?catalog():draft.catalog,p=>S.matches(p,query,aliasesOf(p))):null;
@@ -895,7 +897,7 @@ function orderCats(){
  }).join('')}</div>`;
 }
 function orderShell(head,dock){
- return `${textBar()}<div class="bar">${backupStatusHtml()}${yellowBanner()}${orderCats()}</div><p class="muted">${head}</p>${searchBar('搜全部129种，用来补订或看库存')}<div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
+ return `${backupStatusHtml()}${yellowBanner()}<p class="muted">${head}</p><div class="bar">${textBar()}${orderCats()}${searchBar('搜全部129种，用来补订或看库存')}</div><div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
 }
 function orderPane(){
  const mine=warnings().filter(p=>p.cat===orderCat);
@@ -932,9 +934,9 @@ function blockHtml(cat){
  };
  const body=[...active,...gray].map(row).join('');
  const empty=yellowOnly?'这一块没有她改的。':'本分类暂无订货商品。';
- const exportDisabled=!!order&&!sample&&order.orderStage!=='finalized';
+ const exportDisabled=!sample&&(!order||order.orderStage!=='finalized');
  const exportLabel=order&&!sample?'本类订货文字':'';
- const exportNote=sample?'样例内容，不是正式订单':order?(order.orderStage==='finalized'?'复制或分享前会核对云端版本；请自行在 KakaoTalk 发送。':'老板娘定稿后可复制订货文字。'):'盘货草稿预览，尚未提交或定稿。';
+ const exportNote=sample?'样例内容，不是正式订单':order?(order.orderStage==='finalized'?'复制或分享前会核对云端版本；请自行在 KakaoTalk 发送。':'老板娘定稿后可复制订货文字。'):'盘货草稿预览；提交并由老板娘定稿后，才可复制、分享订货文字。';
  return `<div class="card"><p class="muted">${exportNote}</p><div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}" ${exportDisabled?'disabled':''}>复制${exportLabel}</button><button class="ghost" type="button" data-act="share" data-cat="${cat}" ${exportDisabled?'disabled':''}>分享${exportLabel}</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
 }
 function searchHits(countView=false){
@@ -1041,6 +1043,7 @@ async function copyOnly(text,successMessage='已复制，可以贴到 KakaoTalk'
 async function supplierExport(cat,sharing=false){
  preparedExport=null;
  if(!CATS.some(([id])=>id===cat))throw Error('请选择商品分类');
+ if(!sample&&!order)throw Error('请先提交盘货，并由老板娘确认定稿后，再复制或分享订货文字');
  if(textMode&&readPlain()===false)return;
  if(editId&&commitOrderEdit()===false)return;
  if(order&&!sample){

@@ -359,7 +359,7 @@ test('pending supplier buttons are disabled; finalized and draft exports retain 
  for(const act of ['copy','share'])assert.match(html,new RegExp('data-act="'+act+'"[^>]*disabled'));
  h.run(`order.orderStage='finalized'`);html=h.run(`blockHtml('kr')`);
  assert.doesNotMatch(html,/data-act="(?:copy|share)"[^>]*disabled/);assert.match(html,/复制本类订货文字/);assert.match(html,/分享本类订货文字/);
- h.run('order=null;history=[];heldPrev={}');html=h.run(`blockHtml('kr')`);assert.match(html,/本分类暂无订货商品/);assert.doesNotMatch(html,/data-act="(?:copy|share)"[^>]*disabled/);
+ h.run('order=null;history=[];heldPrev={}');html=h.run(`blockHtml('kr')`);assert.match(html,/本分类暂无订货商品/);assert.match(html,/data-act="(?:copy|share)"[^>]*disabled/);
 });
 test('fixed entry copy reports only copied; help dismisses without switching orders',async()=>{
  const h=harness();h.ctx.navigator={clipboard:{writeText:async()=>{}}};
@@ -591,4 +591,23 @@ test('count cells show separate saved units without changing blank, zero or hist
  assert.match(h.run('countHtml()'),/count-columns/);
  h.run(`draft.status='reviewed'`);
  assert.match(h.run(`countCell(p,i,'stock')`),/aria-disabled="true".*cell-unit">봉/);
+});
+
+test('draft supplier exports are disabled and blocked for both copy and share',async()=>{
+ const h=harness();h.run(`member={role:'owner'};copyOnly=async()=>{throw Error('clipboard touched')};shareOrCopy=async()=>{throw Error('share touched')};`);
+ assert.match(h.run(`blockHtml('kr')`),/data-act="copy"[^>]*disabled/);
+ assert.match(h.run(`blockHtml('kr')`),/data-act="share"[^>]*disabled/);
+ await assert.rejects(h.run(`supplierExport('kr')`),/先提交盘货/);
+ await assert.rejects(h.run(`supplierExport('kr',true)`),/先提交盘货/);
+});
+test('sticky search does not scroll toward its own parent and keeps a single input in each screen',()=>{
+ const h=harness();let scrolled=false;const search={};h.window.scrollBy=()=>{scrolled=true;};
+ h.document.querySelector=s=>s==='.search'?search:s==='.bar'?{contains:el=>el===search}:null;
+ h.run('scrollSearch()');assert.equal(scrolled,false);
+ h.run(`screen='count';member={role:'owner'}`);
+ for(const html of [h.run('countHtml()'),h.run(`orderShell('test','')`)]){
+  assert.equal((html.match(/id="find"/g)||[]).length,1);
+  assert.ok(html.indexOf('class="bar"')<html.indexOf('id="find"'));
+  assert.ok(html.indexOf('id="find"')<html.indexOf('id="rows"'));
+ }
 });
