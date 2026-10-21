@@ -185,7 +185,7 @@ test('cancel search restores original category/scroll; incomplete input cannot s
  assert.equal(h.run(`qtyOf('cn:9')`),'2.5');
 });
 test('boss can correct inventory with confirmation without changing the submitted snapshot',()=>{
- const h=harness();h.run(`buildSample('boss');query='감자';`);const before=h.run('order.snapshot');
+ const h=harness();h.run(`buildSample('boss');screen='count';query='감자';`);const before=h.run('order.snapshot');
  assert.match(h.run('searchHits()'),/data-field="stock"/);
  h.ctx.confirm=()=>false;h.run(`openOrderKey('kr:7','stock')`);assert.equal(h.run('editId'),null);
  h.ctx.confirm=()=>true;h.run(`openOrderKey('kr:7','stock');typeOrderKey('0');closePad()`);assert.equal(h.run(`stocks['kr:7']`),'0');
@@ -407,12 +407,29 @@ test('submitted count list and search show linked order quantities without rewri
  h.run(`order.quantities[testId]=0`);assert.equal(h.run(`cellText(draft.catalog.find(p=>p.id===testId),'qty')`),'');
  assert.equal(h.run(`cellText(draft.catalog.find(p=>p.id===testId),'stock')`),'');
 });
-test('unrelated historical order and new count cannot leak quantities or stock into count display',()=>{
- const h=harness(true);h.run(`screen='count';draft.status='reviewed';order={id:'count-other',quantities:{'kr:7':2000},units:{'kr:7':'wrong'}};stocks={'kr:7':'99'};`);
- assert.equal(h.run('countLinkedOrder()'),false);assert.match(h.run('countNotice()'),/不是最新订货数量/);
- assert.equal(h.run(`cellText(draft.catalog.find(p=>p.id==='kr:7'),'stock')`),'');
- assert.equal(h.run(`cellText(draft.catalog.find(p=>p.id==='kr:7'),'qty')`),'');
- h.run(`order.id=C.cloudOrderId(draft.id,MODE.test);draft.status='draft'`);assert.equal(h.run('countLinkedOrder()'),false);assert.equal(h.run('countNotice()'),'');
+test('owner opens historical order while local draft differs: both tabs show opened order, draft remains separate',async()=>{
+ const h=harness(true);h.ctx.crypto={randomUUID:()=> 'context-save-01'};
+ h.run(`member={role:'owner'};globalThis.localDraft=JSON.stringify(draft);const d=Core().create(source,'2026-10-18','count-history');order={id:'count-history',date:d.date,revision:2,snapshot:JSON.stringify(d),quantities:Object.fromEntries(d.catalog.map(p=>[p.id,p.id==='kr:38'?2000:0])),units:Object.fromEntries(d.catalog.map(p=>[p.id,p.unit||''])),orderStage:'pending'};rememberStocks();baseQty={...order.quantities};baseUnits={...order.units};screen='count';query='土豆面片';`);
+ assert.equal(h.run('countLinkedOrder()'),false);assert.equal(h.run('sharedCount()'),true);
+ assert.match(h.run('countHtml()'),/2026-10-18/);assert.match(h.run('countRows()'),/<b>2<\/b>/);
+ h.run(`applyQty('kr:38','5');tryLeave('order')`);assert.match(h.run(`blockHtml('kr')`),/5봉/);
+ h.run(`tryLeave('count');query='土豆面片'`);assert.match(h.run('countRows()'),/<b>5<\/b>/);
+ assert.equal(h.run('JSON.stringify(draft)'),h.run('localDraft'));
+ assert.throws(()=>h.run('returnToDraft()'),/先保存/);
+ h.run(`api={save:async(id,base,q,mid,patch)=>({...C.clone(base),...patch,quantities:q,revision:base.revision+1}),history:async()=>[]};historyReplace=()=>{};`);
+ await h.run('saveOrder()');assert.equal(h.run('dirtyCount()'),0);
+ h.run(`order=C.clone(order);rememberStocks();query='土豆面片'`);assert.match(h.run('countRows()'),/<b>5<\/b>/);
+ h.run('returnToDraft()');assert.equal(h.run('order'),null);assert.equal(h.run('JSON.stringify(draft)'),h.run('localDraft'));
+});
+test('owner on another device with no local draft still sees same opened order in count',()=>{
+ const h=harness();h.run(`buildSample('boss');sample=false;member={role:'owner'};draft=null;screen='count';query='柠檬'`);
+ assert.equal(h.run('sharedCount()'),true);assert.match(h.run('countRows()'),/<b>3<\/b>/);
+});
+test('order list and search display inventory text without inventory editing controls',()=>{
+ const h=harness();h.run(`buildSample('boss');sample=false;member={role:'editor'};stocks['kr:9']='0';screen='order';query='柠檬'`);
+ assert.match(h.run(`blockHtml('kr')`),/库存 0개/);assert.doesNotMatch(h.run(`blockHtml('kr')`),/data-field="stock"|search-cell/);
+ assert.doesNotMatch(h.run('searchHits()'),/data-field="stock"|data-unit="cn:45" data-field="stock"/);
+ h.run(`openOrderKey('kr:9','stock')`);assert.equal(h.run('editId'),null);assert.match(h.run('lastToast'),/盘货页/);
 });
 test('linked reviewed count shows selected order unit read-only, keeping stock unit and original unit',()=>{
  const h=harness(true);h.run(`screen='count';draft.status='reviewed';draft.items['cn:45'].unit='박스';draft.items['cn:45'].stockUnit='봉';order={id:C.cloudOrderId(draft.id,MODE.test),quantities:{'cn:45':2000},units:{'cn:45':'봉'}};`);
