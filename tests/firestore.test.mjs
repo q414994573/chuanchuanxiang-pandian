@@ -98,4 +98,15 @@ const latestDraft=(await getDoc(draftRef)).data();
 await assertSucceeds(runTransaction(chef,tx=>Backup.compareAndSave(tx,draftRef,draftBase,latestDraft)));
 console.log('PASS draft backup transaction: one winner, stale writer blocked, lost-ack retry idempotent');
 console.log('PASS owner-only count draft; editor and strangers cannot read it');
+const previewBefore=(await getDoc(doc(chef,'countDrafts','chef'))).data().body;
+await assertSucceeds(setDoc(doc(chef,'liveCountDrafts','chef'),{...draftDoc,body:JSON.stringify({marker:'live-isolated-draft'}),updatedAt:serverTimestamp()}));
+assert.equal((await getDoc(doc(chef,'countDrafts','chef'))).data().body,previewBefore);
+assert.notEqual((await getDoc(doc(chef,'liveCountDrafts','chef'))).data().body,previewBefore);
+await assertFails(getDoc(doc(boss,'liveCountDrafts','chef')));
+await assertFails(getDoc(doc(anon,'liveCountDrafts','chef')));
+await assertFails(setDoc(doc(boss,'liveCountDrafts','boss'),draftDoc));
+await assertFails(setDoc(doc(chef,'liveCountDrafts','boss'),draftDoc));
+await assertFails(deleteDoc(doc(chef,'liveCountDrafts','chef')));
+await assertFails(setDoc(doc(chef,'otherDrafts','chef'),draftDoc));
+console.log('PASS live and preview drafts isolated; owner-only permissions preserved');
 }finally{await env.cleanup();}

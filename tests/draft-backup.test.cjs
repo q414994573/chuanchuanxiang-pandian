@@ -1,10 +1,10 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
-const Core=require('../count-core.js'),Backup=require('../redesign-preview/draft-backup.cjs');
+const Core=require('../count-core.js'),Backup=require('../redesign-preview/draft-backup.cjs'),Entry=require('../redesign-preview/entry-mode.cjs');
 const fixture=JSON.parse(fs.readFileSync(require.resolve('../current-order.json'),'utf8'));
 function harness(shared=new Map()){
  const events={},timers=[],h={remote:null,reads:0,writes:0,readWait:null,writeWait:null,failWrite:false};
  const document={body:{addEventListener(n,fn){events[n]=fn;},classList:{toggle(){},remove(){}}},getElementById(){return {};},querySelector(){return null;},querySelectorAll(){return [];},addEventListener(n,fn){events[n]=fn;}};
- const ctx=vm.createContext({document,window:{CountCore:Core,addEventListener(n,fn){events[n]=fn;}},navigator:{onLine:true},
+ const ctx=vm.createContext({document,Entry,window:{CountCore:Core,addEventListener(n,fn){events[n]=fn;}},navigator:{onLine:true},
  localStorage:{getItem(k){return shared.get(k)||null;},setItem(k,v){shared.set(k,v);}},
  setTimeout(fn,ms){timers.push({fn,ms});return timers.length;},clearTimeout(){},console,Date,Intl,URL,URLSearchParams,
  C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup,

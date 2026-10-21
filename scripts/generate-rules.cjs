@@ -45,9 +45,9 @@ service cloud.firestore {
     allow update,delete: if false;
    }
   }
-  match /countDrafts/{uid} {
-    allow read: if request.auth != null && request.auth.uid == uid && owner();
-    allow create, update: if request.auth != null && request.auth.uid == uid && owner()
+  match /{draftGroup}/{uid} {
+    allow read: if draftGroup in ['countDrafts','liveCountDrafts'] && request.auth != null && request.auth.uid == uid && owner();
+    allow create, update: if draftGroup in ['countDrafts','liveCountDrafts'] && request.auth != null && request.auth.uid == uid && owner()
       && request.resource.data.keys().hasOnly(['schema','date','localId','pos','field','body','updatedAt'])
       && request.resource.data.schema == 'ccx-draft-1'
       && request.resource.data.date is string && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
