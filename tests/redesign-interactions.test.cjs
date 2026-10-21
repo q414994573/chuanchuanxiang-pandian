@@ -316,3 +316,62 @@ test('finalized cloud order never opens keypad, pending cloud order does',()=>{
  const h=harness();h.run(`buildSample('boss');order.orderStage='finalized';keypad=false;openOrderKey('kr:7')`);assert.equal(h.run('keypad'),false);
  h.run(`order.orderStage='pending';openOrderKey('kr:7')`);assert.equal(h.run('keypad'),true);
 });
+
+test('order screen keeps only current order; More owns lookup and accessible help',()=>{
+ const h=harness();h.run(`buildSample('boss');sample=false;member={role:'editor'};api={};`);
+ assert.doesNotMatch(h.run('orderHtml()'),/data-order-entry|data-act="latest-order"|data-act="find-date"/);
+ const more=h.run('moreHtml()');assert.match(more,/data-act="latest-order">查看最新订单/);
+ assert.doesNotMatch(more,/data-act="check-latest"/);
+ assert.match(more,/aria-label="查看最新订单的说明"/);assert.match(more,/若当前有未保存的修改/);
+ assert.match(h.run('orderContentHtml()'),new RegExp(h.run('order.date')));
+ h.run(`order=null`);assert.match(h.run('orderContentHtml()'),/更多 → 查订单/);
+ for(const file of ['ordering/index.html','redesign-preview/index.html']){
+  const html=fs.readFileSync(require.resolve('../'+file),'utf8');assert.match(html,/data-tab="order">订单</);assert.doesNotMatch(html,/今日订单/);
+ }
+});
+test('latest button protects edits, then opens latest submitted order in order tab',async()=>{
+ const h=harness();h.window.history={replaceState(){}};
+ h.run(`buildSample('boss');sample=false;member={role:'editor'};baseQty={...order.quantities};baseUnits={...order.units};screen='more';globalThis.latestFixture=C.clone(order);latestFixture.id='test-count-new';latestFixture.date='2026-10-19';globalThis.reads=0;api={listPage:async()=>({records:[latestFixture],hasMore:false}),read:async()=>{reads++;return C.clone(latestFixture)},history:async()=>[]};order.quantities['cn:9']+=1000;`);
+ const b={dataset:{act:'latest-order'}},event={target:{closest:s=>s==='[data-act]'?b:null}};
+ await h.handlers.click(event);assert.equal(h.run('reads'),0);assert.equal(h.run('screen'),'more');assert.match(h.run('lastToast'),/先保存/);
+ h.run('baseQty={...order.quantities}');await h.handlers.click(event);
+ assert.equal(h.run('order.id'),'test-count-new');assert.equal(h.run('order.date'),'2026-10-19');assert.equal(h.run('screen'),'order');
+});
+test('search return label does not change close-keypad or retained quantity behavior',()=>{
+ const h=harness();h.run(`buildSample('boss');query='柠檬';openOrderKey('kr:7');typeOrderKey('2');`);
+ assert.match(h.run(`searchBar('search')`),/>返回订单<\/button>/);
+ h.run('closePad()');assert.equal(h.run('query'),'柠檬');const before=h.run(`JSON.stringify(order.quantities)`);
+ h.run('cancelFind()');assert.equal(h.run('query'),'');assert.equal(h.run('screen'),'order');assert.equal(h.run(`JSON.stringify(order.quantities)`),before);
+ h.run(`screen='count'`);assert.match(h.run(`searchBar('search')`),/>取消<\/button>/);
+});
+test('pending supplier buttons are disabled; finalized and draft exports retain distinct behavior',()=>{
+ const h=harness();h.run(`buildSample('boss');sample=false;member={role:'editor'};`);
+ let html=h.run(`blockHtml('kr')`);assert.match(html,/老板娘定稿后可复制订货文字/);
+ for(const act of ['copy','share'])assert.match(html,new RegExp('data-act="'+act+'"[^>]*disabled'));
+ h.run(`order.orderStage='finalized'`);html=h.run(`blockHtml('kr')`);
+ assert.doesNotMatch(html,/data-act="(?:copy|share)"[^>]*disabled/);assert.match(html,/复制本类订货文字/);assert.match(html,/分享本类订货文字/);
+ h.run('order=null;history=[];heldPrev={}');html=h.run(`blockHtml('kr')`);assert.match(html,/本分类暂无订货商品/);assert.doesNotMatch(html,/data-act="(?:copy|share)"[^>]*disabled/);
+});
+test('fixed entry copy reports only copied; help dismisses without switching orders',async()=>{
+ const h=harness();h.ctx.navigator={clipboard:{writeText:async()=>{}}};
+ const b={dataset:{act:'fixed-link'}},help={open:true};h.document.querySelectorAll=s=>s==='.action-help[open]'?[help]:[];
+ await h.handlers.click({target:{closest:s=>s==='[data-act]'?b:null}});
+ assert.equal(h.run('lastToast'),'已复制');assert.equal(help.open,false);assert.equal(h.run('screen'),'order');
+});
+test('save status stays pending until confirmed, persists after audit failure, and never hides unsaved edits',async()=>{
+ const h=harness();h.ctx.crypto={randomUUID:()=> 'save-test-id'};
+ h.run(`buildSample('boss');sample=false;member={role:'editor'};baseQty={...order.quantities};order.quantities['cn:9']=2000;api={save:(id,base,q)=>new Promise(resolve=>globalThis.finishSave=()=>resolve({...base,quantities:{...q},revision:2})),history:async()=>{throw Error('audit offline')}};`);
+ const saving=h.run('saveOrder()');assert.equal(h.run('orderSaveMessage()'),'正在保存到云端…');assert.match(h.run('dockHtml()'),/data-act="save" disabled/);
+ h.run('finishSave()');await saving;assert.match(h.run('orderSaveMessage()'),/^已保存到云端 · \d\d:\d\d$/);
+ assert.match(h.run('dockHtml()'),/已保存到云端/);
+ h.run(`order.quantities['cn:9']=3000`);assert.match(h.run('dockHtml()'),/有 1 处改动/);assert.match(h.run('orderSaveMessage()'),/当前还有修改未保存/);
+ h.run('sessionEpoch++');assert.equal(h.run('orderSaveMessage()'),'');
+});
+for(const code of ['unavailable','ccx/conflict'])test('failed save preserves edits and visible status: '+code,async()=>{
+ const h=harness();h.ctx.crypto={randomUUID:()=> 'save-test-id'};h.ctx.failureCode=code;
+ h.run(`buildSample('boss');sample=false;member={role:'editor'};baseQty={...order.quantities};order.quantities['cn:9']=2000;api={save:async()=>{const e=Error('failure');e.code=failureCode;throw e;}};`);
+ await assert.rejects(h.run('saveOrder()'),/failure/);
+ assert.equal(h.run(`order.quantities['cn:9']`),2000);assert.equal(h.run('dirtyCount()'),1);
+ assert.match(h.run('orderSaveMessage()'),code==='ccx/conflict'?/本次未保存/:/未能确认云端保存成功/);
+ assert.doesNotMatch(h.run('dockHtml()'),/data-act="save" disabled/);
+});
