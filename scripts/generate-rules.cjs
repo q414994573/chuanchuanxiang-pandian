@@ -72,13 +72,24 @@ service cloud.firestore {
     && d.mutationId.matches('^[a-zA-Z0-9-]{10,80}$') && d.updatedBy == request.auth.uid && d.updatedAt == request.time
     && d.updatedByName == get(/databases/$(database)/documents/members/$(request.auth.uid)).data.name; }
    function paired() { let d=request.resource.data; let o=getAfter(/databases/$(database)/documents/orders/$(d.orderId)).data; return o.mutationId == d.mutationId && o.updatedAt == request.time && (d.stage == 'finalized' ? o.orderStage == 'finalized' && o.snapshot == d.body : o.orderStage == 'pending'); }
+   function preserved() { return getAfter(/databases/$(database)/documents/sharedCounts/$(headId)/archives/$(resource.data.orderId)).data == resource.data; }
+   function unused() { return !exists(/databases/$(database)/documents/orders/$(request.resource.data.orderId)) && !exists(/databases/$(database)/documents/sharedCounts/$(headId)/archives/$(request.resource.data.orderId)); }
    allow read: if headId in ['current','test-current'] && member();
-   allow create: if validHead() && request.resource.data.revision == 1 && request.resource.data.stage == 'draft' && !exists(/databases/$(database)/documents/orders/$(request.resource.data.orderId));
+   allow create: if validHead() && request.resource.data.revision == 1 && request.resource.data.stage == 'draft' && unused();
    allow update: if validHead() && request.resource.data.revision == resource.data.revision+1
     && ((request.resource.data.localId == resource.data.localId && request.resource.data.orderId == resource.data.orderId
       && ((resource.data.stage == 'draft' && request.resource.data.stage == 'draft') || (request.resource.data.stage != resource.data.stage && paired())))
-     || (resource.data.stage == 'finalized' && request.resource.data.stage == 'draft' && request.resource.data.localId != resource.data.localId && !exists(/databases/$(database)/documents/orders/$(request.resource.data.orderId))));
+     || ((resource.data.stage == 'finalized' || preserved()) && request.resource.data.stage == 'draft' && request.resource.data.localId != resource.data.localId && unused()));
    allow delete: if false;
+   match /archives/{id} {
+    function oldHead() { return get(/databases/$(database)/documents/sharedCounts/$(headId)).data; }
+    function newHead() { return getAfter(/databases/$(database)/documents/sharedCounts/$(headId)).data; }
+    allow read: if headId in ['current','test-current'] && member();
+    allow create: if member() && headId in ['current','test-current'] && id == oldHead().orderId
+     && oldHead().stage == 'draft' && request.resource.data == oldHead()
+     && newHead().localId != oldHead().localId && newHead().revision == oldHead().revision+1;
+    allow update, delete: if false;
+   }
   }
   match /{draftGroup}/{uid} {
     allow read: if draftGroup in ['countDrafts','liveCountDrafts'] && request.auth != null && request.auth.uid == uid && owner();

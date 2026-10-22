@@ -1,8 +1,9 @@
-import {doc,getDocFromServer,onSnapshot,runTransaction,serverTimestamp} from 'firebase/firestore';
+import {doc,collection,query,orderBy,limit,startAfter,getDocsFromServer,getDocFromServer,onSnapshot,runTransaction,serverTimestamp} from 'firebase/firestore';
 import Shared from '../redesign-preview/shared-draft.cjs';
 import C from './core.cjs';
 export function sharedCountStore(db,uid,name,Core,source,test=false){
  const head=doc(db,'sharedCounts',test?'test-current':'current');
+ const archiveGroup=collection(head,'archives');
  const valid=d=>{if(!Core.validate(d,source))throw Error('共享盘货格式不正确');return d;};
  const unpack=s=>s.exists()?{...s.data(),draft:valid(JSON.parse(s.data().body))}:null;
  const metadata=(revision,mutationId)=>({revision,mutationId,updatedBy:uid,updatedByName:name,updatedAt:serverTimestamp()});
@@ -31,10 +32,28 @@ export function sharedCountStore(db,uid,name,Core,source,test=false){
    }
    const localId=candidate.id,orderId=C.cloudOrderId(localId,test);
    // Never reuse an existing history ID.
-   const existing=await tx.get(doc(db,'orders',orderId));if(existing.exists())throw Error('盘货编号已存在，请重新开始');
+   const existing=await tx.get(doc(db,'orders',orderId)),archived=await tx.get(doc(archiveGroup,orderId));if(existing.exists()||archived.exists())throw Error('盘货编号已存在，请重新开始');
    tx.set(head,{schema:'ccx-shared-1',localId,orderId,date:candidate.date,stage:'draft',body:JSON.stringify(candidate),...metadata((current?.revision||0)+1,mutationId)});
   });return read();
  }
+ async function newBlank(candidate,base){
+  valid(candidate);if(candidate.status!=='draft'||candidate.id===base.localId)throw Error('新盘货编号不正确');
+  const mutationId=crypto.randomUUID();
+  await transact(async (tx,headSnapshot)=>{
+   const current=unpack(headSnapshot);
+   if(current?.localId===candidate.id)return;
+   if(!current||current.localId!==base.localId||current.revision!==base.revision)throw Shared.failure('对方刚刚更新或新建了盘货，请打开当前盘货核对后再新建');
+   const orderId=C.cloudOrderId(candidate.id,test),existing=await tx.get(doc(db,'orders',orderId)),archived=await tx.get(doc(archiveGroup,orderId));
+   if(existing.exists()||archived.exists())throw Error('盘货编号已存在，请重新开始');
+   if(current.stage==='draft')tx.set(doc(archiveGroup,current.orderId),headSnapshot.data());
+   tx.set(head,{schema:'ccx-shared-1',localId:candidate.id,orderId,date:candidate.date,stage:'draft',body:JSON.stringify(candidate),...metadata(current.revision+1,mutationId)});
+  });return read();
+ }
+ async function archives(cursor=null){
+  const snap=await getDocsFromServer(query(archiveGroup,orderBy('revision','desc'),...(cursor?[startAfter(cursor)]:[]),limit(20)));
+  return {records:snap.docs.map(s=>({...s.data(),id:s.id})),cursor:snap.docs.at(-1)||null,more:snap.size===20};
+ }
+ async function archive(id){const snap=await getDocFromServer(doc(archiveGroup,id));if(!snap.exists())throw Error('未找到保留的盘货');return unpack(snap);}
  async function save(base,local){
   valid(local);const mutationId=crypto.randomUUID();
   await transact(async (tx,headSnapshot)=>{
@@ -69,5 +88,5 @@ export function sharedCountStore(db,uid,name,Core,source,test=false){
    tx.update(head,{stage:'draft',body:JSON.stringify(draft),...metadata(current.revision+1,mutationId)});
   });return read();
  }
- return {read,watch,start,save,finalize,reopen};
+ return {read,watch,start,newBlank,archives,archive,save,finalize,reopen};
 }

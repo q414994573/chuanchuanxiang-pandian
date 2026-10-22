@@ -1,6 +1,6 @@
 import {initializeTestEnvironment,assertFails} from '@firebase/rules-unit-testing';
 import {readFileSync} from 'node:fs';
-import {doc,setDoc,updateDoc,getDoc,serverTimestamp} from 'firebase/firestore';
+import {doc,setDoc,updateDoc,deleteDoc,writeBatch,getDoc,serverTimestamp} from 'firebase/firestore';
 import assert from 'node:assert/strict';
 import {sharedCountStore} from '../cloud/shared-count.js';
 import {store} from '../cloud/store.js';
@@ -48,5 +48,31 @@ try{
  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(),'sharedCounts','current')));
  await assertFails(getDoc(doc(env.authenticatedContext('off').firestore(),'sharedCounts','current')));
  await assertFails(updateDoc(ref,{revision:999,body:'destroyed',updatedBy:'b',updatedByName:'老板娘',updatedAt:serverTimestamp()}));
- console.log('PASS equal roles, singleton race, independent-cell merge, same-cell conflict, stale finalization, atomic finalize/reopen, legacy bypass denied, anonymous/disabled denied, history preserved');
+ // New blank from an unfinished draft preserves exact server content atomically.
+ const beforeBlank=await a.read(),blank=Core.create(source,'2026-10-24','count-blank-new');
+ const next=await b.newBlank(blank,beforeBlank);assert.equal(next.localId,blank.id);assert.equal(next.draft.items['kr:43'].stock,'');
+ const archived=await a.archive(beforeBlank.orderId);assert.deepEqual(archived.draft,beforeBlank.draft);assert.equal(archived.stage,'draft');
+ assert.equal((await b.archives()).records[0].orderId,beforeBlank.orderId);assert.equal((await preview.archives()).records.length,0);
+ await assert.rejects(a.save(beforeBlank,watched),e=>e.code==='shared/conflict');
+ await assert.rejects(a.newBlank(Core.create(source,'2026-10-24','count-stale-new'),beforeBlank),e=>e.code==='shared/conflict');
+ const ar=doc(dbA,'sharedCounts','current','archives',beforeBlank.orderId);
+ await assertFails(updateDoc(ar,{body:'changed'}));await assertFails(deleteDoc(ar));
+ await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(),'sharedCounts','current','archives',beforeBlank.orderId)));
+ await assertFails(setDoc(doc(dbA,'sharedCounts','current','archives',next.orderId),(await getDoc(doc(dbA,'sharedCounts','current'))).data()));
+ // Tampered archive and replacement head in one batch must both be rejected.
+ const bad=writeBatch(dbA),raw=(await getDoc(doc(dbA,'sharedCounts','current'))).data();
+ bad.set(doc(dbA,'sharedCounts','current','archives',next.orderId),{...raw,body:JSON.stringify(beforeBlank.draft)});
+ bad.set(doc(dbA,'sharedCounts','current'),{...raw,localId:'count-tamper-new',orderId:'count-tamper-new',revision:raw.revision+1,updatedBy:'a',updatedByName:'大伟',updatedAt:serverTimestamp(),mutationId:'tampered-archive-new'});
+ await assertFails(bad.commit());assert.equal((await a.read()).localId,next.localId);
+ // Both roles can create; simultaneous attempts preserve one old draft, not each other's new one.
+ const races=await Promise.allSettled([a.newBlank(Core.create(source,'2026-10-25','count-race-a'),next),b.newBlank(Core.create(source,'2026-10-25','count-race-b'),next)]);
+ assert.equal(races.filter(r=>r.status==='fulfilled').length,1);assert.equal(races.filter(r=>r.status==='rejected'&&r.reason.code==='shared/conflict').length,1);
+ assert.equal((await a.archives()).records.length,2);assert.deepEqual((await b.archive(next.orderId)).draft,next.draft);
+ const raceHead=await a.read(),editedRace=structuredClone(raceHead.draft);Core.edit(editedRace,'kr:43','stock','11');await b.save(raceHead,editedRace);
+ await assert.rejects(a.newBlank(Core.create(source,'2026-10-25','count-after-stale'),raceHead),e=>e.code==='shared/conflict');assert.equal((await a.read()).draft.items['kr:43'].stock,'11');
+ const lastHead=await a.read(),complete={...structuredClone(reviewed),id:lastHead.localId,date:lastHead.date,status:'draft',reviewedAt:null};
+ await a.save(lastHead,complete);const toFinalize=await a.read();complete.status='reviewed';complete.reviewedAt=new Date().toISOString();const done=await b.finalize(toFinalize,complete);
+ const archiveCount=(await a.archives()).records.length;const finalBlank=await a.newBlank(Core.create(source,'2026-10-26','count-final-blank'),done);
+ assert.equal(finalBlank.draft.items['kr:43'].stock,'');assert.equal((await oa.read(done.orderId)).orderStage,'finalized');assert.equal((await a.archives()).records.length,archiveCount);
+ console.log('PASS equal roles, singleton race, independent-cell merge, same-cell conflict, stale finalization, atomic finalize/reopen, legacy bypass denied, anonymous/disabled denied, history preserved, new blank atomic archives, archive tamper denied, stale and concurrent new blank protected');
 }finally{await env.cleanup();}
