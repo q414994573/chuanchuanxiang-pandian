@@ -774,3 +774,31 @@ test('normal restore click keeps busy lock and blocks tab and keypad clicks whil
  h.run('watchRestore(started)');assert.equal(h.run('Shared.signature(draft)'),before);h.run('finishRestore(started)');await restoring;
  assert.equal(h.run('busy'),false);assert.equal(h.run('cloudConflict'),false);
 });
+test('both roles always have adjacent count shortcuts above date, with separate help',()=>{
+ const h=harness();h.run(`peerEnabled=true;user={uid:'same'};member={role:'owner',name:'成员'};`);
+ for(const state of ['draft','reviewed']){
+  h.run(`draft.status='${state}';member.role='owner'`);const a=h.run('moreHtml()');h.run(`member.role='editor'`);assert.equal(h.run('moreHtml()'),a);
+  assert.ok(a.indexOf('count-shortcuts')<a.indexOf('盘货日期'));assert.ok(a.indexOf('data-act="peer-current"')<a.indexOf('data-act="new-blank"'));
+  assert.match(a,/新建空白盘货/);assert.match(a,/未定稿内容会先确认并保留/);assert.equal((a.match(/data-act="new-blank"/g)||[]).length,1);assert.doesNotMatch(a,/作废与重新填写/);
+ }
+});
+test('new blank confirmation can cancel without a cloud write',async()=>{
+ const h=harness();h.ctx.confirm=()=>false;h.run(`peerEnabled=true;member={role:'editor'};peerBase={localId:draft.id,revision:4,stage:'draft',draft:C.clone(draft)};peerLatest=peerBase;peerApi={read:async()=>peerBase,newBlank:()=>{throw Error('must not write')}};`);
+ const before=h.run('JSON.stringify(draft)');await h.run('peerNewBlank()');assert.equal(h.run('JSON.stringify(draft)'),before);
+});
+test('new blank uses confirmed server revision and defers watch until the transaction returns',async()=>{
+ const h=harness();h.ctx.crypto={randomUUID:()=> 'blank-ui'};let message;h.ctx.confirm=t=>{message=t;return true;};
+ h.run(`peerEnabled=true;member={role:'editor'};peerBase={localId:draft.id,revision:4,stage:'draft',draft:C.clone(draft)};peerLatest=peerBase;globalThis.oldId=draft.id;peerApi={read:async()=>peerBase,newBlank:(next,base)=>{globalThis.sentBase=base;globalThis.remote={localId:next.id,revision:5,stage:'draft',draft:C.clone(next)};return new Promise(resolve=>globalThis.finishBlank=resolve)}};`);
+ const creating=h.run('peerNewBlank()');await new Promise(resolve=>setImmediate(resolve));h.run('peerReceive(remote)');assert.equal(h.run('draft.id'),h.run('oldId'));h.run('finishBlank(remote)');await creating;
+ assert.match(message,/未定稿.*[\s\S]*双方|未定稿.*[\s\S]*老板娘/);assert.equal(h.run('sentBase.revision'),4);assert.equal(h.run('draft.id'),'count-blank-ui');assert.equal(h.run('screen'),'count');assert.equal(h.run('peerRestoreFlight'),null);
+});
+test('archived draft browsing is read-only and leaves active draft and order unchanged',async()=>{
+ const h=harness();h.run(`peerApi={archives:async()=>({records:[{id:'count-old',date:'2026-10-20',revision:3}],more:false,cursor:null}),archive:async()=>({date:'2026-10-20',revision:3,draft:C.clone(draft)})};globalThis.before=JSON.stringify([draft,order]);`);
+ await h.run('loadPeerArchives()');await h.run(`openPeerArchive('count-old')`);assert.equal(h.run('JSON.stringify([draft,order])'),h.run('before'));
+ const html=h.run('peerArchivesHtml()');assert.match(html,/只读/);assert.match(html,/下载这份草稿/);assert.doesNotMatch(html,/data-act="edit"|data-act="copy"/);
+});
+test('new blank rejects outstanding historical edits and preserves in-flight local mutations',async()=>{
+ const h=harness();h.ctx.crypto={randomUUID:()=> 'blank-input'};h.ctx.confirm=()=>true;
+ h.run(`peerEnabled=true;member={role:'owner'};peerBase={localId:draft.id,revision:4,stage:'draft',draft:C.clone(draft)};peerLatest=peerBase;peerApi={read:async()=>peerBase,newBlank:(next)=>new Promise(resolve=>globalThis.finishBlank=()=>resolve({localId:next.id,revision:5,stage:'draft',draft:next}))};`);
+ const creating=h.run('peerNewBlank()');await new Promise(resolve=>setImmediate(resolve));h.run(`Core().edit(draft,'kr:43','stock','8');finishBlank()`);await assert.rejects(creating,/新建期间有新输入/);assert.equal(h.run(`draft.items['kr:43'].stock`),'8');assert.equal(h.run('cloudConflict'),true);
+});

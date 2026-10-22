@@ -34,6 +34,7 @@ let backupUid=null,cloudBase,cloudReady=false,cloudReading=false,cloudWriting=fa
 let cloudPhase='waiting',cloudAt=null,retryDelay=5000,sessionEpoch=0;
 let latestOrder=null,latestMessage='',latestRequest=0,directoryRecords=[],directoryCursor=null,directoryMore=false,directoryDate='',directoryMessage='',directoryRequest=0;
 let preparedExport=null,orderOpenRequest=0;
+let peerArchivePage=null,peerArchiveDetail=null;
 let orderSaveNotice=null;
 const moreSections={};
 // Shared-order autosave is separate from the owner's private draft backup.
@@ -125,6 +126,7 @@ async function peerFinalize(){
  finally{busy=false;render();}
 }
 async function peerOpenCurrent(){
+ if(!peerApi)throw Error('共享盘货尚未连接，请稍后重试');
  const epoch=sessionEpoch;
  if(readPlain()===false||commitOrderEdit()===false)return;
  if(dirtyCount()||peerDirty()&&cloudConflict)throw Error('请先保存或下载当前修改备份');
@@ -1160,16 +1162,17 @@ function moreHtml(){
  const accountTools=member?`<div class="card"><h2>修改密码</h2><form id="pass"><label>当前密码<input name="current" type="password" required></label><label>新密码<input name="next" type="password" required></label><label>再输入一次<input name="confirm" type="password" required></label><button class="ghost" type="submit">保存新密码</button></form><button class="ghost" type="button" data-act="logout">退出登录</button></div>`:'';
  const date=draft&&canCount()?`<div class="card"><h2>盘货日期</h2><label>日期<input id="countDate" type="date" value="${E(draft.date)}"></label><button class="ghost" type="button" data-act="set-date">用这个日期</button></div>`:'';
  const completed=draft?.status==='reviewed';
- const restart=draft&&canCount()&&!sample?toolButton(completed?'开始下一次盘货':peerEnabled?'打开当前盘货':'作废当前盘货','fresh',completed?'保留这份盘货的本机副本，开始一份空白盘货。不会删除已提交的云端订单。':(peerEnabled?'双方共同维护同一份草稿，已有草稿时打开它。':'放弃当前未提交的盘货，重新填写。操作前会确认并保留本机副本；这不是删除云端订单。')):'';
+ const restart=!peerEnabled&&draft&&canCount()&&!sample?toolButton(completed?'开始下一次盘货':peerEnabled?'打开当前盘货':'作废当前盘货','fresh',completed?'保留这份盘货的本机副本，开始一份空白盘货。不会删除已提交的云端订单。':(peerEnabled?'双方共同维护同一份草稿，已有草稿时打开它。':'放弃当前未提交的盘货，重新填写。操作前会确认并保留本机副本；这不是删除云端订单。')):'';
+ const quick=peerEnabled&&canCount()&&!sample?`<div class="card count-shortcuts"><div class="pair">${toolButton('打开当前盘货','peer-current','继续你和另一位成员共同填写的当前表，不会新建或清空内容。')}${toolButton('新建空白盘货','new-blank','保留当前记录，开始一份空白表。双方都会进入新表；未定稿内容会先确认并保留，未上传修改需先核对。')}</div></div>`:'';
  const legacy=PRODUCTION&&canCount()?toolSection('legacy','旧版资料与入口',legacyImportHtml()):'';
  const backupDraft=canCount()&&draft?`<p>这部手机上的盘货：${E(draft.date)}${completed?'（已复核的本机记录）':(peerEnabled?'（未定稿）':'（尚未提交）')}</p>${toolButton('保存这份盘货备份','backup-export','下载这部手机上的盘货记录，包括库存和订货数量。请将文件保存到手机；请同时核对云端同步状态。')}`:'';
  const backupOrder=order?`<p>当前打开的订单：${E(order.date)} · 第 ${order.revision} 版</p>${toolButton('保存这份订单备份','order-backup','下载当前打开的订单，包括尚未保存的修改。下载备份不会把修改上传云端。')}`:'';
  const restore=canCount()?`<label>选择之前保存的备份文件<input type="file" id="restoreFile" accept=".json,application/json"></label>${toolButton('从备份文件恢复','restore-file','将文件恢复成一份单独的盘货，需重新核对后提交。先保留当前盘货副本，不覆盖已有云端订单。')}`:'';
  const backups=!sample?toolSection('backup','数据备份与恢复',backupDraft+backupOrder+restore+(!draft&&!order?'<p>打开盘货或订单后，可以保存备份。</p>':'')):'';
- const historyTools=toolSection('history','历史资料',`<p>这里只查看以前确认的记录，不代表当前库存。新版云端订单请用上方“查订单”。</p>${toolButton('查看基准存档','pane','查看最初确认的历史订单快照，仅供查证，不会替换当前盘货。','data-pane="archive"')}${toolButton('查看旧历史档案','pane','查看原来保留的历史记录，不会改变当前订单。','data-pane="history"')}${['archive','history'].includes(morePane)?morePaneHtml():''}${legacy}`);
+ const historyTools=toolSection('history','历史资料',`<p>这里只查看以前确认的记录，不代表当前库存。新版云端订单请用上方“查订单”。</p>${toolButton('查看基准存档','pane','查看最初确认的历史订单快照，仅供查证，不会替换当前盘货。','data-pane="archive"')}${toolButton('查看旧历史档案','pane','查看原来保留的历史记录，不会改变当前订单。','data-pane="history"')}${peerEnabled&&canCount()?peerArchivesHtml():''}${['archive','history'].includes(morePane)?morePaneHtml():''}${legacy}`);
  const account=member?toolSection('account','账号设置',accountTools):'';
  const home=toolSection('home','添加到手机桌面','<p>iPhone：用 Safari 打开，选择分享 → 添加到主屏幕。安卓：在浏览器菜单中选择添加到主屏幕或安装应用。名称是“천천향 盘货”。如果在聊天软件里打开，请先转到手机浏览器。</p>');
- return `${who}${order&&draft?.status==='draft'&&canCount()&&!sample?'<div class="card"><p>另有一份未提交盘货：'+E(draft.date)+'</p><button class="ghost" type="button" data-act="return-draft">返回未提交盘货</button></div>':''}${date}${completed&&restart?'<div class="card">'+restart+'</div>':''}<div class="card"><h2>查订单</h2><div id="cloudList">${api&&!sample?entryHtml():'<p class="muted">'+(sample?'样例不查询云端订单。':'登录后可按日期查看已提交订单。')+'</p>'}</div><p class="muted">${E(status)}</p></div><div class="card">${toolButton('修改记录','pane','查看当前打开的订单由谁修改、改了哪些内容。','data-pane="log"')}</div>${morePane==='log'?morePaneHtml():''}${backups}${account}${historyTools}${!completed&&restart?toolSection('restart','作废与重新填写',restart):''}${home}${!PRODUCTION?toolSection('demo','测试样例','<button class="ghost" data-act="sample">看一张样例订单（不写入云端）</button>'):''}`;
+ return `${who}${quick}${order&&draft?.status==='draft'&&canCount()&&!sample?'<div class="card"><p>另有一份未提交盘货：'+E(draft.date)+'</p><button class="ghost" type="button" data-act="return-draft">返回未提交盘货</button></div>':''}${date}${completed&&restart?'<div class="card">'+restart+'</div>':''}<div class="card"><h2>查订单</h2><div id="cloudList">${api&&!sample?entryHtml():'<p class="muted">'+(sample?'样例不查询云端订单。':'登录后可按日期查看已提交订单。')+'</p>'}</div><p class="muted">${E(status)}</p></div><div class="card">${toolButton('修改记录','pane','查看当前打开的订单由谁修改、改了哪些内容。','data-pane="log"')}</div>${morePane==='log'?morePaneHtml():''}${backups}${account}${historyTools}${!completed&&restart?toolSection('restart','作废与重新填写',restart):''}${home}${!PRODUCTION?toolSection('demo','测试样例','<button class="ghost" data-act="sample">看一张样例订单（不写入云端）</button>'):''}`;
 }
 document.body.addEventListener('toggle',e=>{if(e.target.dataset?.moreSection)moreSections[e.target.dataset.moreSection]=e.target.open;},true);
 
@@ -1434,6 +1437,44 @@ async function peerStartFresh(){
   peerKeepLocal();const next=Core().create(source,today(),uid());next.seen={};next.ackWrong={};
   const epoch=sessionEpoch,serial=localSerial,oldOrder=order,oldOrderValues=order?Auto.values(order):null,result=await peerApi.start(next,peerLatest.localId);if(epoch!==sessionEpoch)return;if(localSerial!==serial||order===oldOrder&&order&&Auto.values(order)!==oldOrderValues){peerLatest=result;peerKeepLocal();cloudConflict=true;peerConflict='创建期间有新输入，已保留，请备份并核对当前盘货';paintBackupStatus();throw Error(peerConflict);}peerViewing=true;peerBase=null;order=null;peerReceive(result);screen='count';query='';pos=0;field='stock';historyReplace(new URL(fixedEntryUrl()));render();return;
 }
+async function peerNewBlank(){
+ if(!peerApi||!canCount())throw Error('请先连接双方当前盘货');
+ if(localBlocked||localConflict||localSaveFailed||cloudConflict||peerRestoreFlight)throw Error('请先解决保存或同步问题');
+ if(readPlain()===false||commitOrderEdit()===false||unfinishedOrderInput())throw Error('请先完成当前输入');
+ if(dirtyCount())throw Error('请先保存当前订单修改');
+ await peerSave();if(peerFlight)await peerFlight;
+ if(peerDirty()||cloudConflict||cloudPending)throw Error('请先完成云端保存');
+ const epoch=sessionEpoch,token=peerLocalToken(),base=await peerApi.read();
+ if(epoch!==sessionEpoch)return;
+ if(token!==peerLocalToken())throw Error('读取期间内容变化，请核对后重新新建');
+ if(!base)throw Error('尚未找到当前盘货，请先打开当前盘货');
+ const message=base.stage==='draft'?'当前盘货还未定稿。新建后，这份草稿将保留在“历史资料 → 保留的未定稿盘货”，不会当作正式订单。':'当前已定稿订单会保留在历史订单中。';
+ if(!confirm(base.date+' · 第 '+base.revision+' 版\n'+message+'\n你和老板娘将共同进入一份新的空白表；对方若有未上传内容，会先提示保留并核对。确定新建吗？'))return;
+ peerKeepLocal();const next=Core().create(source,today(),uid());next.seen={};next.ackWrong={};
+ const flight={epoch};peerRestoreFlight=flight;
+ try{
+  const result=await peerApi.newBlank(next,base);if(epoch!==sessionEpoch)return;
+  if(!peerLatest||result.revision>=peerLatest.revision)peerLatest=result;
+  if(token!==peerLocalToken()){peerBase=null;cloudConflict=true;cloudPending=true;peerConflict='新建期间有新输入，已保留，请下载备份并核对';peerKeepLocal();saveLocalEnvelope();throw Error(peerConflict);}
+  peerRestoreFlight=null;peerViewing=true;peerBase=null;order=null;peerSavedBase=null;peerArchivePage=null;peerArchiveDetail=null;keypad=false;textMode=false;editId=null;editRaw=null;
+  peerReceive(peerLatest);screen='count';query='';pos=0;field='stock';historyReplace(new URL(fixedEntryUrl()));render();toast('已打开新的共同盘货，原记录已保留');
+ }finally{if(peerRestoreFlight===flight)peerRestoreFlight=null;}
+}
+async function loadPeerArchives(more=false){
+ if(!peerApi)throw Error('请先登录并连接云端');
+ const epoch=sessionEpoch,result=await peerApi.archives(more?peerArchivePage?.cursor:null);if(epoch!==sessionEpoch)return;
+ peerArchivePage={...result,records:more?[...(peerArchivePage?.records||[]),...result.records]:result.records};peerArchiveDetail=null;render();
+}
+async function openPeerArchive(id){const epoch=sessionEpoch,result=await peerApi.archive(id);if(epoch!==sessionEpoch)return;peerArchiveDetail=result;render();}
+function peerArchivesHtml(){
+ const page=peerArchivePage,d=peerArchiveDetail?.draft;
+ return `<div>${toolButton('保留的未定稿盘货','draft-archives','新建空白盘货时保留的旧草稿，只供查看和下载，不是正式订货单。')}${page?`<p>${page.records.length?'点击日期查看，不会替换当前盘货。':'还没有保留的未定稿盘货。'}</p>${page.records.map(r=>`<button class="ghost" data-act="draft-archive" data-id="${E(r.id)}">${E(r.date)} · 未定稿 · 第 ${r.revision} 版</button>`).join('')}${page.more?'<button data-act="draft-archives-more">更早记录</button>':''}`:''}${d?`<div class="card"><strong>${E(d.date)} · 保留的未定稿盘货（只读）</strong><button data-act="draft-archive-download">下载这份草稿</button><button class="ghost" data-act="draft-archive-close">收起</button>${d.catalog.map(p=>{const i=d.items[p.id];return `<p><strong>${E(p.name)}</strong><br>库存：${E(d.stockText?.[p.id]||i.stock||'未填写')} ${E(i.stockUnit||'')} · 订货：${E(i.decision==='skip'?'不订':i.quantity||'未填写')} ${E(i.unit||'')}</p>`;}).join('')}</div>`:''}</div>`;
+}
+function downloadPeerArchive(){
+ if(!peerArchiveDetail)throw Error('请先打开保留的草稿');
+ const blob=new Blob([JSON.stringify({draft:peerArchiveDetail.draft})],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='川川香-未定稿盘货-'+peerArchiveDetail.date+'-v'+peerArchiveDetail.revision+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function startFreshCount(){
  if(peerEnabled)return peerStartFresh();
  if(orderFlight||orderStageWriting)throw Error('正在保存，请稍后');
@@ -1483,7 +1524,12 @@ document.body.addEventListener('click',async e=>{
   if(act==='all-orders'){const input=document.getElementById('orderDate');if(input)input.value='';await findOrders();return;}
   if(act==='older-orders'){await findOrders(directoryDate,true);return;}
   if(act==='latest-order'){if(dirtyCount()||editId){toast('请先保存当前修改并收起键盘，再打开最新订单');return;}busy=true;const latest=await checkLatest();if(dirtyCount()||editId){toast('已保留刚才的输入，请保存后再打开');return;}if(latest)await openOrder(latest.id,true);return;}
-  if(act==='peer-current'){await peerOpenCurrent();return;}
+  if(act==='peer-current'){busy=true;await peerOpenCurrent();return;}
+  if(act==='new-blank'){busy=true;await peerNewBlank();return;}
+  if(act==='draft-archives'||act==='draft-archives-more'){busy=true;await loadPeerArchives(act==='draft-archives-more');return;}
+  if(act==='draft-archive'){busy=true;await openPeerArchive(b.dataset.id);return;}
+  if(act==='draft-archive-close'){peerArchiveDetail=null;render();return;}
+  if(act==='draft-archive-download'){downloadPeerArchive();return;}
   if(act==='peer-remote'){await peerUseRemote();return;}
   if(act==='backup-retry'&&peerEnabled){if(!peerApi)throw Error('共享连接尚未建立，请保留本机备份并刷新重试');if(!peerBase){await peerStart();return;}peerConflict='';cloudConflict=false;await peerSave();return;}
   if(act==='backup-retry'){if(localBlocked||localConflict){toast('请先下载备份，再重新打开页面读取已保存版本');return;}saveLocalEnvelope();cloudReady=false;await pullDraft();return;}
@@ -1652,7 +1698,7 @@ async function boot(){
   if(!cfg.enabled){status=configFailed?'云端配置加载失败，尚未连接云端。本机草稿仍可继续盘货或下载备份；联网后刷新重试。':'云端没打开。本机照样能盘货。';render();return;}
   const firebaseApp=initializeApp(cfg.firebase);auth=getAuth(firebaseApp);db=getFirestore(firebaseApp);
   onAuthStateChanged(auth,async u=>{
-   if(peerBase)peerSavedBase=peerBase;sessionEpoch++;peerFlight=null;peerRestoreFlight=null;if(peerStop)peerStop();peerStop=null;peerApi=null;peerBase=null;peerLatest=null;peerConflict='';clearTimeout(orderTimer);orderAutoBlocked=false;orderBase=null;orderObserved='';cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
+   if(peerBase)peerSavedBase=peerBase;sessionEpoch++;peerArchivePage=null;peerArchiveDetail=null;peerFlight=null;peerRestoreFlight=null;if(peerStop)peerStop();peerStop=null;peerApi=null;peerBase=null;peerLatest=null;peerConflict='';clearTimeout(orderTimer);orderAutoBlocked=false;orderBase=null;orderObserved='';cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
    const authEpoch=sessionEpoch;
    latestRequest++;directoryRequest++;latestOrder=null;latestMessage='';directoryRecords=[];directoryCursor=null;directoryMore=false;directoryMessage='';
    if(u&&backupUid!==u.uid){cloudBase=undefined;cloudAt=null;backupUid=u.uid;}

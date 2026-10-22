@@ -161,3 +161,8 @@ input[type="file"]{max-width:100%;width:100%;font-size:14px}
 
 .cell-navigation{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .cell-navigation .go:disabled{opacity:.4;cursor:default}
+/* Frequent count actions stay visible below account details on phones. */
+.count-shortcuts .latest-action{min-width:0;flex-wrap:nowrap;gap:0;align-items:flex-start}
+.count-shortcuts .latest-action>.ghost{min-width:0;padding:12px 4px;font-size:16px}
+.count-shortcuts .action-help>summary{min-width:32px;min-height:48px}
+.count-shortcuts .latest-action:first-child .action-help>p{left:-120px;right:auto}
