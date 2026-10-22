@@ -762,3 +762,15 @@ test('failed restore request keeps new input protected from later watch events',
  h.run(`Core().edit(draft,'kr:43','stock','9');saveLocalEnvelope();watchRestore(started);failRestore(Error('断网'))`);await rejected;
  h.run('watchRestore({...started,revision:12})');assert.equal(h.run(`draft.items['kr:43'].stock`),'9');assert.equal(JSON.parse(h.saved.get(h.run('KEY'))).draft.items['kr:43'].stock,'9');assert.equal(h.run('cloudConflict'),true);assert.equal(h.run('peerRestoreFlight'),null);
 });
+test('normal restore click keeps busy lock and blocks tab and keypad clicks while start waits',async()=>{
+ const h=harness();h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'restore-ui-busy'};
+ h.run(`peerEnabled=true;member={role:'editor'};screen='more';globalThis.backupRaw=JSON.stringify({draft});peerBase={localId:draft.id,revision:10,stage:'finalized',draft:C.clone(draft)};peerLatest=C.clone(peerBase);peerApi={watch:cb=>{globalThis.watchRestore=cb;return ()=>{}},start:next=>{globalThis.started={localId:next.id,revision:11,stage:'draft',draft:C.clone(next)};return new Promise(resolve=>globalThis.finishRestore=resolve)}};peerSubscribe(sessionEpoch);`);
+ assert.doesNotMatch(h.run('moreHtml()'),/class="plain"/);
+ const file={size:100,text:async()=>h.run('backupRaw')};h.document.getElementById=id=>id==='restoreFile'?{files:[file]}:{};
+ const click=dataset=>h.handlers.click({target:{closest:s=>s==='[data-act]'?{dataset}:null}});
+ const restoring=click({act:'restore-file'});await new Promise(resolve=>setImmediate(resolve));assert.equal(h.run('busy'),true);
+ const before=h.run('Shared.signature(draft)');await click({act:'tab',tab:'count'});await click({act:'key',key:'8'});
+ assert.equal(h.run('Shared.signature(draft)'),before);assert.equal(h.run('busy'),true);
+ h.run('watchRestore(started)');assert.equal(h.run('Shared.signature(draft)'),before);h.run('finishRestore(started)');await restoring;
+ assert.equal(h.run('busy'),false);assert.equal(h.run('cloudConflict'),false);
+});
