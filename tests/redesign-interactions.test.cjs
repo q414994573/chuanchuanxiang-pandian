@@ -682,6 +682,28 @@ test('peer autosave preserves input typed while request is in flight',async()=>{
  const saving=h.run('peerSave()');h.run(`globalThis.remote={...peerBase,revision:2,draft:C.clone(draft)};draft.items['cn:9'].quantity='2';draft.items['cn:9'].decision='order';saveDone(remote)`);await saving;
  assert.equal(h.run(`draft.items['cn:9'].quantity`),'2');assert.equal(h.run('cloudPending'),true);assert.equal(h.run('peerBase.revision'),2);
 });
+test('shared save refreshes merged quantities and count progress without requiring another tap',async()=>{
+ for(const screen of ['count','order'])for(const watchFirst of [false,true]){
+  const h=harness();h.run(`peerEnabled=true;member={role:'editor'};screen='${screen}';keypad=true;peerBase={localId:draft.id,revision:1,stage:'draft',draft:C.clone(draft)};
+   Core().edit(draft,'kr:8','stock','2');peerApi={save:()=>new Promise(resolve=>globalThis.saveDone=resolve)};
+   render=paintRows=()=>{globalThis.shownQty=draft.items['kr:7'].quantity;globalThis.shownSeen=seen('kr:7');};paintRows();`);
+  const saving=h.run('peerSave()');
+  h.run(`globalThis.remote={...peerBase,revision:2,draft:C.clone(draft)};Core().edit(remote.draft,'kr:7','quantity','1');remote.draft.seen['kr:7']=true;Core().edit(draft,'kr:8','stock','3');`);
+  if(watchFirst)h.run('peerReceive(remote)');
+  h.run('saveDone(remote)');await saving;
+  if(!watchFirst)h.run('peerReceive(remote)');
+  assert.equal(h.run('shownQty'),'1');assert.equal(h.run('shownSeen'),true);
+  assert.equal(h.run(`draft.items['kr:8'].stock`),'3');assert.equal(h.run('cloudPending'),true);
+  assert.equal(h.run('cloudConflict'),false);
+ }
+});
+test('shared save does not replace an active text input or an opened historical order',async()=>{
+ for(const state of [`textMode=true`, `peerViewing=false;order={id:'history'}`]){
+  const h=harness();h.run(`peerEnabled=true;member={role:'editor'};peerBase={localId:draft.id,revision:1,stage:'draft',draft:C.clone(draft)};Core().edit(draft,'kr:7','quantity','1');peerApi={save:()=>new Promise(resolve=>globalThis.saveDone=resolve)};`);
+  const saving=h.run('peerSave()');h.run(`${state};globalThis.paints=0;render=paintRows=()=>paints++;saveDone({...peerBase,revision:2,draft:C.clone(draft)})`);await saving;
+  assert.equal(h.run('paints'),0);
+ }
+});
 test('shared startup keeps conflicting legacy local draft and still subscribes',async()=>{
  const h=harness();h.run(`peerEnabled=true;member={role:'owner'};paintBackupStatus=()=>{};Core().edit(draft,'kr:43','stock','3');globalThis.remoteDraft=Core().create(source,'2026-10-22','count-remote');peerApi={read:async()=>({localId:remoteDraft.id,revision:1,stage:'draft',draft:remoteDraft}),watch:()=>{globalThis.watched=true;return ()=>{}}};`);
  await h.run('peerStart()');assert.equal(h.run('watched'),true);assert.equal(h.run('cloudConflict'),true);assert.equal(h.run(`draft.items['kr:43'].stock`),'3');
