@@ -664,3 +664,76 @@ test('shared count and order both direct signed-out users to the same login entr
  assert.match(h.run('countHtml()'),/登录后共同盘货/);assert.match(h.run('orderContentHtml()'),/登录后共同盘货/);
  assert.doesNotMatch(h.run('countHtml()'),/打开已提交订单/);
 });
+test('shared restart with unchanged server revision resumes unsent local edits',async()=>{
+ const h=harness();h.run(`peerEnabled=true;member={role:'owner'};peerSavedBase={localId:draft.id,orderId:draft.id,revision:4,stage:'draft',draft:C.clone(draft)};globalThis.remote=C.clone(peerSavedBase);Core().edit(draft,'kr:43','stock','9');peerApi={read:async()=>remote,watch:()=>()=>{}};scheduleCloud=()=>globalThis.scheduled=true;`);
+ await h.run('peerStart()');assert.equal(h.run('cloudReady'),true);assert.equal(h.run('cloudPending'),true);assert.equal(h.run('scheduled'),true);assert.equal(h.run(`draft.items['kr:43'].stock`),'9');
+});
+test('shared restart reopens a finalized order even when its revision has not changed',async()=>{
+ const h=harness();h.run(`peerEnabled=true;member={role:'editor'};draft.status='reviewed';peerSavedBase={localId:draft.id,orderId:draft.id,revision:4,stage:'finalized',draft:C.clone(draft)};globalThis.remote=C.clone(peerSavedBase);peerApi={read:async()=>remote,watch:()=>()=>{}};openOrder=async id=>globalThis.opened=id;`);
+ await h.run('peerStart()');assert.equal(h.run('opened'),h.run('draft.id'));assert.equal(h.run('cloudReady'),true);
+});
+test('a delayed shared snapshot cannot roll back a newer revision',()=>{
+ const h=harness();h.run(`peerEnabled=true;peerLatest={revision:5};peerBase={localId:draft.id,revision:5,stage:'draft',draft:C.clone(draft)};peerReceive({...peerBase,revision:4})`);
+ assert.equal(h.run('peerLatest.revision'),5);assert.equal(h.run('peerBase.revision'),5);
+});
+test('shared cloud recovery cannot discard input typed while reading',async()=>{
+ const h=harness();h.ctx.confirm=()=>true;h.run(`peerEnabled=true;backupRecovery=()=>{};globalThis.remote={localId:draft.id,revision:2,stage:'draft',draft:C.clone(draft)};peerApi={read:()=>new Promise(resolve=>globalThis.finishPeerRead=resolve)};`);
+ const reading=h.run('peerUseRemote()');h.run(`Core().edit(draft,'kr:43','stock','8');finishPeerRead(remote)`);await assert.rejects(reading,/读取期间/);assert.equal(h.run(`draft.items['kr:43'].stock`),'8');
+});
+test('shared historical conflict recovery uses the loaded order identity',async()=>{
+ const h=autosaveHarness('editor');h.ctx.confirm=()=>true;
+ h.run(`peerEnabled=true;peerLatest={orderId:'count-other'};globalThis.remote=C.clone(order);api.read=async()=>({...remote,revision:2});api.history=async()=>[];orderAutoBlocked=true;`);
+ await h.run('useCloudOrder()');assert.equal(h.run('order.revision'),2);assert.equal(h.run('peerViewing'),false);
+});
+test('both roles render identical shared draft, finalized, and historical pending controls',()=>{
+ const h=harness();h.run(`peerEnabled=true;user={uid:'viewer'};member={role:'owner',name:'同一个显示名'};peerApi={};peerBase={localId:draft.id,revision:1,stage:'draft',draft:C.clone(draft)};`);
+ for(const phase of ['draft','finalized','historical']){
+  if(phase!=='draft')h.run(`buildSample('boss');sample=false;demoRole=null;order.orderStage='${phase==='finalized'?'finalized':'pending'}';`);
+  h.run(`member.role='owner'`);const owner=h.run(`JSON.stringify([countHtml(),orderHtml(),moreHtml()])`);
+  h.run(`member.role='editor'`);const editor=h.run(`JSON.stringify([countHtml(),orderHtml(),moreHtml()])`);
+  assert.equal(editor,owner,phase);
+ }
+});
+test('actual supplier copy rejects a remote unfinalize after preparation',async()=>{
+ const h=harness();let copied=false;h.ctx.navigator={clipboard:{writeText:async()=>{copied=true;}}};
+ h.run(`buildSample('boss');sample=false;order.orderStage='finalized';baseQty={...order.quantities};api={read:async()=>({...order})};`);
+ await h.run(`supplierExport('kr')`);h.run(`api.read=async()=>({...order,revision:order.revision+1,orderStage:'pending'})`);
+ await assert.rejects(h.run('deliverPrepared(false)'),/已解除定稿/);assert.equal(copied,false);assert.equal(h.run('preparedExport'),null);
+});
+test('shared logout waits for pending draft save and refuses unresolved conflicts',async()=>{
+ const h=harness();let signedOut=0;h.ctx.signOut=async()=>{signedOut++};h.run(`peerEnabled=true;member={role:'owner'};peerViewing=true;peerBase={localId:draft.id,revision:1,stage:'draft',draft:C.clone(draft)};Core().edit(draft,'kr:43','stock','3');cloudConflict=true;`);
+ await h.handlers.click({target:{closest:s=>s==='[data-act]'?{dataset:{act:'logout'}}:null}});assert.equal(signedOut,0);assert.match(h.run('lastToast'),/保存共同盘货/);
+});
+test('Safari clipboard write starts on tap but receives data only after server validation',async()=>{
+ const h=harness();h.ctx.Blob=Blob;h.ctx.ClipboardItem=class{constructor(data){this.data=data;}};let writing=false,copied='';
+ h.ctx.navigator={clipboard:{write:async items=>{writing=true;copied=await (await items[0].data['text/plain']).text();}}};
+ h.run(`buildSample('boss');sample=false;order.orderStage='finalized';baseQty={...order.quantities};api={read:async()=>({...order})};`);await h.run(`supplierExport('kr')`);
+ h.run(`api.read=()=>new Promise(resolve=>globalThis.completeExportRead=resolve)`);const copying=h.run('deliverPrepared(false)');assert.equal(writing,true);assert.equal(copied,'');h.run(`completeExportRead({...order})`);await copying;assert.equal(copied,h.run(`blockText('kr')`));
+});
+test('clipboard receives no data if the prepared order was remotely reopened',async()=>{
+ const h=harness();h.ctx.Blob=Blob;h.ctx.ClipboardItem=class{constructor(data){this.data=data;}};let copied='';
+ h.ctx.navigator={clipboard:{write:async items=>{copied=await (await items[0].data['text/plain']).text();}}};
+ h.run(`buildSample('boss');sample=false;order.orderStage='finalized';baseQty={...order.quantities};api={read:async()=>({...order})};`);await h.run(`supplierExport('kr')`);h.run(`api.read=async()=>({...order,orderStage:'pending'})`);await assert.rejects(h.run('deliverPrepared(false)'),/解除定稿/);assert.equal(copied,'');
+});
+test('undo cannot overwrite a remotely changed cell or a different count',()=>{
+ const h=harness();h.run(`Core().edit(draft,'kr:43','stock','3');showUndo({where:'count',id:'kr:43',field:'stock',value:'1'});Core().edit(draft,'kr:43','stock','4');`);
+ assert.throws(()=>h.run('doUndo()'),/这格内容已变化/);assert.equal(h.run(`draft.items['kr:43'].stock`),'4');
+ h.run(`showUndo({where:'count',id:'kr:43',field:'stock',value:'1'});draft.id='count-another'`);assert.throws(()=>h.run('doUndo()'),/已切换盘货/);
+});
+test('clean retry applies a newer shared revision instead of falsely declaring saved',async()=>{
+ const h=harness();h.run(`peerEnabled=true;peerApi={};peerBase={localId:draft.id,revision:1,stage:'draft',draft:C.clone(draft)};peerLatest={...peerBase,revision:2,draft:C.clone(draft)};peerLatest.draft.items['kr:43'].stock='7';`);
+ await h.run('peerSave()');assert.equal(h.run('peerBase.revision'),2);assert.equal(h.run(`draft.items['kr:43'].stock`),'7');
+});
+test('backup restoration preserves typing that happens during shared creation',async()=>{
+ const h=harness();h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'restore-race'};
+ h.run(`peerEnabled=true;member={role:'editor'};peerLatest={localId:'count-old',stage:'finalized'};globalThis.backupRaw=JSON.stringify({draft});peerApi={start:()=>new Promise(resolve=>globalThis.finishRestore=resolve)};`);
+ h.ctx.testFile={size:100,text:async()=>h.run('backupRaw')};const restoring=h.run('restoreBackupFile(testFile)');await new Promise(resolve=>setImmediate(resolve));
+ h.run(`globalThis.result={localId:draft.id,stage:'draft',revision:1,draft:C.clone(draft)};Core().edit(draft,'kr:43','stock','8');finishRestore(result)`);
+ await assert.rejects(restoring,/恢复期间有新输入/);assert.equal(h.run(`draft.items['kr:43'].stock`),'8');assert.equal(h.run('cloudConflict'),true);
+});
+test('starting a new shared count does not discard an edit made while creating it',async()=>{
+ const h=harness();h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'next-race'};
+ h.run(`peerEnabled=true;member={role:'owner'};peerLatest={localId:draft.id,stage:'finalized'};peerApi={start:next=>new Promise(resolve=>globalThis.finishNext=()=>resolve({localId:next.id,stage:'draft',revision:1,draft:next}))};`);
+ const starting=h.run('peerStartFresh()');h.run(`Core().edit(draft,'kr:43','stock','9');localSerial++;finishNext()`);
+ await assert.rejects(starting,/创建期间有新输入/);assert.equal(h.run(`draft.items['kr:43'].stock`),'9');assert.equal(h.run('cloudConflict'),true);
+});
