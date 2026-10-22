@@ -51,6 +51,9 @@ h1{font-size:22px;margin:4px 0 8px}
 @media (prefers-reduced-motion:reduce){.caret{animation:none;opacity:1}}
 .plain{width:100%;min-height:32px;border:0;background:transparent;text-align:center;font-size:16px;font-weight:800;padding:0;color:var(--ink)}
 .padbar,.textbar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.padbar [data-act="defer"]{margin-left:auto;color:#805300;background:#fff3cf}
+.padbar [data-act="defer"]+.fold{margin-left:auto}
+.deferred-tag{display:inline-block;background:#fff3cf;color:#805300;font-size:14px;padding:2px 6px;border-radius:5px}
 .textbar span{flex:1;color:var(--muted);font-size:13px;font-weight:700}
 .padbar button,.textbar button{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:16px;font-weight:800}
 .fold{margin-left:auto;background:#1c1917 !important;color:#fff !important;border:0 !important;min-width:108px}

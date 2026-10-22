@@ -16,7 +16,7 @@ function merge(base,local,remote){
    const values=choose(id+':'+keys[0],pick(base),pick(local),pick(remote));
    keys.forEach((k,i)=>{if(values[i]===null)delete next.items[id][k];else next.items[id][k]=values[i];});
   }
-  for(const key of ['seen','stockText','ackWrong']){
+  for(const key of ['seen','stockText','ackWrong','deferred']){
    const value=choose(id+':'+key,base[key]?.[id],local[key]?.[id],remote[key]?.[id]);
    next[key]=next[key]||{};if(value===undefined)delete next[key][id];else next[key][id]=value;
   }
@@ -27,5 +27,5 @@ function merge(base,local,remote){
  next.savedAt=local.savedAt;return next;
 }
 function copyValue(x){return x===undefined?undefined:copy(x);}
-function signature(d){if(!d)return '';return JSON.stringify([d.id,d.date,d.status,d.items,d.seen||{},d.stockText||{},d.ackWrong||{}]);}
+function signature(d){if(!d)return '';return JSON.stringify([d.id,d.date,d.status,d.items,d.seen||{},d.stockText||{},d.ackWrong||{},d.deferred||{}]);}
 module.exports={merge,signature,failure};

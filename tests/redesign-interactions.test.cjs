@@ -1,6 +1,41 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const Core=require('../count-core.js');
 const source=JSON.parse(fs.readFileSync(require.resolve('../current-order.json'),'utf8'));
+test('defer preserves both values and unfinished input, skips the entire product, and stays uncounted',()=>{
+ const h=harness();h.run(`screen='count';member={role:'owner'};viewCat='kr';pos=0;field='stock';keypad=true;Core().edit(draft,draft.catalog[0].id,'stock','2.');Core().edit(draft,draft.catalog[0].id,'quantity','3');markSeen(draft.catalog[0].id);globalThis.id=draft.catalog[0].id;deferActive()`);
+ assert.equal(h.run('pos'),1);assert.equal(h.run('field'),'stock');assert.equal(h.run('draft.items[id].stock'),'2.');assert.equal(h.run('draft.items[id].quantity'),'3');assert.equal(h.run('seen(id)'),false);assert.equal(h.run('firstGap()'),0);assert.match(h.run('countRows()'),/deferred-tag/);
+ assert.equal(JSON.parse(h.saved.get(h.run('KEY'))).draft.deferred[h.run('id')],true);
+ h.run(`openCount(0,'stock');closePad()`);assert.equal(h.run('seen(id)'),false);
+ h.run(`openCount(0,'stock');writeCell('2');nextCell();nextCell()`);assert.equal(h.run('seen(id)'),true);assert.equal(h.run('draft.deferred[id]'),undefined);
+});
+test('defer in either search respects matching product boundaries and last result does not wrap',()=>{
+ for(const screen of ['count','order']){
+  const h=harness();h.run(`member={role:'owner'};screen='${screen}';viewCat='kr';query='豆腐';globalThis.cells=screen==='count'?countNavigationCells():orderNavigationCells();globalThis.first=cells[0];globalThis.second=cells.find(c=>c.id!==first.id);`);
+  h.run(screen==='count'?`openCount(first.i,first.which)`:`openOrderKey(first.id,first.which)`);h.run('deferActive()');
+  assert.equal(h.run(screen==='count'?'draft.catalog[pos].id':'editId'),h.run('second.id'));assert.equal(h.run('seen(first.id)'),false);assert.match(h.run('searchHits()'),/待定/);
+  h.run(`globalThis.last=(screen==='count'?countNavigationCells():orderNavigationCells()).at(-1);`);
+  h.run(screen==='count'?`openCount(last.i,last.which)`:`openOrderKey(last.id,last.which)`);
+  h.run('deferActive()');assert.equal(h.run('keypad'),false);assert.equal(h.run('seen(last.id)'),false);
+ }
+});
+test('order draft defer keeps blank items visible and requires explicit next quantity to resolve',()=>{
+ const h=harness();h.run(`member={role:'owner'};screen='order';query='土豆';openOrderKey('kr:43','qty');deferActive()`);
+ assert.match(h.run(`blockHtml('kr')`),/deferred-tag/);assert.equal(h.run('seen("kr:43")'),false);
+ h.run(`openOrderKey('kr:43','qty');closePad()`);assert.equal(h.run('seen("kr:43")'),false);
+ h.run(`openOrderKey('kr:43','qty');advanceOrder()`);assert.equal(h.run('seen("kr:43")'),true);
+});
+test('defer is guarded on historical and finalized orders and both keypads place it between text and close',()=>{
+ const h=harness();h.run(`member={role:'owner'}`);const html=h.run('padBar()');assert.ok(html.indexOf('>文字<')<html.indexOf('>待定<'));assert.ok(html.indexOf('>待定<')<html.indexOf('收起'));
+ h.run(`buildSample('boss')`);const before=h.run('JSON.stringify([draft,order])');assert.throws(()=>h.run('deferActive()'),/当前未定稿/);assert.equal(h.run('JSON.stringify([draft,order])'),before);assert.match(h.run('padBar()'),/data-act="defer" disabled/);
+});
+test('deferred rows block shared finalization before any final write',async()=>{
+ const h=harness();h.run(`peerEnabled=true;member={role:'editor'};draft.seen=Object.fromEntries(draft.catalog.map(p=>[p.id,true]));draft.deferred={'kr:43':true};peerBase={localId:draft.id,stage:'draft',revision:1,draft:C.clone(draft)};peerApi={finalize:()=>{throw Error('must not finalize')}};`);
+ await assert.rejects(h.run('peerFinalize()'),/待定/);assert.equal(h.run('draft.catalog[pos].id'),'kr:43');assert.equal(h.run('seen("kr:43")'),false);
+});
+test('defer on no-stock goods jumps to the next quantity without inventing a stock cell',()=>{
+ const h=harness();h.run(`member={role:'owner'};screen='count';viewCat='other';pos=draft.catalog.findIndex(p=>p.cat==='other');field='qty';keypad=true;globalThis.old=pos;deferActive()`);
+ assert.equal(h.run('pos'),h.run('old+1'));assert.equal(h.run('field'),'qty');assert.equal(h.run('seen(draft.catalog[old].id)'),false);
+});
 function harness(production=false){
  const handlers={},saved=new Map(),find={blur(){document.activeElement=null;}};
  const document={documentElement:{dataset:{orderMode:production?'production':''}},body:{addEventListener(n,fn){handlers[n]=fn;},classList:{toggle(){},remove(){}}},

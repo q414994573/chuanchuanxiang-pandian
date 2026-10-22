@@ -16,17 +16,18 @@ try{
  const started=await Promise.all([a.start(candidate),b.start(other)]);
  assert.equal(started[0].localId,started[1].localId);
  let base=await a.read(),one=structuredClone(base.draft),two=structuredClone(base.draft);
- Core.edit(one,'kr:43','stock','0');Core.edit(two,'cn:9','quantity','2');
+ Core.edit(one,'kr:43','stock','0');one.deferred={'kr:43':true};Core.edit(two,'cn:9','quantity','2');
  await Promise.all([a.save(base,one),b.save(base,two)]);
- let latest=await b.read();assert.equal(latest.draft.items['kr:43'].stock,'0');assert.equal(latest.draft.items['cn:9'].quantity,'2');
+ let latest=await b.read();assert.equal(latest.draft.items['kr:43'].stock,'0');assert.equal(latest.draft.items['cn:9'].quantity,'2');assert.equal(latest.draft.deferred['kr:43'],true);
  one=structuredClone(latest.draft);two=structuredClone(latest.draft);Core.edit(one,'kr:43','stock','3');Core.edit(two,'kr:43','stock','4');
  await a.save(latest,one);await assert.rejects(b.save(latest,two),e=>e.code==='shared/conflict');
- base=await b.read();const reviewed=structuredClone(base.draft);
+ base=await b.read();const reviewed=structuredClone(base.draft);delete reviewed.deferred;
  for(const p of reviewed.catalog){reviewed.seen=reviewed.seen||{};reviewed.seen[p.id]=true;if(p.hasStock)Core.edit(reviewed,p.id,'stock','0');if(p.id==='cn:45')Core.edit(reviewed,p.id,'unit','봉');if(p.id==='other:11')Core.edit(reviewed,p.id,'unit','세트');Core.finish(reviewed,p.id,true);}
  reviewed.status='reviewed';reviewed.reviewedAt=new Date().toISOString();
  // Save complete draft first; finalize must match latest revision.
  const filled=structuredClone(reviewed);filled.status='draft';filled.reviewedAt=null;
  await a.save(base,filled);let ready=await a.read();await assert.rejects(b.finalize(base,reviewed),e=>e.code==='shared/conflict');
+ await assert.rejects(b.finalize(ready,{...reviewed,deferred:{'kr:43':true}}),/格式/);
  const final=await b.finalize(ready,reviewed);assert.equal(final.stage,'finalized');
  const oa=store(dbA,'a','orders','大伟');const ob=store(dbB,'b','orders','老板娘');const order=await oa.read(final.orderId);assert.equal(order.orderStage,'finalized');
  await assert.rejects(a.save(ready,filled),e=>e.code==='shared/conflict');
