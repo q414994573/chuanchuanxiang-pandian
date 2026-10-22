@@ -737,3 +737,40 @@ test('starting a new shared count does not discard an edit made while creating i
  const starting=h.run('peerStartFresh()');h.run(`Core().edit(draft,'kr:43','stock','9');localSerial++;finishNext()`);
  await assert.rejects(starting,/创建期间有新输入/);assert.equal(h.run(`draft.items['kr:43'].stock`),'9');assert.equal(h.run('cloudConflict'),true);
 });
+test('restore watch arriving before start response cannot overwrite new input or local envelope',async()=>{
+ const h=harness();h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'restore-watch-race'};
+ h.run(`peerEnabled=true;member={role:'editor'};globalThis.backupRaw=JSON.stringify({draft});draft.status='reviewed';peerBase={localId:draft.id,orderId:draft.id,revision:10,stage:'finalized',draft:C.clone(draft)};peerLatest=C.clone(peerBase);peerApi={watch:cb=>{globalThis.watchRestore=cb;return ()=>{}},start:next=>{globalThis.remoteRestore={localId:next.id,orderId:next.id,revision:11,stage:'draft',draft:C.clone(next)};return new Promise(resolve=>globalThis.finishRestore=resolve)}};peerSubscribe(sessionEpoch);`);
+ h.ctx.testFile={size:100,text:async()=>h.run('backupRaw')};const restoring=h.run('restoreBackupFile(testFile)');const outcome=restoring.then(()=>null,e=>e);await new Promise(resolve=>setImmediate(resolve));
+ h.run(`Core().edit(draft,'kr:43','stock','8');saveLocalEnvelope();watchRestore(remoteRestore)`);
+ const afterWatch=h.run(`draft.items['kr:43'].stock`),savedAfterWatch=JSON.parse(h.saved.get(h.run('KEY'))).draft.items['kr:43'].stock;
+ h.run('finishRestore(remoteRestore)');const error=await outcome;
+ assert.equal(afterWatch,'8');assert.equal(savedAfterWatch,'8');assert.match(error?.message||'',/恢复期间有新输入/);
+ h.run('watchRestore({...remoteRestore,revision:12})');assert.equal(h.run(`draft.items['kr:43'].stock`),'8');assert.equal(JSON.parse(h.saved.get(h.run('KEY'))).draft.items['kr:43'].stock,'8');
+ assert.ok([...h.saved.entries()].some(([k,v])=>k.includes(':before-shared:')&&JSON.parse(v).draft.items['kr:43'].stock==='8'));
+});
+test('restore applies the newest queued watch after start, without false input conflict',async()=>{
+ const h=harness();h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'restore-watch-clean'};
+ h.run(`peerEnabled=true;member={role:'owner'};globalThis.backupRaw=JSON.stringify({draft});peerBase={localId:draft.id,revision:10,stage:'finalized',draft:C.clone(draft)};peerLatest=C.clone(peerBase);peerApi={watch:cb=>{globalThis.watchRestore=cb;return ()=>{}},start:next=>{globalThis.started={localId:next.id,revision:11,stage:'draft',draft:C.clone(next)};return new Promise(resolve=>globalThis.finishRestore=resolve)}};peerSubscribe(sessionEpoch);`);
+ h.ctx.testFile={size:100,text:async()=>h.run('backupRaw')};const restoring=h.run('restoreBackupFile(testFile)');await new Promise(resolve=>setImmediate(resolve));
+ h.run(`globalThis.newer=C.clone(started);newer.revision=12;Core().edit(newer.draft,'kr:43','stock','6');watchRestore(started);watchRestore(newer);finishRestore(started)`);await restoring;
+ assert.equal(h.run('peerBase.revision'),12);assert.equal(h.run(`draft.items['kr:43'].stock`),'6');assert.equal(h.run('cloudConflict'),false);assert.equal(h.run('peerRestoreFlight'),null);
+});
+test('failed restore request keeps new input protected from later watch events',async()=>{
+ const h=harness();h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'restore-watch-fail'};
+ h.run(`peerEnabled=true;member={role:'editor'};globalThis.backupRaw=JSON.stringify({draft});peerBase={localId:draft.id,revision:10,stage:'finalized',draft:C.clone(draft)};peerLatest=C.clone(peerBase);peerApi={watch:cb=>{globalThis.watchRestore=cb;return ()=>{}},start:next=>{globalThis.started={localId:next.id,revision:11,stage:'draft',draft:C.clone(next)};return new Promise((resolve,reject)=>globalThis.failRestore=reject)}};peerSubscribe(sessionEpoch);`);
+ h.ctx.testFile={size:100,text:async()=>h.run('backupRaw')};const restoring=h.run('restoreBackupFile(testFile)');const rejected=assert.rejects(restoring,/断网/);await new Promise(resolve=>setImmediate(resolve));
+ h.run(`Core().edit(draft,'kr:43','stock','9');saveLocalEnvelope();watchRestore(started);failRestore(Error('断网'))`);await rejected;
+ h.run('watchRestore({...started,revision:12})');assert.equal(h.run(`draft.items['kr:43'].stock`),'9');assert.equal(JSON.parse(h.saved.get(h.run('KEY'))).draft.items['kr:43'].stock,'9');assert.equal(h.run('cloudConflict'),true);assert.equal(h.run('peerRestoreFlight'),null);
+});
+test('normal restore click keeps busy lock and blocks tab and keypad clicks while start waits',async()=>{
+ const h=harness();h.ctx.confirm=()=>true;h.ctx.crypto={randomUUID:()=> 'restore-ui-busy'};
+ h.run(`peerEnabled=true;member={role:'editor'};screen='more';globalThis.backupRaw=JSON.stringify({draft});peerBase={localId:draft.id,revision:10,stage:'finalized',draft:C.clone(draft)};peerLatest=C.clone(peerBase);peerApi={watch:cb=>{globalThis.watchRestore=cb;return ()=>{}},start:next=>{globalThis.started={localId:next.id,revision:11,stage:'draft',draft:C.clone(next)};return new Promise(resolve=>globalThis.finishRestore=resolve)}};peerSubscribe(sessionEpoch);`);
+ assert.doesNotMatch(h.run('moreHtml()'),/class="plain"/);
+ const file={size:100,text:async()=>h.run('backupRaw')};h.document.getElementById=id=>id==='restoreFile'?{files:[file]}:{};
+ const click=dataset=>h.handlers.click({target:{closest:s=>s==='[data-act]'?{dataset}:null}});
+ const restoring=click({act:'restore-file'});await new Promise(resolve=>setImmediate(resolve));assert.equal(h.run('busy'),true);
+ const before=h.run('Shared.signature(draft)');await click({act:'tab',tab:'count'});await click({act:'key',key:'8'});
+ assert.equal(h.run('Shared.signature(draft)'),before);assert.equal(h.run('busy'),true);
+ h.run('watchRestore(started)');assert.equal(h.run('Shared.signature(draft)'),before);h.run('finishRestore(started)');await restoring;
+ assert.equal(h.run('busy'),false);assert.equal(h.run('cloudConflict'),false);
+});
