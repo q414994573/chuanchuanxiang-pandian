@@ -115,7 +115,7 @@ async function peerFinalize(){
  if(screen==='count'&&!order&&!finishTyping())return;
  await peerSave();if(peerFlight)await peerFlight;
  if(peerDirty()||cloudConflict||cloudPending)throw Error('请先完成云端保存并解决冲突，再定稿');
- if(!allSeen()){const gap=firstGap();screen='count';viewCat=draft.catalog[gap].cat;query='';openCount(gap,'stock');throw Error('还有没盘的商品');}
+ if(!allSeen()){const gap=firstGap();screen='count';viewCat=draft.catalog[gap].cat;query='';openCount(gap,'stock');throw Error('还有没盘的或待定的商品');}
  const reviewed=C.clone(draft);Flow.parkTextStocks(reviewed,Core());
  for(const p of reviewed.catalog){const r=reviewed.items[p.id];Core().finish(reviewed,p.id,r.decision!=='order');}
  reviewed.status='reviewed';reviewed.reviewedAt=new Date().toISOString();
@@ -262,8 +262,10 @@ function canCount(){return peerEnabled?(sample?!!demoRole:!!member&&['owner','ed
 function aliasesOf(p){return aliasById.get(p.id)||[];}
 function catalog(){if(order)return JSON.parse(order.snapshot).catalog;if(draft)return draft.catalog;return source.products.map(p=>({id:p.id,name:p.name,alias:p.alias||'',cat:p.cat,category:p.category,hasStock:!!p.hasStock,unit:p.unit||'',referenceStock:p.stock,referenceOrder:p.order}));}
 function product(id){return catalog().find(p=>p.id===id);}
-function seen(id){return !!(draft&&draft.seen&&draft.seen[id]);}
-function markSeen(id){if(draft){draft.seen=draft.seen||{};draft.seen[id]=true;}}
+function deferred(id){return !!(!order&&draft?.deferred?.[id]);}
+function deferredBadge(id){return deferred(id)?'<span class="tag deferred-tag">待定</span>':'';}
+function seen(id){return !!(draft&&draft.seen&&draft.seen[id]&&!draft.deferred?.[id]);}
+function markSeen(id,resolve=false){if(draft){if(draft.deferred?.[id]){if(!resolve)return;delete draft.deferred[id];}draft.seen=draft.seen||{};draft.seen[id]=true;}}
 function seenIn(cat){return (draft?draft.catalog:[]).filter(p=>p.cat===cat&&seen(p.id)).length;}
 function totalIn(cat){return (draft?draft.catalog:source.products).filter(p=>p.cat===cat).length;}
 function allSeen(){return !!draft&&draft.catalog.every(p=>seen(p.id));}
@@ -606,7 +608,7 @@ function nextCell(direction=1){
  const cells=countNavigationCells(),at=cells.findIndex(c=>c.i===pos&&c.which===field),target=cells[at+direction];
  if(at<0)return;
  leaveCountCell();
- if(direction>0&&field==='qty')markSeen(draft.catalog[pos].id);
+ if(direction>0&&field==='qty')markSeen(draft.catalog[pos].id,true);
  if(!target){moduleEnd=direction>0&&!query;persistLocal();render();scrollActive();if(direction>0)toast('已到本列表最后一格');return;}
  const previous=pos;
  pos=target.i;field=target.which;moduleEnd=false;
@@ -822,7 +824,7 @@ function rowsOf(cat){
   const qty=qtyOf(p.id);const changed=changes.get(p.id);
   const typing=editId===p.id;
   if(yellowOnly&&!changed&&!typing)continue;
-  if(Flow.showsOnOrder(qty)||typing)active.push(p);
+  if(Flow.showsOnOrder(qty)||typing||deferred(p.id))active.push(p);
   else if(heldPrev[p.id]||(changed&&!changed.after))gray.push(p);
  }
  return {active,gray,changes};
@@ -833,7 +835,24 @@ function keysHtml(){
  return `<div class="keys">${row(['1','2','3'])}${row(['4','5','6'])}${row(['7','8','9'])}${row(['.','0','del'])}</div>`;
 }
 function undoHtml(){return undo?`<div class="undo"><span>${E(undo.label)} ·</span><button type="button" data-act="undo">撤销</button></div>`:'';}
-function padBar(){return `<div class="padbar"><button type="button" data-act="mode" data-mode="text">文字</button><button class="fold" type="button" data-act="close">⌄ 收起</button></div>`;}
+function canDefer(){return !order&&draft?.status==='draft'&&canCount();}
+function deferActive(){
+ requirePeerDraft();
+ if(!canDefer()||orderStageWriting)throw Error('只有当前未定稿盘货可以标为待定');
+ const inCount=screen==='count',id=inCount?draft.catalog[pos]?.id:editId;
+ if(!id||!draft.items[id])return;
+ // Values are already saved on input. Preserve even an unfinished decimal.
+ const cells=inCount?countNavigationCells():orderNavigationCells();
+ const at=cells.findIndex(c=>c.id===id),target=at<0?null:cells.slice(at+1).find(c=>c.id!==id);
+ draft.deferred=draft.deferred||{};draft.deferred[id]=true;
+ draft.seen=draft.seen||{};draft.seen[id]=false;draft.items[id].processed=false;
+ draft.contentVersion++;undo=null;entered=null;editId=null;editRaw=null;editSnap=null;textMode=false;
+ persistLocal();
+ if(target){if(inCount)openCount(target.i,target.which);else openOrderKey(target.id,target.which);}
+ else{keypad=false;moduleEnd=false;render();}
+ toast(target?'已标为待定，稍后从“下一个没盘的”找回':'已标为待定，已到本列表最后一个商品');
+}
+function padBar(){return `<div class="padbar"><button type="button" data-act="mode" data-mode="text">文字</button><button type="button" data-act="defer" ${canDefer()?'':'disabled'}>待定</button><button class="fold" type="button" data-act="close">⌄ 收起</button></div>`;}
 function textBar(){return textMode?`<div class="textbar"><button type="button" data-act="mode" data-mode="num">123</button><span>点完成保存并到下一格</span><button class="fold" type="button" data-act="close">⌄ 收起</button></div>`:'';}
 function endNote(where){
  if(!moduleEnd||!draft)return '';
@@ -1039,7 +1058,7 @@ function countRows(){
   const on=keypad&&pos===i;
   const hint=p.name==='고수'?'<p class="warn">香菜：再看一次冰箱。</p>':String(p.name).startsWith('감자수제비')?'<p class="warn">土豆面片按大包记，1大包＝2小包。</p>':'';
   const fields=Flow.countFields(p);
-  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml({...p,hideUnit:true},E)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
+  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml({...p,hideUnit:true},E)}${deferredBadge(p.id)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
  }
  if(!n) html='<p class="muted">没有匹配的商品。</p>';
  return html+endNote('list');
@@ -1103,8 +1122,8 @@ function warnHtml(list){
 function blockHtml(cat){
  const {active,gray,changes}=rowsOf(cat);
  const row=(p,i)=>{
-  const c=changes.get(p.id);const dead=!Flow.showsOnOrder(qtyOf(p.id))&&editId!==p.id;
-  const tags=[!dead&&order&&!(baseQty[p.id]>0)?'<span class="tag">新加</span>':'',!dead&&!order&&draft?.added?.[p.id]?'<span class="tag">新加</span>':''].join('');
+  const c=changes.get(p.id);const dead=!Flow.showsOnOrder(qtyOf(p.id))&&editId!==p.id&&!deferred(p.id);
+  const tags=[deferredBadge(p.id),!dead&&order&&!(baseQty[p.id]>0)?'<span class="tag">新加</span>':'',!dead&&!order&&draft?.added?.[p.id]?'<span class="tag">新加</span>':''].join('');
   const shown=editId===p.id&&editField==='qty'&&editRaw!=null?editRaw:qtyOf(p.id);
   const picking=editId===p.id&&editField==='qty'&&!dead;
   const caret=picking&&!textMode?'<i class="caret" aria-hidden="true"></i>':'';
@@ -1125,7 +1144,7 @@ function searchHits(countView=false){
   const stock=p.hasStock?searchInput(p,'stock'):'';
   const change=bossChanges().find(c=>c.id===p.id);
   const hint=p.name==='고수'?'香菜：再看一次冰箱。':String(p.name).startsWith('감자수제비')?'土豆面片按大包记，1大包＝2小包。':'';
-  return `<div class="line search-hit ${p.hasStock?'':'nostock'} ${Flow.stripe(i)} ${change?'yellow':''} ${keypad&&editId===p.id?'on':''}" data-id="${E(p.id)}"><div class="who">${Flow.boldName(p,E)}<small>${E(cat?cat[2]:'')}${Flow.smallName(p)?' · '+E(Flow.smallName(p)):''}</small>${change?`<small>${E(changeNote(change))}</small>`:''}</div>${stock}${searchInput(p,'qty')}</div>${hint?`<p class="warn">${E(hint)}</p>`:''}`;
+  return `<div class="line search-hit ${p.hasStock?'':'nostock'} ${Flow.stripe(i)} ${change?'yellow':''} ${keypad&&editId===p.id?'on':''}" data-id="${E(p.id)}"><div class="who">${Flow.boldName(p,E)}${deferredBadge(p.id)}<small>${E(cat?cat[2]:'')}${Flow.smallName(p)?' · '+E(Flow.smallName(p)):''}</small>${change?`<small>${E(changeNote(change))}</small>`:''}</div>${stock}${searchInput(p,'qty')}</div>${hint?`<p class="warn">${E(hint)}</p>`:''}`;
  }).join('')||'<p>没有匹配的商品。</p>';
 }
 function searchInput(p,which){
@@ -1414,7 +1433,9 @@ function advanceOrder(direction=1){
  if(textMode&&readPlain()===false)return;
  const cells=orderNavigationCells(),at=cells.findIndex(c=>c.id===editId&&c.which===editField),target=cells[at+direction];
  if(at<0||!target&&direction<0)return;
+ const resolveId=!order&&direction>0&&editField==='qty'?editId:null;
  if(commitOrderEdit()===false){textMode=false;keypad=true;render();return;}
+ if(resolveId){markSeen(resolveId,true);persistLocal();}
  textMode=false;
  if(target)openOrderKey(target.id,target.which);
  else{keypad=false;render();toast('已到最后一格');}
@@ -1542,6 +1563,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='cancel-find'){cancelFind();return;}
   if(act==='key'){if(orderEditing()&&editId){typeOrderKey(b.dataset.key);return;}typeKey(b.dataset.key);return;}
   if(act==='next'){nextCell();return;}
+  if(act==='defer'){deferActive();return;}
   if(act==='prev'){nextCell(-1);return;}
   if(act==='close'){closePad();return;}
   if(act==='mode'){

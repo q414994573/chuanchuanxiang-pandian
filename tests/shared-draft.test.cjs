@@ -1,6 +1,12 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const Shared=require('../redesign-preview/shared-draft.cjs'),Core=require('../count-core.js'),source=require('../current-order.json');
 const make=()=>Core.create(source,'2026-10-22','count-merge-check');
+test('deferred state syncs with other-cell edits, survives reload, and prevents reviewed validity',()=>{
+ const base=make(),a=structuredClone(base),b=structuredClone(base);a.deferred={'kr:43':true};a.seen={'kr:43':false};Core.edit(b,'cn:9','stock','4');
+ const merged=Shared.merge(base,a,b);assert.equal(merged.deferred['kr:43'],true);assert.equal(merged.items['cn:9'].stock,'4');assert.notEqual(Shared.signature(base),Shared.signature(a));assert.ok(Core.validate(JSON.parse(JSON.stringify(merged)),source));
+ assert.equal(require('../redesign-preview/draft-backup.cjs').meaningful(a),true);
+ const full=make();for(const p of full.catalog){if(p.id==='cn:45')Core.edit(full,p.id,'unit','봉');if(p.id==='other:11')Core.edit(full,p.id,'unit','세트');Core.finish(full,p.id,true);}full.status='reviewed';assert.ok(Core.validate(full,source));full.deferred={'kr:43':true};assert.equal(Core.validate(full,source),false);
+});
 test('shared merge combines stock and order quantity on the same product, including zero',()=>{
  const base=make(),a=structuredClone(base),b=structuredClone(base);
  Core.edit(a,'kr:43','stock','0');Core.edit(b,'kr:43','quantity','2');
