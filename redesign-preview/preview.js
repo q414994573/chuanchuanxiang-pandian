@@ -39,13 +39,13 @@ const moreSections={};
 // Shared-order autosave is separate from the owner's private draft backup.
 let orderStageWriting=false,orderTimer=null,orderFlight=null,orderBase=null,orderAutoBlocked=false,orderRetry=5000;
 let orderObserved='',orderLocalRaw=null,orderLocalKey=null,orderLocalFailed=false,orderMutation=null;
-let peerEnabled=false,peerApi=null,peerBase=null,peerLatest=null,peerStop=null,peerViewing=true,peerFlight=null,peerConflict='',peerSavedBase=null;
+let peerEnabled=false,peerApi=null,peerBase=null,peerLatest=null,peerStop=null,peerViewing=true,peerFlight=null,peerConflict='',peerSavedBase=null,peerRestoreFlight=null;
 function peerDirty(){return !!peerBase&&draft?.id===peerBase.localId&&Shared.signature(draft)!==Shared.signature(peerBase.draft);}
 function peerKeepLocal(){if(draft)localStorage.setItem(KEY+':before-shared:'+Date.now(),JSON.stringify({draft,pos,field,peerBase}));}
 function peerLocalToken(){return JSON.stringify([Shared.signature(draft),editId,editRaw,Auto.values(order||{})]);}
 function peerReceive(record,force=false){
  if(record&&peerLatest&&record.revision<peerLatest.revision)return;
- peerLatest=record;if(!record||!peerViewing||peerFlight||cloudConflict&&!peerBase)return;
+ peerLatest=record;if(!record||!peerViewing||peerFlight||peerRestoreFlight||cloudConflict&&!peerBase)return;
  if(!force&&peerBase?.revision===record.revision&&peerBase.localId===record.localId)return;
  try{
   let next=record.draft;
@@ -363,7 +363,23 @@ async function restoreBackupFile(file){
  try{saveLocalEnvelope();}catch(e){draft=previous.draft;pos=previous.pos;field=previous.field;throw e;}
  order=null;preparedExport=null;sample=false;editId=null;editRaw=null;keypad=false;textMode=false;query='';screen='count';viewCat='kr';
  const url=new URL(location.href);url.searchParams.delete('order');url.searchParams.delete('sample');historyReplace(url);
- if(peerEnabled){const candidate=C.clone(draft);localStorage.setItem(KEY+':restored:'+Date.now(),JSON.stringify({draft:candidate}));const token=peerLocalToken();const result=await peerApi.start(candidate,peerLatest?.localId);if(epoch!==sessionEpoch)return;if(token!==peerLocalToken()){peerLatest=result;peerKeepLocal();cloudConflict=true;peerConflict='恢复期间有新输入，已保留，请备份并核对当前盘货';paintBackupStatus();throw Error(peerConflict);}peerViewing=true;peerBase=null;order=null;peerReceive(result);render();toast(result.localId===candidate.id?'备份已恢复为新的共同盘货':'对方已开始共同盘货，已打开；导入的备份副本仍保留');return;}
+ if(peerEnabled){
+  const candidate=C.clone(draft);localStorage.setItem(KEY+':restored:'+Date.now(),JSON.stringify({draft:candidate}));
+  const token=peerLocalToken(),flight={epoch};peerRestoreFlight=flight;
+  try{
+   const result=await peerApi.start(candidate,peerLatest?.localId);if(epoch!==sessionEpoch)return;
+   if(!peerLatest||result.revision>=peerLatest.revision)peerLatest=result;
+   if(token!==peerLocalToken())throw Error('恢复期间有新输入，已保留，请备份并核对当前盘货');
+   peerRestoreFlight=null;peerViewing=true;peerBase=null;order=null;peerReceive(peerLatest);render();
+   toast(peerLatest.localId===candidate.id?'备份已恢复为新的共同盘货':'对方已开始共同盘货，已打开；导入的备份副本仍保留');
+  }catch(e){
+   if(epoch!==sessionEpoch)return;
+   // The restored draft has no merge base against the old finalized head.
+   // Keep it protected from subsequent watch callbacks until explicitly resolved.
+   cloudConflict=true;cloudPending=true;peerConflict=e.message;peerBase=null;peerKeepLocal();saveLocalEnvelope();paintBackupStatus();throw e;
+  }finally{if(peerRestoreFlight===flight)peerRestoreFlight=null;}
+  return;
+ }
  persistLocal();render();toast('已恢复独立盘货，请逐项检查后提交；原云端订单未改');
 }
 function exportPanel(){
@@ -1636,7 +1652,7 @@ async function boot(){
   if(!cfg.enabled){status=configFailed?'云端配置加载失败，尚未连接云端。本机草稿仍可继续盘货或下载备份；联网后刷新重试。':'云端没打开。本机照样能盘货。';render();return;}
   const firebaseApp=initializeApp(cfg.firebase);auth=getAuth(firebaseApp);db=getFirestore(firebaseApp);
   onAuthStateChanged(auth,async u=>{
-   if(peerBase)peerSavedBase=peerBase;sessionEpoch++;peerFlight=null;if(peerStop)peerStop();peerStop=null;peerApi=null;peerBase=null;peerLatest=null;peerConflict='';clearTimeout(orderTimer);orderAutoBlocked=false;orderBase=null;orderObserved='';cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
+   if(peerBase)peerSavedBase=peerBase;sessionEpoch++;peerFlight=null;peerRestoreFlight=null;if(peerStop)peerStop();peerStop=null;peerApi=null;peerBase=null;peerLatest=null;peerConflict='';clearTimeout(orderTimer);orderAutoBlocked=false;orderBase=null;orderObserved='';cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
    const authEpoch=sessionEpoch;
    latestRequest++;directoryRequest++;latestOrder=null;latestMessage='';directoryRecords=[];directoryCursor=null;directoryMore=false;directoryMessage='';
    if(u&&backupUid!==u.uid){cloudBase=undefined;cloudAt=null;backupUid=u.uid;}
