@@ -42,9 +42,11 @@ let orderObserved='',orderLocalRaw=null,orderLocalKey=null,orderLocalFailed=fals
 let peerEnabled=false,peerApi=null,peerBase=null,peerLatest=null,peerStop=null,peerViewing=true,peerFlight=null,peerConflict='',peerSavedBase=null;
 function peerDirty(){return !!peerBase&&draft?.id===peerBase.localId&&Shared.signature(draft)!==Shared.signature(peerBase.draft);}
 function peerKeepLocal(){if(draft)localStorage.setItem(KEY+':before-shared:'+Date.now(),JSON.stringify({draft,pos,field,peerBase}));}
-function peerReceive(record){
+function peerLocalToken(){return JSON.stringify([Shared.signature(draft),editId,editRaw,Auto.values(order||{})]);}
+function peerReceive(record,force=false){
+ if(record&&peerLatest&&record.revision<peerLatest.revision)return;
  peerLatest=record;if(!record||!peerViewing||peerFlight||cloudConflict&&!peerBase)return;
- if(peerBase?.revision===record.revision&&peerBase.localId===record.localId)return;
+ if(!force&&peerBase?.revision===record.revision&&peerBase.localId===record.localId)return;
  try{
   let next=record.draft;
   if(peerBase&&(keypad||textMode)&&record.stage==='draft'&&record.localId===peerBase.localId){
@@ -80,7 +82,7 @@ async function peerStart(){
  if(record){
   if(peerSavedBase&&draft?.id===record.localId){peerBase=peerSavedBase;peerSavedBase=null;}
   else if(draft&&Backup.meaningful(draft)){peerKeepLocal();if(draft.status==='draft'&&Shared.signature(draft)!==Shared.signature(record.draft)){peerLatest=record;cloudConflict=true;peerConflict='本机另有一份未提交盘货，已保留；请先下载备份，再读取双方当前盘货';paintBackupStatus();return;}}
-  peerReceive(record);
+  peerReceive(record,true);
  }else{
   peerKeepLocal();
   const candidate=draft?.status==='draft'?C.clone(draft):Core().create(source,today(),uid());
@@ -92,7 +94,7 @@ async function peerStart(){
 async function peerSave(){
  if(!peerApi||!peerViewing||!peerBase||peerBase.stage!=='draft'||cloudConflict||localSaveFailed||localConflict||localBlocked)return;
  if(peerFlight)return peerFlight;
- if(!peerDirty()){cloudPending=false;cloudPhase='saved';paintBackupStatus();return;}
+ if(!peerDirty()){if(peerLatest&&peerLatest.revision>peerBase.revision){peerReceive(peerLatest,true);return;}cloudPending=false;cloudPhase='saved';paintBackupStatus();return;}
  const epoch=sessionEpoch,base=peerBase,sent=C.clone(draft);cloudPhase='saving';paintBackupStatus();
  const task=(async()=>{
   try{
@@ -127,12 +129,12 @@ async function peerOpenCurrent(){
  if(readPlain()===false||commitOrderEdit()===false)return;
  if(dirtyCount()||peerDirty()&&cloudConflict)throw Error('请先保存或下载当前修改备份');
  await peerSave();if(peerDirty()||cloudConflict)throw Error('请先保存当前盘货修改');
- const record=await peerApi.read();if(epoch!==sessionEpoch)return;peerViewing=true;peerBase=null;order=null;peerReceive(record);screen=record?.stage==='finalized'?'order':'count';query='';render();
+ const token=peerLocalToken(),record=await peerApi.read();if(epoch!==sessionEpoch)return;if(token!==peerLocalToken())throw Error('读取期间内容发生变化，已保留当前输入，请重新打开');peerViewing=true;peerBase=null;order=null;peerReceive(record);screen=record?.stage==='finalized'?'order':'count';query='';render();
 }
 async function peerUseRemote(){
  if(!confirm('先保留本机恢复副本，再读取双方当前盘货？本机未上传内容不会覆盖云端。'))return;
- const epoch=sessionEpoch;peerKeepLocal();backupRecovery();
- const record=await peerApi.read();if(epoch!==sessionEpoch)return;peerBase=null;peerSavedBase=null;cloudConflict=false;peerConflict='';peerViewing=true;peerReceive(record);
+ const epoch=sessionEpoch,token=peerLocalToken();peerKeepLocal();backupRecovery();
+ const record=await peerApi.read();if(epoch!==sessionEpoch)return;if(token!==peerLocalToken())throw Error('读取期间内容发生变化，已保留当前输入，请重新核对');peerBase=null;peerSavedBase=null;cloudConflict=false;peerConflict='';peerViewing=true;peerReceive(record);
 }
 function orderKey(){return user?.uid&&order?KEY+':order-edit:'+user.uid+':'+order.id:null;}
 function editorRecord(){return editId&&editRaw!==null&&unfinishedOrderInput()?{id:editId,field:editField,raw:String(editRaw)}:null;}
@@ -208,7 +210,7 @@ async function useCloudOrder(){
   if(existing)localStorage.setItem(orderLocalKey+':recovery-journal:'+Date.now(),existing);
   localStorage.setItem(orderLocalKey,'');
  }
- if(peerEnabled)peerViewing=peerLatest?.orderId===id;
+ if(peerEnabled)peerViewing=peerLatest?.orderId===data.id;
  acceptOrder(data);render();
  try{const versions=await api.history(data.id);if(epoch===sessionEpoch&&order?.id===data.id){history=versions;render();}}catch(e){toast('修改记录没读到');}
 }
@@ -361,17 +363,36 @@ async function restoreBackupFile(file){
  try{saveLocalEnvelope();}catch(e){draft=previous.draft;pos=previous.pos;field=previous.field;throw e;}
  order=null;preparedExport=null;sample=false;editId=null;editRaw=null;keypad=false;textMode=false;query='';screen='count';viewCat='kr';
  const url=new URL(location.href);url.searchParams.delete('order');url.searchParams.delete('sample');historyReplace(url);
- if(peerEnabled){const candidate=C.clone(draft);localStorage.setItem(KEY+':restored:'+Date.now(),JSON.stringify({draft:candidate}));const result=await peerApi.start(candidate,peerLatest?.localId);if(epoch!==sessionEpoch)return;peerViewing=true;peerBase=null;order=null;peerReceive(result);render();toast(result.localId===candidate.id?'备份已恢复为新的共同盘货':'对方已开始共同盘货，已打开；导入的备份副本仍保留');return;}
+ if(peerEnabled){const candidate=C.clone(draft);localStorage.setItem(KEY+':restored:'+Date.now(),JSON.stringify({draft:candidate}));const token=peerLocalToken();const result=await peerApi.start(candidate,peerLatest?.localId);if(epoch!==sessionEpoch)return;if(token!==peerLocalToken()){peerLatest=result;peerKeepLocal();cloudConflict=true;peerConflict='恢复期间有新输入，已保留，请备份并核对当前盘货';paintBackupStatus();throw Error(peerConflict);}peerViewing=true;peerBase=null;order=null;peerReceive(result);render();toast(result.localId===candidate.id?'备份已恢复为新的共同盘货':'对方已开始共同盘货，已打开；导入的备份副本仍保留');return;}
  persistLocal();render();toast('已恢复独立盘货，请逐项检查后提交；原云端订单未改');
 }
 function exportPanel(){
  const p=preparedExport;if(!p||!order||p.id!==order.id||p.revision!==order.revision||p.epoch!==sessionEpoch)return '';
  return `<div class="card" role="region" aria-label="已核对的分类文字"><strong>${E(order.date)} · 第 ${p.revision} 版 · ${p.kind==='link'?'已提交，链接已准备好':'已核对'}</strong><p>请检查下方文字，再复制或分享；网站不会自动发送。${p.kind==='link'?'把订单链接发给另一位成员。':'若订单随后重新修改，请重新核对；复制按钮在一分钟后需重新核对。'}</p><textarea readonly aria-label="待发送订货文字" style="width:100%;min-height:160px;box-sizing:border-box">${E(p.text)}</textarea><div class="pair"><button data-act="export-copy">复制这份文字</button><button data-act="export-share">分享这份文字</button></div><button class="ghost" data-act="export-close">收起</button></div>`;
 }
+async function checkedExportText(p){
+ const current=order,fresh=await api.read(p.id);
+ if(preparedExport!==p||order!==current||sessionEpoch!==p.epoch||dirtyCount()||fresh.revision!==p.revision||fresh.orderStage!=='finalized'||JSON.stringify(fresh.quantities)!==JSON.stringify(current.quantities)||JSON.stringify(fresh.units)!==JSON.stringify(current.units)){
+  preparedExport=null;render();throw Error('订单已变化或已解除定稿，本次没有复制或分享，请重新核对');
+ }
+ return p.text;
+}
 async function deliverPrepared(sharing){
  const p=preparedExport;
  if(!p||!order||p.id!==order.id||p.revision!==order.revision||p.epoch!==sessionEpoch||dirtyCount()||(p.kind!=='link'&&(order.orderStage!=='finalized'||Date.now()-p.checkedAt>60000)))throw Error('订单已变化或核对已过期，请重新核对后复制');
- if(sharing)await shareOrCopy(p.text);else await copyOnly(p.text);
+ if(p.kind==='link'||sample){if(sharing)await shareOrCopy(p.text);else await copyOnly(p.text);return;}
+ const verified=checkedExportText(p);
+ // Start clipboard.write within the tap; supply text only after the server check.
+ // This preserves Safari's user gesture without copying an unchecked version.
+ if(!sharing&&typeof ClipboardItem!=='undefined'&&navigator.clipboard?.write){
+  const data=verified.then(text=>new Blob([text],{type:'text/plain'}));data.catch(()=>{});
+  try{await navigator.clipboard.write([new ClipboardItem({'text/plain':data})]);toast('已复制，可以贴到 KakaoTalk');}
+  catch(e){await verified;throw Error('复制未成功，请重新点击复制；没有发送给供货商。');}
+  return;
+ }
+ const text=await verified;
+ if(sharing&&navigator.share){try{await navigator.share({text});}catch(e){if(e.name!=='AbortError')toast('系统分享没有打开，请点“复制这份文字”后粘贴发送。');}return;}
+ await copyOnly(text);
 }
 function retryCloud(){
  cloudPending=true;cloudPhase='failed';paintBackupStatus();
@@ -489,7 +510,7 @@ function labelFor(p,which,now){
  return `${name} 订 ${now===''?'不订':now}`;
 }
 function showUndo(info){
- undo=info;clearTimeout(showUndo._t);
+ undo={...info,draftId:draft?.id,orderId:order?.id,expected:info.where==='count'?draft?.items[info.id]?.[info.field==='stock'?'stock':'quantity']:orderValue(info.id,info.field||'qty')};clearTimeout(showUndo._t);
  showUndo._t=setTimeout(()=>{undo=null;const n=document.querySelector('.undo');if(n)n.remove();},4500);
 }
 function leaveCountCell(){
@@ -505,6 +526,7 @@ function captureEntered(){
  entered={id:p.id,field,value:field==='stock'?r.stock:r.quantity};
 }
 function openCount(i,which){
+ requirePeerDraft();
  if(!draft)return;
  if(draft.status==='reviewed'){toast('已经提交。要改数量，去订单');screen='order';keypad=false;textMode=false;render();return;}
  blurFind();
@@ -586,8 +608,11 @@ function showCat(cat){
  requestAnimationFrame(()=>window.scrollTo(0,y));
 }
 function doUndo(){
+ requirePeerDraft();
  if(!undo)return;
  const info=undo;undo=null;
+ if(info?.draftId&&info.draftId!==draft?.id||info?.orderId&&info.orderId!==order?.id)throw Error('已切换盘货或订单，旧操作不能撤销到这里');
+ if(info&&Object.hasOwn(info,'expected')){const current=info.where==='count'?draft?.items[info.id]?.[info.field==='stock'?'stock':'quantity']:orderValue(info.id,info.field||'qty');if(current!==info.expected)throw Error('这格内容已变化，请核对后手动修改');}
  if(info.where==='count'&&draft){
   try{Core().edit(draft,info.id,info.field==='stock'?'stock':'quantity',info.value);}catch(e){toast(e.message);return;}
   const i=draft.catalog.findIndex(p=>p.id===info.id);
@@ -1385,12 +1410,13 @@ function returnToDraft(){
  const url=new URL(location.href);url.searchParams.delete('order');historyReplace(url);render();
 }
 async function peerStartFresh(){
+ if(peerFlight)await peerFlight;
   if(!peerApi||!peerLatest)throw Error('共享盘货尚未连接');
   if(cloudConflict||peerDirty()||dirtyCount()||unfinishedOrderInput())throw Error('请先保存当前修改');
   if(peerLatest.stage==='draft'){await peerOpenCurrent();toast('已有共同盘货，已打开');return;}
   if(!confirm('开始下一次共同盘货？双方将进入同一份新草稿，历史订单保留。'))return;
   peerKeepLocal();const next=Core().create(source,today(),uid());next.seen={};next.ackWrong={};
-  const epoch=sessionEpoch,result=await peerApi.start(next,peerLatest.localId);if(epoch!==sessionEpoch)return;peerViewing=true;peerBase=null;order=null;peerReceive(result);screen='count';query='';pos=0;field='stock';historyReplace(new URL(fixedEntryUrl()));render();return;
+  const epoch=sessionEpoch,serial=localSerial,oldOrder=order,oldOrderValues=order?Auto.values(order):null,result=await peerApi.start(next,peerLatest.localId);if(epoch!==sessionEpoch)return;if(localSerial!==serial||order===oldOrder&&order&&Auto.values(order)!==oldOrderValues){peerLatest=result;peerKeepLocal();cloudConflict=true;peerConflict='创建期间有新输入，已保留，请备份并核对当前盘货';paintBackupStatus();throw Error(peerConflict);}peerViewing=true;peerBase=null;order=null;peerReceive(result);screen='count';query='';pos=0;field='stock';historyReplace(new URL(fixedEntryUrl()));render();return;
 }
 function startFreshCount(){
  if(peerEnabled)return peerStartFresh();
@@ -1493,7 +1519,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='fresh'){await startFreshCount();return;}
   if(act==='set-date'){requirePeerDraft();const v=document.getElementById('countDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('请选日期');return;}if(draft.status==='reviewed'){toast('已经提交，日期不能改');return;}draft.date=v;persistLocal();toast('日期已改');return;}
   if(act==='use-cloud-order'){await useCloudOrder();return;}
-  if(act==='logout'){if(orderFlight||orderStageWriting||dirtyCount()||unfinishedOrderInput())throw Error('请先完成输入并保存修改，再退出登录');await signOut(auth);order=null;return;}
+  if(act==='logout'){if(peerEnabled&&peerViewing){await peerSave();if(peerDirty()||peerFlight||cloudConflict)throw Error('请先保存共同盘货修改并解决冲突，再退出登录');}if(orderFlight||orderStageWriting||dirtyCount()||unfinishedOrderInput())throw Error('请先完成输入并保存修改，再退出登录');await signOut(auth);order=null;return;}
   if(act==='open-cloud'){if(textMode&&readPlain()===false)return;if(commitOrderEdit()===false)return;if(dirtyCount()&&!confirm('还有修改没保存，确定切换订单吗？'))return;busy=true;await openOrder(b.dataset.id);return;}
   if(act==='restore-rev'){if(order?.orderStage==='finalized')throw Error('订单已定稿，请先解除定稿');const v=history.find(x=>x.revision===Number(b.dataset.revision));if(!v)return;C.units.checkChange(order.units,v.units);order.quantities=C.clone(v.quantities);order.units=C.clone(v.units);orderDirty=true;morePane='';screen='order';render();toast('旧数量和订货单位已放回，还没保存');return;}
  }catch(err){toast(err.message||'没做成');}
@@ -1610,7 +1636,7 @@ async function boot(){
   if(!cfg.enabled){status=configFailed?'云端配置加载失败，尚未连接云端。本机草稿仍可继续盘货或下载备份；联网后刷新重试。':'云端没打开。本机照样能盘货。';render();return;}
   const firebaseApp=initializeApp(cfg.firebase);auth=getAuth(firebaseApp);db=getFirestore(firebaseApp);
   onAuthStateChanged(auth,async u=>{
-   sessionEpoch++;peerFlight=null;if(peerStop)peerStop();peerStop=null;peerApi=null;peerBase=null;peerLatest=null;peerConflict='';clearTimeout(orderTimer);orderAutoBlocked=false;orderBase=null;orderObserved='';cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
+   if(peerBase)peerSavedBase=peerBase;sessionEpoch++;peerFlight=null;if(peerStop)peerStop();peerStop=null;peerApi=null;peerBase=null;peerLatest=null;peerConflict='';clearTimeout(orderTimer);orderAutoBlocked=false;orderBase=null;orderObserved='';cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
    const authEpoch=sessionEpoch;
    latestRequest++;directoryRequest++;latestOrder=null;latestMessage='';directoryRecords=[];directoryCursor=null;directoryMore=false;directoryMessage='';
    if(u&&backupUid!==u.uid){cloudBase=undefined;cloudAt=null;backupUid=u.uid;}
