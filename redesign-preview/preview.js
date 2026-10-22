@@ -104,6 +104,12 @@ async function peerSave(){
    const later=C.clone(draft);
    draft=Shared.merge(sent,later,latest.draft);peerBase=latest;if(!peerLatest||peerLatest.revision<=latest.revision)peerLatest=latest;
    cloudPending=peerDirty();cloudPhase=cloudPending?'waiting':'saved';cloudAt=latest.updatedAt?.toMillis?.()||Date.now();retryDelay=5000;saveLocalEnvelope();
+   // A save response can merge newer values even when watch delivered first.
+   // The equal-revision watch is then ignored, so refresh the visible draft here.
+   // Keep a native text editor intact; leaving it already renders the merged draft.
+   if(peerViewing&&!order&&!textMode&&Shared.signature(later)!==Shared.signature(draft)){
+    if(keypad)paintRows();else render();
+   }
   }catch(e){if(epoch!==sessionEpoch)return;if(e.code==='shared/conflict'){peerConflict=e.message;cloudConflict=true;cloudPending=true;}else retryCloud();}
   finally{if(epoch===sessionEpoch){peerFlight=null;paintBackupStatus();if(peerLatest&&peerLatest.revision>peerBase?.revision&&!cloudConflict)peerReceive(peerLatest);if(cloudPending&&!cloudConflict)scheduleCloud();}}
  })();peerFlight=task;return task;
