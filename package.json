@@ -13,7 +13,8 @@
     "build": "esbuild cloud/app.js --bundle --minify --format=iife --outfile=cloud-app.bundle.js",
     "build:preview": "esbuild redesign-preview/preview.js --bundle --minify --format=iife --outfile=redesign-preview/preview.bundle.js",
     "rules:generate": "node scripts/generate-rules.cjs",
-    "test:shared": "firebase emulators:exec --only firestore --project demo-ccx-shared \"node tests/shared-count.test.mjs\""
+    "test:shared": "firebase emulators:exec --only firestore --project demo-ccx-shared \"node tests/shared-count.test.mjs\"",
+    "test:shared-view": "firebase emulators:exec --only firestore --project demo-ccx-live-view \"node tests/shared-live-view.test.mjs\""
   },
   "repository": {
     "type": "git",

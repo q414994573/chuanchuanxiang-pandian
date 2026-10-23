@@ -56,13 +56,19 @@ export function sharedCountStore(db,uid,name,Core,source,test=false){
  async function archive(id){const snap=await getDocFromServer(doc(archiveGroup,id));if(!snap.exists())throw Error('未找到保留的盘货');return unpack(snap);}
  async function save(base,local){
   valid(local);const mutationId=crypto.randomUUID();
-  await transact(async (tx,headSnapshot)=>{
+  return transact(async (tx,headSnapshot)=>{
    const current=unpack(headSnapshot);
    if(!current||current.stage!=='draft'||current.localId!==base.localId)throw Shared.failure('当前盘货已定稿或已更换，本机修改已保留');
    const merged=valid(Shared.merge(base.draft,local,current.draft));
-   if(Shared.signature(merged)===Shared.signature(current.draft))return;
-   tx.update(head,{body:JSON.stringify(merged),date:merged.date,...metadata(current.revision+1,mutationId)});
-  });return read();
+   if(Shared.signature(merged)===Shared.signature(current.draft))return current;
+   const data={body:JSON.stringify(merged),date:merged.date,...metadata(current.revision+1,mutationId)};
+   tx.update(head,data);
+   // runTransaction resolves only after this version is committed. A separate
+   // immediate read can still expose the preceding listener snapshot. Returning
+   // that snapshot would make the UI merge its own acknowledged edits away.
+   // The server timestamp is resolved by watch; null uses the local ack time.
+   return {...current,...data,draft:merged,updatedAt:null};
+  });
  }
  async function finalize(base,reviewed){
   valid(reviewed);const payload=C.submission(reviewed,Core,source),mutationId=crypto.randomUUID();
