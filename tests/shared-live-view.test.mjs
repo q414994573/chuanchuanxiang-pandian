@@ -21,15 +21,15 @@ try{
  render=paintRows=()=>{frames++;for(const [id,qty] of Object.entries(expectations)){if(draft.items[id].quantity!==qty||!seen(id))failures.push({id,qty:draft.items[id].quantity,seen:seen(id),revision:peerBase?.revision,conflict:peerConflict,stack:new Error().stack});}};`);
  const stop=api.watch(record=>{h.ctx.incoming=record;h.run('peerReceive(incoming)');},e=>{throw e;});
  try{
-  for(let round=0;round<12;round++){
-   h.run(`openCount(${round},'qty');typeKey('1');expectations[draft.catalog[pos].id]='1';nextCell();`);
+  for(let round=0;round<source.products.length;round++){
+   h.run(`viewCat=draft.catalog[${round}].cat;openCount(${round},'qty');typeKey('1');expectations[draft.catalog[pos].id]='1';nextCell();`);
    if(round%2===0)await new Promise(r=>setTimeout(r,25));
   }
   for(let round=0;round<8&&h.run('peerDirty()||!!peerFlight');round++)await h.run('peerSave()');
   await new Promise(r=>setTimeout(r,100));
   assert.equal(h.run('cloudConflict'),false,h.run('peerConflict'));
   assert.equal(h.run('failures.length'),0,h.run('JSON.stringify(failures.slice(0,8))'));
-  const saved=await api.read();for(let i=0;i<12;i++)assert.equal(saved.draft.items[source.products[i].id].quantity,'1');
-  console.log('PASS single-account rapid entry, next cell, live watch and save returns');
+  const saved=await api.read();for(const p of source.products){assert.equal(saved.draft.items[p.id].quantity,'1');assert.equal(saved.draft.seen[p.id],true);}
+  console.log('PASS all '+source.products.length+' products: rapid entry, next cell, live watch, save returns and persisted count progress');
  }finally{stop();}
 }finally{await env.cleanup();}

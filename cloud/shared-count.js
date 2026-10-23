@@ -25,29 +25,31 @@ export function sharedCountStore(db,uid,name,Core,source,test=false){
  async function start(candidate,expectedId=null){
   valid(candidate);if(candidate.status!=='draft')throw Error('新盘货必须是草稿');
   const mutationId=crypto.randomUUID();
-  await transact(async (tx,headSnapshot)=>{
+  return transact(async (tx,headSnapshot)=>{
    const current=unpack(headSnapshot);
    if(current){
-    if(current.stage==='draft'||current.localId!==expectedId)return;
+    if(current.stage==='draft'||current.localId!==expectedId)return current;
    }
    const localId=candidate.id,orderId=C.cloudOrderId(localId,test);
    // Never reuse an existing history ID.
    const existing=await tx.get(doc(db,'orders',orderId)),archived=await tx.get(doc(archiveGroup,orderId));if(existing.exists()||archived.exists())throw Error('盘货编号已存在，请重新开始');
-   tx.set(head,{schema:'ccx-shared-1',localId,orderId,date:candidate.date,stage:'draft',body:JSON.stringify(candidate),...metadata((current?.revision||0)+1,mutationId)});
-  });return read();
+   const data={schema:'ccx-shared-1',localId,orderId,date:candidate.date,stage:'draft',body:JSON.stringify(candidate),...metadata((current?.revision||0)+1,mutationId)};
+   tx.set(head,data);return {...data,draft:C.clone(candidate),updatedAt:null};
+  });
  }
  async function newBlank(candidate,base){
   valid(candidate);if(candidate.status!=='draft'||candidate.id===base.localId)throw Error('新盘货编号不正确');
   const mutationId=crypto.randomUUID();
-  await transact(async (tx,headSnapshot)=>{
+  return transact(async (tx,headSnapshot)=>{
    const current=unpack(headSnapshot);
-   if(current?.localId===candidate.id)return;
+   if(current?.localId===candidate.id)return current;
    if(!current||current.localId!==base.localId||current.revision!==base.revision)throw Shared.failure('对方刚刚更新或新建了盘货，请打开当前盘货核对后再新建');
    const orderId=C.cloudOrderId(candidate.id,test),existing=await tx.get(doc(db,'orders',orderId)),archived=await tx.get(doc(archiveGroup,orderId));
    if(existing.exists()||archived.exists())throw Error('盘货编号已存在，请重新开始');
    if(current.stage==='draft')tx.set(doc(archiveGroup,current.orderId),headSnapshot.data());
-   tx.set(head,{schema:'ccx-shared-1',localId:candidate.id,orderId,date:candidate.date,stage:'draft',body:JSON.stringify(candidate),...metadata(current.revision+1,mutationId)});
-  });return read();
+   const data={schema:'ccx-shared-1',localId:candidate.id,orderId,date:candidate.date,stage:'draft',body:JSON.stringify(candidate),...metadata(current.revision+1,mutationId)};
+   tx.set(head,data);return {...data,draft:C.clone(candidate),updatedAt:null};
+  });
  }
  async function archives(cursor=null){
   const snap=await getDocsFromServer(query(archiveGroup,orderBy('revision','desc'),...(cursor?[startAfter(cursor)]:[]),limit(20)));
@@ -72,27 +74,29 @@ export function sharedCountStore(db,uid,name,Core,source,test=false){
  }
  async function finalize(base,reviewed){
   valid(reviewed);const payload=C.submission(reviewed,Core,source),mutationId=crypto.randomUUID();
-  await transact(async (tx,headSnapshot)=>{
+  return transact(async (tx,headSnapshot)=>{
    const current=unpack(headSnapshot);
-   if(current?.mutationId===mutationId)return;
+   if(current?.mutationId===mutationId)return current;
    if(!current||current.stage!=='draft'||current.localId!==base.localId||current.revision!==base.revision)throw Shared.failure('对方已更新盘货，请核对最新内容后重新定稿');
    const ref=doc(db,'orders',current.orderId),snap=await tx.get(ref),previous=snap.exists()?snap.data():null;
    const data={...payload,quantities:Object.keys(payload.quantities).sort().map(k=>payload.quantities[k]).join(','),orderStage:'finalized',stockEdits:'',stockUnits:{},createdBy:previous?.createdBy||uid,createdAt:previous?.createdAt||serverTimestamp(),...metadata((previous?.revision||0)+1,mutationId)};
    tx.set(ref,data);tx.set(doc(ref,'revisions',mutationId),data);
-   tx.update(head,{stage:'finalized',body:JSON.stringify(reviewed),...metadata(current.revision+1,mutationId)});
-  });return read();
+   const change={stage:'finalized',body:JSON.stringify(reviewed),...metadata(current.revision+1,mutationId)};
+   tx.update(head,change);return {...current,...change,draft:C.clone(reviewed),updatedAt:null};
+  });
  }
  async function reopen(base){
   const mutationId=crypto.randomUUID();
-  await transact(async (tx,headSnapshot)=>{
+  return transact(async (tx,headSnapshot)=>{
    const current=unpack(headSnapshot);
    if(!current||current.localId!==base.localId||current.revision!==base.revision||current.stage!=='finalized')throw Shared.failure('盘货状态已变化，请核对后重试');
    const ref=doc(db,'orders',current.orderId),snap=await tx.get(ref);if(!snap.exists())throw Error('定稿订单不存在');
    const draft=C.clone(current.draft);draft.status='draft';draft.reviewedAt=null;
    const data={...snap.data(),orderStage:'pending',...metadata(snap.data().revision+1,mutationId)};
    tx.update(ref,data);tx.set(doc(ref,'revisions',mutationId),data);
-   tx.update(head,{stage:'draft',body:JSON.stringify(draft),...metadata(current.revision+1,mutationId)});
-  });return read();
+   const change={stage:'draft',body:JSON.stringify(draft),...metadata(current.revision+1,mutationId)};
+   tx.update(head,change);return {...current,...change,draft,updatedAt:null};
+  });
  }
  return {read,watch,start,newBlank,archives,archive,save,finalize,reopen};
 }
