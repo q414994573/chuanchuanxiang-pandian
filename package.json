@@ -15,7 +15,8 @@
     "rules:generate": "node scripts/generate-rules.cjs",
     "test:shared": "firebase emulators:exec --only firestore --project demo-ccx-shared \"node tests/shared-count.test.mjs\"",
     "test:shared-view": "firebase emulators:exec --only firestore --project demo-ccx-live-view \"node tests/shared-live-view.test.mjs\"",
-    "test:shared-transitions": "firebase emulators:exec --only firestore --project demo-ccx-transitions \"node tests/shared-transitions.test.mjs\""
+    "test:shared-transitions": "firebase emulators:exec --only firestore --project demo-ccx-transitions \"node tests/shared-transitions.test.mjs\"",
+    "test:supplier-rehearsal": "firebase emulators:exec --only firestore --project demo-ccx-supplier-rehearsal \"node tests/supplier-rehearsal.test.mjs\""
   },
   "repository": {
     "type": "git",
