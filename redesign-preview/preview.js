@@ -52,7 +52,7 @@ function peerReceive(record,force=false){
   let next=record.draft;
   if(peerBase&&(keypad||textMode)&&record.stage==='draft'&&record.localId===peerBase.localId){
    const active=editId||draft?.catalog[pos]?.id,which=editId?editField:field,key=which==='stock'?'stock':'quantity';
-   if(active&&peerBase.draft.items[active][key]!==record.draft.items[active][key])throw Shared.failure('对方修改了当前正在填写的格子，本机输入已保留，请核对后继续');
+   if(active&&peerBase.draft.items[active][key]!==record.draft.items[active][key]&&draft.items[active][key]!==record.draft.items[active][key])throw Shared.failure('当前正在填写的格子收到不同的云端内容，本机输入已保留，请核对后继续');
   }
   if(peerBase&&peerDirty()){
    if(record.stage!=='draft'||record.localId!==peerBase.localId)throw Shared.failure('对方已定稿或开始新盘货，本机未上传内容已保留。请下载备份并核对当前盘货');
@@ -68,7 +68,10 @@ function peerReceive(record,force=false){
    openOrder(record.orderId).catch(e=>{status=e.message;render();});
   }
   pos=Math.min(pos||0,draft.catalog.length-1);saveLocalEnvelope();
-  if(!keypad&&!textMode)render();else {paintRows();paintBackupStatus();}
+  // Replacing rows removes the native input and its composition/caret state.
+  // Merge immediately, but let leaving text mode render the updated list.
+  if(textMode)paintBackupStatus();
+  else if(!keypad)render();else {paintRows();paintBackupStatus();}
   if(cloudPending)scheduleCloud();
  }catch(e){peerConflict=e.message;cloudConflict=true;cloudPending=true;paintBackupStatus();toast(e.message);}
 }
