@@ -7,7 +7,6 @@ import {sharedCountStore} from '../cloud/shared-count.js';
 import {store} from '../cloud/store.js';
 import Core from '../count-core.js';
 const require=createRequire(import.meta.url),source=JSON.parse(readFileSync('current-order.json'));
-const confirmedNames=new Map(require('./confirmed-names.json').map(([id,zh,ko])=>[id,ko]));
 const existing=readFileSync('tests/redesign-interactions.test.cjs','utf8');
 const body=existing.slice(existing.indexOf('function harness('),existing.indexOf("test('production mode"));
 const harness=Function('require','Core','source',`const fs=require('node:fs'),vm=require('node:vm');${body};return harness;`)(require,Core,source);
@@ -32,7 +31,7 @@ try{
   h.ctx.loaded=await orders.read(head.orderId);h.run(`peerEnabled=true;member={role:'editor'};sample=false;acceptOrder(loaded);api=orderApi;query='不匹配任何商品';yellowOnly=true;`);
   assert.equal(Object.keys(h.ctx.loaded.quantities).length,129);
   for(const cat of ['kr','cn','other']){
-   const lines=source.products.filter(p=>p.cat===cat&&expected.has(p.id)).map(p=>{const v=expected.get(p.id);return (confirmedNames.get(p.id)||p.name)+' '+v.qty+v.unit;});
+   const lines=source.products.filter(p=>p.cat===cat&&expected.has(p.id)).map(p=>{const v=expected.get(p.id);return p.name+' '+v.qty+v.unit;});
    await h.run(`supplierExport('${cat}')`);await h.run('deliverPrepared(false)');
    assert.equal(copied.at(-1),'10/25 천천향 주문\n'+(lines.length?lines.join('\n'):'这次不订'));
   }
