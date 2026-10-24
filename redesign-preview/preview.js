@@ -14,6 +14,7 @@ import Shared from './shared-draft.cjs';
 import {sharedCountStore} from '../cloud/shared-count.js';
 
 const Core=()=>window.CountCore;
+const exportOffline=()=>typeof navigator!=='undefined'&&navigator.onLine===false;
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CATS=[['kr','韩国','韩国食品'],['cn','中国','中国食品'],['other','其他','其他商品']];
 const PRODUCTION=document.documentElement?.dataset.orderMode==='production';
@@ -397,31 +398,28 @@ async function restoreBackupFile(file){
 }
 function exportPanel(){
  const p=preparedExport;if(!p||!order||p.id!==order.id||p.revision!==order.revision||p.epoch!==sessionEpoch)return '';
- return `<div class="card" role="region" aria-label="已核对的分类文字"><strong>${E(order.date)} · 第 ${p.revision} 版 · ${p.kind==='link'?'已提交，链接已准备好':'已核对'}</strong><p>请检查下方文字，再复制或分享；网站不会自动发送。${p.kind==='link'?'把订单链接发给另一位成员。':'若订单随后重新修改，请重新核对；复制按钮在一分钟后需重新核对。'}</p><textarea readonly aria-label="待发送订货文字" style="width:100%;min-height:160px;box-sizing:border-box">${E(p.text)}</textarea><div class="pair"><button data-act="export-copy">复制这份文字</button><button data-act="export-share">分享这份文字</button></div><button class="ghost" data-act="export-close">收起</button></div>`;
+ const note=p.kind==='link'?'这是订单链接，可以发送给另一位已授权成员。':'这是当前已确认的定稿订单文字。如需修改，请先解除定稿。';
+ return `<div class="card" role="region" aria-label="订货文字预览"><strong>${E(order.date)} · 第 ${p.revision} 版 · ${p.kind==='link'?'已提交，链接已准备好':'已定稿'}</strong><p>${note}复制、分享不会自动发送给供货商。${exportOffline()&&p.kind!=='link'?'当前离线，以下为本机已确认的定稿版本。':''}</p><textarea readonly aria-label="待发送订货文字" style="width:100%;min-height:160px;box-sizing:border-box">${E(p.text)}</textarea><div class="pair"><button data-act="export-copy">复制这份文字</button><button data-act="export-share">分享这份文字</button></div><button class="ghost" data-act="export-close">收起</button></div>`;
 }
-async function checkedExportText(p){
- const current=order,fresh=await api.read(p.id);
- if(preparedExport!==p||order!==current||sessionEpoch!==p.epoch||dirtyCount()||fresh.revision!==p.revision||fresh.orderStage!=='finalized'||JSON.stringify(fresh.quantities)!==JSON.stringify(current.quantities)||JSON.stringify(fresh.units)!==JSON.stringify(current.units)){
-  preparedExport=null;render();throw Error('订单已变化或已解除定稿，本次没有复制或分享，请重新核对');
- }
- return p.text;
+function exportSignature(){
+ return JSON.stringify([order?.id,order?.revision,order?.orderStage,order?.quantities,order?.units,order?.stockEdits,order?.stockUnits,order?.snapshot]);
+}
+function requireConfirmedSupplierOrder(){
+ if(!sample&&!order)throw Error('请先完成盘货并定稿后，再复制或分享订货文字');
+ if(sample)return;
+ if(orderFlight||orderStageWriting||orderAutoBlocked||orderLocalFailed||dirtyCount())throw Error('请先完成保存并解决冲突，再复制或分享');
+ if(order.orderStage!=='finalized')throw Error('请先定稿后，再复制或分享给供货商');
+ if(!orderBase||orderBase.id!==order.id||exportSignature()!==JSON.stringify([orderBase.id,orderBase.revision,orderBase.orderStage,orderBase.quantities,orderBase.units,orderBase.stockEdits,orderBase.stockUnits,orderBase.snapshot]))throw Error('本机没有已确认的定稿版本，请重新打开云端订单');
 }
 async function deliverPrepared(sharing){
  const p=preparedExport;
- if(!p||!order||p.id!==order.id||p.revision!==order.revision||p.epoch!==sessionEpoch||dirtyCount()||(p.kind!=='link'&&(order.orderStage!=='finalized'||Date.now()-p.checkedAt>60000)))throw Error('订单已变化或核对已过期，请重新核对后复制');
- if(p.kind==='link'||sample){if(sharing)await shareOrCopy(p.text);else await copyOnly(p.text);return;}
- const verified=checkedExportText(p);
- // Start clipboard.write within the tap; supply text only after the server check.
- // This preserves Safari's user gesture without copying an unchecked version.
- if(!sharing&&typeof ClipboardItem!=='undefined'&&navigator.clipboard?.write){
-  const data=verified.then(text=>new Blob([text],{type:'text/plain'}));data.catch(()=>{});
-  try{await navigator.clipboard.write([new ClipboardItem({'text/plain':data})]);toast('已复制，可以贴到 KakaoTalk');}
-  catch(e){await verified;throw Error('复制未成功，请重新点击复制；没有发送给供货商。');}
-  return;
+ if(!p||!order||p.id!==order.id||p.revision!==order.revision||p.epoch!==sessionEpoch)throw Error('订单已经切换，请重新查看订货文字');
+ if(p.kind!=='link'){
+  try{requireConfirmedSupplierOrder();if(p.signature!==exportSignature())throw Error('订货文字已经变化，请重新预览');}
+  catch(e){preparedExport=null;render();throw e;}
  }
- const text=await verified;
- if(sharing&&navigator.share){try{await navigator.share({text});}catch(e){if(e.name!=='AbortError')toast('系统分享没有打开，请点“复制这份文字”后粘贴发送。');}return;}
- await copyOnly(text);
+ if(sharing){if(exportOffline())toast('当前离线，使用本机已确认定稿版本');await shareOrCopy(p.text);}
+ else await copyOnly(p.text,exportOffline()?'已复制 · 当前离线，使用已确认定稿版本':'已复制，可以贴到 KakaoTalk');
 }
 function retryCloud(){
  cloudPending=true;cloudPhase='failed';paintBackupStatus();
@@ -1144,8 +1142,8 @@ function blockHtml(cat){
  const empty=yellowOnly?'这一块没有她改的。':'本分类暂无订货商品。';
  const exportDisabled=!sample&&(!order||order.orderStage!=='finalized');
  const exportLabel=order&&!sample?'本类订货文字':'';
- const exportNote=sample?'样例内容，不是正式订单':order?(order.orderStage==='finalized'?'复制或分享前会核对云端版本；请自行在 KakaoTalk 发送。':'定稿后可复制订货文字。'):'共同盘货草稿；任一方定稿后，双方都可复制、分享订货文字。';
- return `<div class="card"><p class="muted">${exportNote}</p><div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}" ${exportDisabled?'disabled':''}>复制${exportLabel}</button><button class="ghost" type="button" data-act="share" data-cat="${cat}" ${exportDisabled?'disabled':''}>分享${exportLabel}</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
+ const exportNote=sample?'样例内容，不是正式订单':order?(order.orderStage==='finalized'?(exportOffline()?'当前离线 · 使用本机已确认的定稿订单。':'已定稿 · 点击即可复制或打开分享菜单；网站不会自动发送。'):'定稿后可复制订货文字。'):'共同盘货草稿；任一方定稿后，双方都可复制、分享订货文字。';
+ return `<div class="card"><p class="muted">${exportNote}</p><div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}" ${exportDisabled?'disabled':''}>复制${exportLabel}</button><button class="ghost" type="button" data-act="share" data-cat="${cat}" ${exportDisabled?'disabled':''}>分享${exportLabel}</button></div><button class="ghost" type="button" data-act="preview" data-cat="${cat}" ${exportDisabled?'disabled':''}>查看本类订货文字</button>${body||`<p class="muted">${empty}</p>`}</div>`;
 }
 function searchHits(countView=false){
  return catalog().filter(p=>(!countView||p.cat===viewCat)&&S.matches(p,query,aliasesOf(p))).map((p,i)=>{
@@ -1250,23 +1248,19 @@ async function copyOnly(text,successMessage='已复制，可以贴到 KakaoTalk'
  toast(successMessage);
 }
 async function supplierExport(cat,sharing=false){
- preparedExport=null;
  if(!CATS.some(([id])=>id===cat))throw Error('请选择商品分类');
- if(!sample&&!order)throw Error('请先完成盘货并定稿后，再复制或分享订货文字');
  if(textMode&&readPlain()===false)return;
  if(editId&&commitOrderEdit()===false)return;
- if(order&&!sample){
-  if(dirtyCount())throw Error('请先保存修改，再确认定稿');
-  if(order.orderStage!=='finalized')throw Error('请先定稿后，再复制或分享给供货商');
-  const current=order,epoch=sessionEpoch,quantities=JSON.stringify(order.quantities),units=JSON.stringify(order.units);
-  const fresh=await api.read(current.id);
-  if(epoch!==sessionEpoch||order!==current||JSON.stringify(order.quantities)!==quantities||JSON.stringify(order.units)!==units||editId)throw Error('页面内容已改变，请重新核对后再复制');
-  if(fresh.revision!==current.revision||fresh.orderStage!=='finalized'||JSON.stringify(fresh.quantities)!==quantities||JSON.stringify(fresh.units)!==units)throw Error('云端订单已更新或重新修改，请刷新后核对并定稿；本次没有复制或分享');
-  preparedExport={id:order.id,revision:order.revision,epoch:sessionEpoch,checkedAt:Date.now(),text:blockText(cat)};
-  screen='order';render();window.scrollTo(0,0);toast('云端核对完成，请检查文字后再点复制或分享');return;
- }
+ requireConfirmedSupplierOrder();
  const text=blockText(cat);
- if(sharing)await shareOrCopy(text);else await copyOnly(text);
+ if(sharing){if(exportOffline())toast('当前离线，使用本机已确认定稿版本');await shareOrCopy(text);}
+ else await copyOnly(text,exportOffline()?'已复制 · 当前离线，使用已确认定稿版本':'已复制，可以贴到 KakaoTalk');
+}
+function supplierPreview(cat){
+ if(!CATS.some(([id])=>id===cat))throw Error('请选择商品分类');
+ requireConfirmedSupplierOrder();
+ preparedExport={kind:'supplier',id:order.id,revision:order.revision,epoch:sessionEpoch,signature:exportSignature(),text:blockText(cat)};
+ screen='order';render();window.scrollTo(0,0);
 }
 async function confirmShare(){
  if(peerEnabled)return peerFinalize();
@@ -1549,6 +1543,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='restore-file'){busy=true;await restoreBackupFile(document.getElementById('restoreFile')?.files?.[0]);return;}
   if(act==='export-close'){preparedExport=null;render();return;}
   if(act==='export-copy'||act==='export-share'){await deliverPrepared(act==='export-share');return;}
+  if(act==='preview'){supplierPreview(b.dataset.cat);return;}
   if(act==='fixed-link'){await copyOnly(fixedEntryUrl(),'已复制');return;}
   if(act==='find-date'){const date=document.getElementById('orderDate')?.value;if(!date){toast('请先选择日期');return;}await findOrders(date);return;}
   if(act==='all-orders'){const input=document.getElementById('orderDate');if(input)input.value='';await findOrders();return;}
