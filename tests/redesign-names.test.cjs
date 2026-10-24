@@ -15,7 +15,7 @@ function boldText(html){
  return [...html.matchAll(/<b>([\s\S]*?)<\/b>/g)].map(m=>m[1].replace(/<[^>]+>/g,''));
 }
 
-test('preview preserves 129 original catalog records and units with confirmed display names',()=>{
+test('preview retains 129 original main names, units and confirmed translations',()=>{
  const official=officialProducts();
  const loaded=JSON.parse(read('current-order.json')).products;
  assert.equal(official.length,129);
@@ -29,24 +29,26 @@ test('preview preserves 129 original catalog records and units with confirmed di
  assert.equal(rows.filter(r=>r.block==='韩国食品').length,45);
  assert.equal(rows.filter(r=>r.block==='中国食品').length,66);
  assert.equal(rows.filter(r=>r.block==='其他商品').length,18);
- assert.deepEqual(rows.map(r=>r.large),official.map(p=>confirmed.get(p.id)?.ko||p.name));
+ assert.deepEqual(rows.map(r=>r.large),official.map(p=>p.name));
+ assert.deepEqual(rows.map(r=>r.small),official.map(p=>confirmed.get(p.id)?.ko||(p.alias===p.name?'':p.alias||'')));
  assert.deepEqual(rows.map(r=>r.unit),official.map(p=>p.unit??''));
  assert.equal(new Set(rows.map(r=>r.large)).size,129);
  assert.equal(new Set(loaded.map(p=>p.id)).size,129);
 
  const rendered=loaded.map(p=>Flow.countTitleHtml(p,s=>s)).join('\n');
- assert.deepEqual(boldText(rendered),official.map(p=>confirmed.get(p.id)?.ko||p.name));
+ assert.deepEqual(boldText(rendered),official.map(p=>p.name));
  const orderHits=loaded.map(p=>Flow.boldName(p,s=>s)).join('');
- assert.deepEqual(boldText(orderHits),official.map(p=>confirmed.get(p.id)?.ko||p.name));
+ assert.deepEqual(boldText(orderHits),official.map(p=>p.name));
 
  const byId=new Map(rows.map((r,i)=>[loaded[i].id,r]));
  assert.equal(byId.get('kr:3').large,'양상추');
  assert.equal(byId.get('kr:3').small,'生菜');
  assert.equal(byId.get('cn:3').large,'월계수잎');
  assert.equal(byId.get('cn:3').small,'香叶');
- assert.equal(byId.get('cn:5').small,'辣椒段');
- assert.equal(byId.get('cn:9').large,'치킨스톡');
- assert.equal(byId.get('cn:9').small,'鸡精');
+ assert.equal(byId.get('cn:5').large,'辣椒段');
+ assert.equal(byId.get('cn:5').small,'건고추');
+ assert.equal(byId.get('cn:9').large,'鸡精');
+ assert.equal(byId.get('cn:9').small,'치킨스톡');
  assert.equal(byId.get('cn:54').large,'갑오징어피쉬볼(大)');
  assert.equal(byId.get('cn:54').small,'');
  assert.equal(byId.get('other:8').large,'대나무 꼬치 (길이18cm·지름2.5mm)');
@@ -68,7 +70,7 @@ test('preview preserves 129 original catalog records and units with confirmed di
 
  const lines=rows.map(r=>[r.n,r.block,r.large,r.small,r.unit].join('\t'));
  assert.equal(lines.length,129);
- const out=path.join('/opt/cursor/artifacts/redesign-v2/items-check.txt');
+ const out=path.join(require('node:os').tmpdir(),`ccx-items-check-${process.pid}.txt`);
  fs.mkdirSync(path.dirname(out),{recursive:true});
  fs.writeFileSync(out,lines.join('\n')+'\n');
 });

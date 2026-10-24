@@ -24,18 +24,19 @@ for(const [id,zh,ko,...hidden] of confirmed){
   }
  });
  test(`bilingual display ${id}: both roles, existing draft and finalized snapshot, no record rewrite`,()=>{
+  const original=source.products.find(p=>p.id===id).name;
   for(const role of ['owner','editor']){
    const h=harness(true);h.run(`peerEnabled=true;peerApi={};peerBase={localId:draft.id,stage:'draft',revision:1,draft:C.clone(draft)};peerViewing=true;member={role:${q(role)}};viewCat=${q(id.split(':')[0])};screen='count';applyQty(${q(id)},'2.5');`);
    const before=h.run('JSON.stringify(draft)');
    for(const html of [h.run('countRows()'),h.run(`blockHtml(${q(id.split(':')[0])})`),h.run('searchHits()')]){
-    assert.ok(html.includes('>'+ko+'</b>'),`${id}: visible Korean`);assert.ok(html.includes(zh),`${id}: visible Chinese`);
+    assert.ok(html.includes('>'+original+'</b>'),`${id}: original main name`);assert.ok(html.includes(ko),`${id}: translation visible`);
     for(const alias of hidden)assert.ok(!html.includes(alias),'search-only alias must not be displayed');
    }
    assert.equal(h.run('JSON.stringify(draft)'),before);
    assert.equal(h.run('Core().validate(draft,source)'),true);
    h.run(`buildSample('boss');order.orderStage='finalized';order.quantities[${q(id)}]=2500;query=${q(ko)};`);
    const snapshot=h.run('order.snapshot');
-   for(const html of [h.run('searchHits()'),h.run(`blockHtml(${q(id.split(':')[0])})`)]){assert.ok(html.includes('>'+ko+'</b>'));assert.ok(html.includes(zh));}
+   for(const html of [h.run('searchHits()'),h.run(`blockHtml(${q(id.split(':')[0])})`)]){assert.ok(html.includes('>'+original+'</b>'));assert.ok(html.includes(ko));}
    assert.equal(h.run('order.snapshot'),snapshot);
    assert.equal(h.run(`JSON.parse(order.snapshot).catalog.find(p=>p.id===${q(id)}).name`),source.products.find(p=>p.id===id).name);
   }
@@ -68,16 +69,20 @@ for(const [id,zh,ko,...hidden] of confirmed){
  });
 }
 
-test('exactly 32 IDs change display; salted duck egg and remaining 96 products keep their names',()=>{
+test('all 129 original catalog names remain primary, with 32 translations and no salted duck egg rename',()=>{
  const ids=new Set(confirmed.map(r=>r[0]));assert.equal(ids.size,32);
- for(const p of source.products)if(!ids.has(p.id)){assert.equal(Flow.largeName(p),p.name);assert.equal(Flow.smallName(p),p.alias===p.name?'':p.alias||'');}
+ for(const p of source.products){
+  assert.equal(Flow.largeName(p),p.name,`original name changed: ${p.id}`);
+  const translation=confirmed.find(r=>r[0]===p.id)?.[2];
+  assert.equal(Flow.smallName(p),translation||(p.alias===p.name?'':p.alias||''));
+ }
  const egg=source.products.find(p=>p.id==='cn:84');assert.equal(Flow.largeName(egg),'咸鸭蛋');
  assert.ok(!S.matches(egg,'짠 오리알',aliases.get(egg.id)));
 });
 test('four requested hidden Korean aliases stay searchable without replacing the display name',()=>{
  assert.deepEqual(confirmed.filter(r=>r.length>3).map(r=>[r[0],r[3]]),[['cn:20','새우살'],['cn:47','넙적분모자'],['cn:60','옥수수콘 소세지'],['cn:75','분사']]);
  for(const [id,zh,ko,alias] of confirmed.filter(r=>r.length>3)){
-  const p=source.products.find(p=>p.id===id);assert.equal(Flow.largeName(p),ko);assert.ok(S.matches(p,alias));assert.ok(!Flow.countTitleHtml(p,s=>s).includes(alias));
+  const p=source.products.find(p=>p.id===id);assert.equal(Flow.largeName(p),p.name);assert.equal(Flow.smallName(p),ko);assert.ok(S.matches(p,alias));assert.ok(!Flow.countTitleHtml(p,s=>s).includes(alias));
  }
 });
 test('all existing search aliases across all 129 items continue to find their original IDs',()=>{
@@ -85,11 +90,11 @@ test('all existing search aliases across all 129 items continue to find their or
 });
 test('PB remains searchable with either Latin case as well as Korean and Chinese',()=>{
  const p=source.products.find(p=>p.id==='other:7');for(const term of ['PB','pb','피비','去油污洗洁剂'])assert.ok(S.matches(p,term,aliases.get(p.id)));
- assert.equal(Flow.largeName(p),'피비');
+ assert.equal(Flow.largeName(p),'pb');assert.equal(Flow.smallName(p),'피비');
 });
 test('cuttlefish ball and the separate large squid fish ball are not conflated',()=>{
  const p=source.products.find(p=>p.id==='cn:63'),other=source.products.find(p=>p.id==='cn:54');
- assert.equal(Flow.largeName(p),'갑오징어완자');assert.equal(Flow.largeName(other),'갑오징어피쉬볼(大)');
+ assert.equal(Flow.largeName(p),'墨鱼丸');assert.equal(Flow.smallName(p),'갑오징어완자');assert.equal(Flow.largeName(other),'갑오징어피쉬볼(大)');
  assert.ok(!S.matches(other,'갑오징어완자',aliases.get(other.id)));assert.ok(!S.matches(other,'墨鱼丸',aliases.get(other.id)));
 });
 test('tofu products, starch noodles and shrimp retain distinct IDs and independent quantities',()=>{
