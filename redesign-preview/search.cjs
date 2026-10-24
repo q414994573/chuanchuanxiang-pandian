@@ -18,6 +18,9 @@ function matches(product,query,aliases){
  if(!q) return true;
  const text=haystack(product,aliases);
  if(norm(text).includes(q)) return true;
+ // Complete Korean syllables are literal names, not initial-consonant queries.
+ // Otherwise 분사 also matches 버섯 and unrelated products containing ㅂㅅ.
+ if(/[\uac00-\ud7a3]/.test(q)) return false;
  const folded=fold(text);
  const needle=fold(query);
  return needle.length>0&&folded.includes(needle);
