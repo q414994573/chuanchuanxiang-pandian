@@ -1,4 +1,5 @@
 'use strict';
+const ProductNames = require('./product-names.cjs');
 
 const NUM = /^\d+(?:\.\d{1,3})?$/;
 const NAMES = {kr:'韩国食品', cn:'中国食品', other:'其他商品'};
@@ -59,14 +60,11 @@ function parkTextStocks(draft, core) {
 }
 
 function largeName(p) {
-  return p && p.name != null ? String(p.name) : '';
+  return ProductNames.large(p);
 }
 
 function smallName(p) {
-  if (!p || p.alias == null) return '';
-  const alias = String(p.alias);
-  if (!alias || alias === largeName(p)) return '';
-  return alias;
+  return ProductNames.small(p);
 }
 
 function sheetRows(products) {

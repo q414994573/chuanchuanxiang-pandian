@@ -1,6 +1,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),path=require('path');
 const Flow=require('../redesign-preview/count-flow.cjs');
 const root=path.join(__dirname,'..');
+const confirmed=new Map(require('./confirmed-names.json').map(([id,zh,ko])=>[id,{zh,ko}]));
 const read=name=>fs.readFileSync(path.join(root,name),'utf8');
 
 function officialProducts(){
@@ -14,7 +15,7 @@ function boldText(html){
  return [...html.matchAll(/<b>([\s\S]*?)<\/b>/g)].map(m=>m[1].replace(/<[^>]+>/g,''));
 }
 
-test('preview large names match the 129 original names, order, and units',()=>{
+test('preview preserves 129 original catalog records and units with confirmed display names',()=>{
  const official=officialProducts();
  const loaded=JSON.parse(read('current-order.json')).products;
  assert.equal(official.length,129);
@@ -28,24 +29,24 @@ test('preview large names match the 129 original names, order, and units',()=>{
  assert.equal(rows.filter(r=>r.block==='韩国食品').length,45);
  assert.equal(rows.filter(r=>r.block==='中国食品').length,66);
  assert.equal(rows.filter(r=>r.block==='其他商品').length,18);
- assert.deepEqual(rows.map(r=>r.large),official.map(p=>p.name));
+ assert.deepEqual(rows.map(r=>r.large),official.map(p=>confirmed.get(p.id)?.ko||p.name));
  assert.deepEqual(rows.map(r=>r.unit),official.map(p=>p.unit??''));
  assert.equal(new Set(rows.map(r=>r.large)).size,129);
  assert.equal(new Set(loaded.map(p=>p.id)).size,129);
 
  const rendered=loaded.map(p=>Flow.countTitleHtml(p,s=>s)).join('\n');
- assert.deepEqual(boldText(rendered),official.map(p=>p.name));
+ assert.deepEqual(boldText(rendered),official.map(p=>confirmed.get(p.id)?.ko||p.name));
  const orderHits=loaded.map(p=>Flow.boldName(p,s=>s)).join('');
- assert.deepEqual(boldText(orderHits),official.map(p=>p.name));
+ assert.deepEqual(boldText(orderHits),official.map(p=>confirmed.get(p.id)?.ko||p.name));
 
- const byId=new Map(rows.map(r=>[loaded.find(p=>p.name===r.large).id,r]));
+ const byId=new Map(rows.map((r,i)=>[loaded[i].id,r]));
  assert.equal(byId.get('kr:3').large,'양상추');
  assert.equal(byId.get('kr:3').small,'生菜');
  assert.equal(byId.get('cn:3').large,'월계수잎');
  assert.equal(byId.get('cn:3').small,'香叶');
- assert.equal(byId.get('cn:5').small,'');
- assert.equal(byId.get('cn:9').large,'鸡精');
- assert.equal(byId.get('cn:9').small,'');
+ assert.equal(byId.get('cn:5').small,'辣椒段');
+ assert.equal(byId.get('cn:9').large,'치킨스톡');
+ assert.equal(byId.get('cn:9').small,'鸡精');
  assert.equal(byId.get('cn:54').large,'갑오징어피쉬볼(大)');
  assert.equal(byId.get('cn:54').small,'');
  assert.equal(byId.get('other:8').large,'대나무 꼬치 (길이18cm·지름2.5mm)');

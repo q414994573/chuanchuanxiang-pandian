@@ -1,5 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const Core=require('../count-core.js'),C=require('../cloud/core.cjs'),source=require('../current-order.json');
+const confirmedNames=new Map(require('./confirmed-names.json').map(([id,zh,ko])=>[id,ko]));
 const existing=fs.readFileSync(require.resolve('./redesign-interactions.test.cjs'),'utf8');
 const body=existing.slice(existing.indexOf('function harness('),existing.indexOf("test('production mode"));
 const harness=Function('require','Core','source',`const fs=require('node:fs'),vm=require('node:vm');${body};return harness;`)(require,Core,source);
@@ -18,7 +19,7 @@ for(const [index,p] of source.products.entries())test(`supplier delivery preserv
  const h=harness(true);h.ctx.record={...payload,id:d.id,revision:1,orderStage:'finalized'};
  const delivered=[];h.ctx.navigator={clipboard:{writeText:async text=>delivered.push(text)}};
  h.run(`peerEnabled=true;member={role:'${index%2?'editor':'owner'}'};sample=false;acceptOrder(record);api={read:async()=>C.clone(record)};query='完全无匹配';yellowOnly=true;`);
- const expected='10/25 천천향 주문\n'+p.name+' '+quantity+unit;
+ const expected='10/25 천천향 주문\n'+(confirmedNames.get(p.id)||p.name)+' '+quantity+unit;
  assert.equal(h.run(`blockText('${p.cat}')`),expected,'search must not truncate supplier order');
  for(const cat of ['kr','cn','other'].filter(c=>c!==p.cat))assert.equal(h.run(`blockText('${cat}')`),'10/25 천천향 주문\n这次不订');
  await h.run(`supplierExport('${p.cat}')`);assert.equal(delivered.length,0,'preparation must not send or copy');

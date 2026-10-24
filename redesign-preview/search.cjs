@@ -1,4 +1,5 @@
 'use strict';
+const ProductNames = require('./product-names.cjs');
 const CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
 function norm(s){return String(s??'').normalize('NFKC').toLowerCase().replace(/\s/g,'');}
 function fold(s){
@@ -11,7 +12,7 @@ function fold(s){
  }
  return out;
 }
-function haystack(product,aliases){return [product?.name,product?.alias,...(aliases||[])].filter(Boolean).join('\n');}
+function haystack(product,aliases){return [product?.name,product?.alias,...ProductNames.searchNames(product),...(aliases||[])].filter(Boolean).join('\n');}
 function matches(product,query,aliases){
  const q=norm(query);
  if(!q) return true;
