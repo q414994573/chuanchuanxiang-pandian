@@ -66,25 +66,27 @@ test('supplier export keeps category order, current quantities and units, exclud
  const expected=h.run(`catalog().filter(p=>p.cat==='cn'&&order.quantities[p.id]>0).map(p=>({id:p.id,name:p.name,tail:' '+C.textQuantity(order.quantities[p.id])+order.units[p.id]}))`).map(p=>p.name+p.tail).join('\n');
  assert.equal(text.split('\n').slice(1).join('\n'),expected);
 });
-test('supplier export requires saved finalized current cloud order and never marks it sent',async()=>{
- const h=harness();let copied='';h.ctx.navigator={clipboard:{writeText:async t=>{copied=t;}}};
- h.run(`buildSample('boss');sample=false;member={role:'editor'};baseQty={...order.quantities};api={read:async()=>({...order})};`);
+test('supplier one-tap export requires a saved finalized snapshot and never claims to send',async()=>{
+ const h=harness();let copied='',reads=0;h.ctx.navigator={clipboard:{writeText:async t=>{copied=t;}}};
+ h.run(`buildSample('boss');sample=false;member={role:'editor'};baseQty={...order.quantities};api={read:async()=>{globalThis.reads=(globalThis.reads||0)+1;throw Error('unnecessary server call')}};`);
  await assert.rejects(h.run(`supplierExport('kr')`),/定稿/);
  h.run(`order.orderStage='finalized';order.quantities['kr:7']+=1000`);
- await assert.rejects(h.run(`supplierExport('kr')`),/先保存/);
- h.run(`baseQty={...order.quantities};api.read=async()=>({...order,revision:99})`);
- await assert.rejects(h.run(`supplierExport('kr')`),/云端订单已更新/);assert.equal(copied,'');
- h.run(`api.read=async()=>{throw Error('断网')}`);await assert.rejects(h.run(`supplierExport('kr')`),/断网/);assert.equal(copied,'');
- h.run(`api.read=async()=>({...order})`);await h.run(`supplierExport('kr')`);
- assert.equal(copied,'');assert.equal(h.run('preparedExport.text'),h.run(`blockText('kr')`));
- await h.run('deliverPrepared(false)');assert.equal(copied,h.run(`blockText('kr')`));assert.equal(h.run('order.orderStage'),'finalized');assert.match(h.run('lastToast'),/已复制/);assert.doesNotMatch(h.run('lastToast'),/已发送/);
- h.run(`order.orderStage='pending'`);await assert.rejects(h.run('deliverPrepared(false)'),/订单已变化/);
+ await assert.rejects(h.run(`supplierExport('kr')`),/先完成保存/);
+ h.run(`baseQty={...order.quantities}`);
+ await assert.rejects(h.run(`supplierExport('kr')`),/没有已确认的定稿版本/);
+ h.run(`orderBase=C.clone(order)`);await h.run(`supplierExport('kr')`);
+ assert.equal(copied,h.run(`blockText('kr')`));assert.equal(h.run('globalThis.reads||0'),0);assert.equal(h.run('preparedExport'),null);
+ assert.equal(h.run('order.orderStage'),'finalized');assert.match(h.run('lastToast'),/已复制/);assert.doesNotMatch(h.run('lastToast'),/已发送/);
+ h.run(`supplierPreview('kr')`);assert.equal(h.run('preparedExport.text'),copied);
+ await h.run('deliverPrepared(false)');assert.equal(h.run('globalThis.reads||0'),0);
+ h.run(`order.orderStage='pending'`);await assert.rejects(h.run('deliverPrepared(false)'),/先定稿/);
 });
-test('supplier export rejects account changes during cloud check',async()=>{
- const h=harness();h.ctx.navigator={clipboard:{writeText:async()=>{throw Error('should not copy');}}};
- h.run(`buildSample('boss');sample=false;baseQty={...order.quantities};order.orderStage='finalized';api={read:()=>new Promise(resolve=>globalThis.finishRead=resolve)};`);
- const pending=h.run(`supplierExport('kr')`);h.run(`sessionEpoch++;finishRead({...order})`);
- await assert.rejects(pending,/页面内容已改变/);
+test('supplier export refuses locally unacknowledged revisions and silently changed quantities',async()=>{
+ const h=harness();let copied=false;h.ctx.navigator={clipboard:{writeText:async()=>{copied=true;}}};
+ h.run(`buildSample('boss');sample=false;baseQty={...order.quantities};order.orderStage='finalized';orderBase=C.clone(order)`);
+ h.run(`order.revision++`);await assert.rejects(h.run(`supplierExport('kr')`),/没有已确认的定稿版本/);
+ h.run(`order.revision--;order.quantities['kr:7']+=1000`);await assert.rejects(h.run(`supplierExport('kr')`),/先完成保存/);
+ assert.equal(copied,false);
 });
 test('clipboard fallback failure never reports success and removes temporary field',async()=>{
  const h=harness();let removed=0;h.ctx.navigator={clipboard:{writeText:async()=>{throw Error('denied');}}};
@@ -751,26 +753,30 @@ test('both roles render identical shared draft, finalized, and historical pendin
   assert.equal(editor,owner,phase);
  }
 });
-test('actual supplier copy rejects a remote unfinalize after preparation',async()=>{
+test('prepared supplier copy is invalidated when local finalized order reopens',async()=>{
  const h=harness();let copied=false;h.ctx.navigator={clipboard:{writeText:async()=>{copied=true;}}};
- h.run(`buildSample('boss');sample=false;order.orderStage='finalized';baseQty={...order.quantities};api={read:async()=>({...order})};`);
- await h.run(`supplierExport('kr')`);h.run(`api.read=async()=>({...order,revision:order.revision+1,orderStage:'pending'})`);
- await assert.rejects(h.run('deliverPrepared(false)'),/已解除定稿/);assert.equal(copied,false);assert.equal(h.run('preparedExport'),null);
+ h.run(`buildSample('boss');sample=false;order.orderStage='finalized';baseQty={...order.quantities};orderBase=C.clone(order)`);
+ h.run(`supplierPreview('kr')`);h.run(`order.orderStage='pending';order.revision++`);
+ await assert.rejects(h.run('deliverPrepared(false)'),/订单已经切换/);assert.equal(copied,false);
 });
 test('shared logout waits for pending draft save and refuses unresolved conflicts',async()=>{
  const h=harness();let signedOut=0;h.ctx.signOut=async()=>{signedOut++};h.run(`peerEnabled=true;member={role:'owner'};peerViewing=true;peerBase={localId:draft.id,revision:1,stage:'draft',draft:C.clone(draft)};Core().edit(draft,'kr:43','stock','3');cloudConflict=true;`);
  await h.handlers.click({target:{closest:s=>s==='[data-act]'?{dataset:{act:'logout'}}:null}});assert.equal(signedOut,0);assert.match(h.run('lastToast'),/保存共同盘货/);
 });
-test('Safari clipboard write starts on tap but receives data only after server validation',async()=>{
- const h=harness();h.ctx.Blob=Blob;h.ctx.ClipboardItem=class{constructor(data){this.data=data;}};let writing=false,copied='';
- h.ctx.navigator={clipboard:{write:async items=>{writing=true;copied=await (await items[0].data['text/plain']).text();}}};
- h.run(`buildSample('boss');sample=false;order.orderStage='finalized';baseQty={...order.quantities};api={read:async()=>({...order})};`);await h.run(`supplierExport('kr')`);
- h.run(`api.read=()=>new Promise(resolve=>globalThis.completeExportRead=resolve)`);const copying=h.run('deliverPrepared(false)');assert.equal(writing,true);assert.equal(copied,'');h.run(`completeExportRead({...order})`);await copying;assert.equal(copied,h.run(`blockText('kr')`));
+test('iPhone share opens from the original tap, without any await on Firestore',async()=>{
+ const h=harness();let shared='',reads=0;
+ h.ctx.navigator={share:async data=>{shared=data.text;},clipboard:{writeText:async()=>{}}};
+ h.run(`buildSample('boss');sample=false;order.orderStage='finalized';baseQty={...order.quantities};orderBase=C.clone(order);api={read:()=>{globalThis.reads=(globalThis.reads||0)+1;return new Promise(()=>{})}}`);
+ const sharing=h.run(`supplierExport('kr',true)`);assert.equal(shared,h.run(`blockText('kr')`));await sharing;
+ assert.equal(h.run('globalThis.reads||0'),0);
 });
-test('clipboard receives no data if the prepared order was remotely reopened',async()=>{
- const h=harness();h.ctx.Blob=Blob;h.ctx.ClipboardItem=class{constructor(data){this.data=data;}};let copied='';
- h.ctx.navigator={clipboard:{write:async items=>{copied=await (await items[0].data['text/plain']).text();}}};
- h.run(`buildSample('boss');sample=false;order.orderStage='finalized';baseQty={...order.quantities};api={read:async()=>({...order})};`);await h.run(`supplierExport('kr')`);h.run(`api.read=async()=>({...order,orderStage:'pending'})`);await assert.rejects(h.run('deliverPrepared(false)'),/解除定稿/);assert.equal(copied,'');
+test('offline supplier copies use only acknowledged finalized snapshot for both accounts',async()=>{
+ for(const role of ['owner','editor']){
+  const h=harness();let copied='';h.ctx.navigator={onLine:false,clipboard:{writeText:async text=>{copied=text;}}};
+  h.run(`buildSample('boss');sample=false;member={role:'${role}'};order.orderStage='finalized';baseQty={...order.quantities};orderBase=C.clone(order)`);
+  await h.run(`supplierExport('kr')`);assert.equal(copied,h.run(`blockText('kr')`));assert.match(h.run('lastToast'),/当前离线/);
+  h.run(`order.revision++`);copied='';await assert.rejects(h.run(`supplierExport('kr')`),/没有已确认的定稿版本/);assert.equal(copied,'');
+ }
 });
 test('undo cannot overwrite a remotely changed cell or a different count',()=>{
  const h=harness();h.run(`Core().edit(draft,'kr:43','stock','3');showUndo({where:'count',id:'kr:43',field:'stock',value:'1'});Core().edit(draft,'kr:43','stock','4');`);

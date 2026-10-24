@@ -32,14 +32,15 @@ try{
   assert.equal(Object.keys(h.ctx.loaded.quantities).length,129);
   for(const cat of ['kr','cn','other']){
    const lines=source.products.filter(p=>p.cat===cat&&expected.has(p.id)).map(p=>{const v=expected.get(p.id);return p.name+' '+v.qty+v.unit;});
-   await h.run(`supplierExport('${cat}')`);await h.run('deliverPrepared(false)');
+   await h.run(`supplierExport('${cat}')`);
    assert.equal(copied.at(-1),'10/25 천천향 주문\n'+(lines.length?lines.join('\n'):'这次不订'));
   }
  }
- await checkExport();console.log('PASS both accounts jointly fill all 129; finalized cloud reread and three supplier clipboard outputs match independent expectations');
- // A prepared export must not survive an actual remote reopen.
- await h.run(`supplierExport('kr')`);const copiesBefore=copied.length;head=await a.reopen(head);
- await assert.rejects(h.run('deliverPrepared(false)'),/变化|解除/);assert.equal(copied.length,copiesBefore);
+ await checkExport();console.log('PASS both accounts jointly fill all 129; previously server-confirmed order copies three supplier texts on first tap');
+ // A preview must not survive once the new cloud state is loaded after a reopen.
+ h.run(`supplierPreview('kr')`);const copiesBefore=copied.length;head=await a.reopen(head);
+ h.ctx.reopened=await orders.read(head.orderId);h.run('acceptOrder(reopened)');
+ await assert.rejects(h.run('deliverPrepared(false)'),/切换/);assert.equal(copied.length,copiesBefore);
  const changed=structuredClone(head.draft);
  for(const [i,p] of source.products.entries()){
   if(i%3===0){Core.finish(changed,p.id,true);expected.delete(p.id);}
@@ -49,5 +50,5 @@ try{
  for(const p of source.products)assert.equal(h.ctx.loaded.quantities[p.id],expected.has(p.id)?Math.round(Number(expected.get(p.id).qty)*1000):0);
  const oldId=head.orderId;head=await b.newBlank(Core.create(source,'2026-10-26','count-next-rehearsal'),head);
  assert.ok(Object.values(head.draft.items).every(r=>r.quantity===''));assert.equal((await orders.read(oldId)).orderStage,'finalized');
- console.log('PASS remote reopen blocks prepared copy; cancellations, smallest decimals and alternate units survive re-finalize/export; new blank preserves finalized history');
+ console.log('PASS refreshed remote reopen invalidates preview; cancellations, smallest decimals and alternate units survive re-finalize/export; new blank preserves finalized history');
 }finally{await env.cleanup();}
