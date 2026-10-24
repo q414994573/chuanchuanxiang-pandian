@@ -12,6 +12,17 @@ const q=JSON.stringify;
 const initials=text=>Array.from(text).map(c=>{const n=c.charCodeAt(0)-0xac00;return n>=0&&n<11172?'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'[Math.floor(n/588)]:c;}).join('');
 
 for(const [id,zh,ko,...hidden] of confirmed){
+ test(`literal Korean lookup ${id}: exclude unrelated items sharing only initial consonants`,()=>{
+  const norm=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/\s/g,'');
+  for(const term of [ko,...hidden]){
+   const expected=source.products.filter(p=>{
+    const entry=confirmed.find(row=>row[0]===p.id);
+    return [p.name,p.alias,...(entry?entry.slice(1):[]),...(aliases.get(p.id)||[])].some(s=>norm(s).includes(norm(term)));
+   }).map(p=>p.id);
+   const actual=source.products.filter(p=>S.matches(p,term,aliases.get(p.id))).map(p=>p.id);
+   assert.deepEqual(actual,expected,'exact name query '+term);
+  }
+ });
  test(`bilingual display ${id}: both roles, existing draft and finalized snapshot, no record rewrite`,()=>{
   for(const role of ['owner','editor']){
    const h=harness(true);h.run(`peerEnabled=true;peerApi={};peerBase={localId:draft.id,stage:'draft',revision:1,draft:C.clone(draft)};peerViewing=true;member={role:${q(role)}};viewCat=${q(id.split(':')[0])};screen='count';applyQty(${q(id)},'2.5');`);
@@ -95,4 +106,11 @@ test('no mapping is applied to unknown IDs or anonymous archived name records',(
  assert.equal(Flow.largeName({id:'unknown',name:'虾丸'}),'虾丸');
  assert.equal(Flow.largeName({name:'虾丸',alias:'虾丸'}),'虾丸');
  assert.equal(Flow.largeName(null),'');assert.equal(Flow.smallName(null),'');
+});
+
+test('분사 only finds vermicelli; ㅂㅅ still supports initial-consonant search',()=>{
+ const find=term=>source.products.filter(p=>S.matches(p,term,aliases.get(p.id))).map(p=>p.id);
+ assert.deepEqual(find('분사'),['cn:75']);
+ assert.ok(find('ㅂㅅ').includes('cn:75'));assert.ok(find('ㅂㅅ').includes('cn:34'));
+ assert.ok(!find('분사').includes('cn:22'));assert.ok(!find('분사').includes('cn:34'));assert.ok(!find('분사').includes('cn:35'));
 });
