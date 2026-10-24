@@ -62,8 +62,9 @@ test('production mode guards IDs and ignores clicks while entry is locked',async
 test('supplier export keeps category order, current quantities and units, excluding cancelled items despite filters',()=>{
  const h=harness();h.run(`buildSample('boss');order.quantities['cn:9']=3500;order.quantities['cn:5']=0;query='不存在';yellowOnly=true;`);
  const text=h.run(`blockText('cn')`);
- assert.match(text,/鸡精 3.5箱/);assert.doesNotMatch(text,/辣椒段|대파|탕용기/);
- const expected=h.run(`catalog().filter(p=>p.cat==='cn'&&order.quantities[p.id]>0).map(p=>p.name+' '+C.textQuantity(order.quantities[p.id])+order.units[p.id])`).join('\n');
+ assert.match(text,/치킨스톡 3.5箱/);assert.doesNotMatch(text,/건고추|辣椒段|대파|탕용기/);
+ const confirmed=new Map(require('./confirmed-names.json').map(([id,zh,ko])=>[id,ko]));
+ const expected=h.run(`catalog().filter(p=>p.cat==='cn'&&order.quantities[p.id]>0).map(p=>({id:p.id,name:p.name,tail:' '+C.textQuantity(order.quantities[p.id])+order.units[p.id]}))`).map(p=>(confirmed.get(p.id)||p.name)+p.tail).join('\n');
  assert.equal(text.split('\n').slice(1).join('\n'),expected);
 });
 test('supplier export requires saved finalized current cloud order and never marks it sent',async()=>{

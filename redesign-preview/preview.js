@@ -1237,7 +1237,7 @@ function buildSample(kind){
 }
 
 function blockText(cat){
- const rows=catalog().filter(p=>p.cat===cat&&Flow.showsOnOrder(qtyOf(p.id))).map(p=>({name:p.name,qty:String(qtyOf(p.id)),unit:(order?order.units[p.id]:draft?.items[p.id]?.unit||p.unit)||''}));
+ const rows=catalog().filter(p=>p.cat===cat&&Flow.showsOnOrder(qtyOf(p.id))).map(p=>({name:Flow.largeName(p),qty:String(qtyOf(p.id)),unit:(order?order.units[p.id]:draft?.items[p.id]?.unit||p.unit)||''}));
  const date=order?order.date:draft.date;
  return S.supplierText(date,rows)+(rows.length?'':'\n这次不订');
 }
