@@ -44,7 +44,7 @@ function device(options={}){
  if(options.noVibration)delete win.navigator.vibrate;
  if(options.readThrows)win.localStorage.getItem=()=>{throw Error('storage denied');};
  if(options.writeThrows)win.localStorage.setItem=()=>{throw Error('storage denied');};
- const feedback=Feedback.create(win,{key:'test-feedback'});
+ const feedback=Feedback.create(win,{key:'test-feedback',soundMuted:options.soundMuted});
  return {win,feedback,contexts,vibrations,storage,writes,advance(ms=50){clock+=ms;},finish(){for(const c of contexts)for(const n of c.nodes)n.end();}};
 }
 
@@ -219,4 +219,55 @@ test('API acceptance is only an attempt, not a promise that vibration hardware e
 test('cleanup exceptions never escape when the app hides or a preference is disabled',()=>{
  const d=device({stopThrows:true,closeThrows:true});d.feedback.set('sound',true);assert.doesNotThrow(()=>d.feedback.play(tap()));
  assert.doesNotThrow(()=>d.feedback.set('sound',false));assert.doesNotThrow(()=>d.feedback.stop());
+});
+
+test('speech ducking suppresses only click sounds and preserves vibration and settings',()=>{
+ const d=device({soundMuted:()=>true});d.feedback.set('sound',true);d.feedback.set('vibration',true);const writes=d.writes.length;
+ assert.equal(d.feedback.play(tap()),true);assert.equal(d.contexts.length,0);assert.deepEqual(d.vibrations,[8]);
+ assert.deepEqual(d.feedback.settings(),{sound:true,vibration:true});assert.equal(d.writes.length,writes);
+});
+
+test('temporarily muted taps never queue delayed click sounds after narration ends',()=>{
+ let muted=true;const d=device({soundMuted:()=>muted});d.feedback.set('sound',true);
+ for(let i=0;i<10;i++){d.feedback.play(tap());d.advance();}
+ assert.equal(d.contexts.length,0);muted=false;assert.equal(d.contexts.length,0);
+ assert.equal(d.feedback.play(tap()),true);assert.equal(d.contexts.length,1);assert.equal(d.contexts[0].nodes.length,1);
+});
+
+test('duckSound immediately releases a playing tone without closing its reusable context',()=>{
+ const d=device();d.feedback.set('sound',true);d.feedback.set('vibration',true);d.feedback.play(tap());
+ const c=d.contexts[0],n=c.nodes[0],gain=n.connected,writes=d.writes.length;
+ d.feedback.duckSound();assert.deepEqual(n.stopped,[10.03,undefined]);assert.equal(n.disconnects,1);assert.equal(gain.disconnects,1);
+ assert.equal(c.closeCalls,0);assert.deepEqual(d.vibrations,[8]);assert.equal(d.writes.length,writes);assert.deepEqual(d.feedback.settings(),{sound:true,vibration:true});
+ d.advance();d.feedback.play(tap());assert.equal(d.contexts.length,1);assert.equal(c.nodes.length,2);
+});
+
+test('speech errors or completion can unmute the next tone on the existing audio context',()=>{
+ let muted=false;const d=device({soundMuted:()=>muted});d.feedback.set('sound',true);d.feedback.play(tap());
+ muted=true;d.feedback.duckSound();d.advance();assert.equal(d.feedback.play(tap()),false);assert.equal(d.contexts[0].nodes.length,1);
+ muted=false;d.advance();assert.equal(d.feedback.play(tap()),true);assert.equal(d.contexts.length,1);assert.equal(d.contexts[0].nodes.length,2);
+});
+
+test('sound ducking while an audio resume is pending cannot replay the earlier tap',async()=>{
+ let muted=false;const wait=deferred(),d=device({initial:'suspended',resumePromise:wait.promise,soundMuted:()=>muted});
+ d.feedback.set('sound',true);d.feedback.play(tap());muted=true;d.feedback.duckSound();d.contexts[0].state='running';wait.resolve();await settle();
+ assert.equal(d.contexts[0].nodes.length,0);d.advance();assert.equal(d.feedback.play(tap()),false);assert.equal(d.contexts[0].nodes.length,0);
+ muted=false;d.advance();d.feedback.play(tap());assert.equal(d.contexts[0].nodes.length,1);
+});
+
+test('a failing speech mute callback cannot prevent normal feedback or the underlying app action',()=>{
+ const d=device({soundMuted(){throw Error('speech controller failed');}});d.feedback.set('sound',true);let action=false;
+ assert.doesNotThrow(()=>{d.feedback.play(tap());action=true;});assert.equal(action,true);assert.equal(d.contexts[0].nodes.length,1);
+});
+
+test('duckSound is safe before playback, after cleanup, and with a throwing oscillator stop',()=>{
+ const d=device({stopThrows:true});assert.doesNotThrow(()=>d.feedback.duckSound());d.feedback.set('sound',true);d.feedback.play(tap());
+ assert.doesNotThrow(()=>d.feedback.duckSound());assert.doesNotThrow(()=>d.feedback.duckSound());assert.doesNotThrow(()=>d.feedback.stop());
+ assert.equal(d.contexts[0].nodes[0].disconnects,1);assert.equal(d.feedback.settings().sound,true);
+});
+
+test('speech muting does not enable a click sound that the user explicitly disabled',()=>{
+ let muted=true;const d=device({soundMuted:()=>muted});d.feedback.set('vibration',true);d.feedback.play(tap());
+ muted=false;d.advance();d.feedback.play(tap());assert.equal(d.contexts.length,0);assert.deepEqual(d.vibrations,[8,8]);
+ assert.equal(d.feedback.settings().sound,false);
 });

@@ -48,6 +48,7 @@ h1{font-size:22px;margin:4px 0 8px}
 .cell{border:1px solid var(--line);background:transparent;border-radius:10px;padding:4px 4px 3px;text-align:center}
 .cell.on{border:3px solid var(--red);background:#fff;padding:2px 2px 1px}
 .cell b{display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1.15;word-break:break-all;min-height:1.15em}
+.key-selection{background:#cfe4ff;color:#123b65;border-radius:2px;box-shadow:0 0 0 1px #9dc5f3}
 .caret{display:inline-block;width:2px;height:1.05em;margin-left:1px;background:#bb1827;border-radius:1px;flex:none;animation:caret-blink 1.05s steps(1,end) infinite}
 @keyframes caret-blink{50%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.caret{animation:none;opacity:1}}
@@ -233,3 +234,8 @@ body.order-search .pad{bottom:0;padding-bottom:calc(8px + env(safe-area-inset-bo
 .search-privacy-note{margin:14px 0 6px;color:var(--muted);font-size:11px;line-height:1.4}
 .search-result-note{margin:10px 0;color:var(--muted);font-size:12px}
 @media(max-width:350px){.search-hot-grid{column-gap:7px}.search-hot-card{gap:4px;padding-left:0;padding-right:0}.search-local-badge{font-size:10px}.search-section-title h2{font-size:17px}}
+
+/* Speech targets use the existing name space; the keypad keeps its height. */
+.spoken-name{appearance:none;display:inline;margin:0;padding:0;border:0;border-radius:0;background:none;color:inherit;font:inherit;line-height:inherit;text-align:inherit;vertical-align:baseline;min-width:0;min-height:0}
+.spoken-name:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.speech-toggle{display:block;width:100%;margin:8px 0}

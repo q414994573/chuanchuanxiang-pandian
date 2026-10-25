@@ -11,10 +11,11 @@ const output=process.env.CCX_FEEDBACK_OUTPUT||`/tmp/ccx-feedback-browser/${engin
 fs.mkdirSync(output,{recursive:true});
 // Reuse its actual source/styling fixture without running its existing cases.
 // Unlike that runner, a setup must preserve the feedback device preference.
-const existing=fs.readFileSync(path.join(__dirname,'mobile-workflow.browser.cjs'),'utf8');
+const fixtureRunner=path.join(__dirname,'mobile-workflow.browser.cjs');
+const existing=fs.readFileSync(fixtureRunner,'utf8');
 const prefix=existing.slice(0,existing.indexOf('(async()=>{')).replace('localStorage.clear();','localStorage.removeItem(KEY);');
-const {html}=Function('require','__dirname','process',prefix+'\nreturn {html};')(require,__dirname,process);
-const report={engine,cases:[],errors:[],limitations:['No real iPhone system audio or hardware vibration measurement','No real clipboard/share delivery or production Firebase access']};
+const {html,sourceHashes}=Function('require','__dirname','__filename','process',prefix+'\nreturn {html,sourceHashes:report.sourceHashes};')(require,__dirname,fixtureRunner,process);
+const report={engine,sourceHashes:{...sourceHashes,fixtureRunner:sourceHashes.runner,runner:require('node:crypto').createHash('sha256').update(fs.readFileSync(__filename)).digest('hex')},cases:[],errors:[],limitations:['No real iPhone system audio or hardware vibration measurement','No real clipboard/share delivery or production Firebase access']};
 const settle=page=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
 const metrics=page=>page.evaluate(()=>({created:window.__audio.created,started:window.__audio.started,resumes:window.__audio.resumes,closed:window.__audio.closed,states:window.__audio.contexts.map(x=>x.state),deliveries:window.__audio.deliveries,clicks:window.__audio.clicks}));
 async function runCase(name,fn){try{report.cases.push({name,pass:true,...(await fn()||{})});}catch(e){report.cases.push({name,pass:false,error:e.message});console.error('FAIL',name,e.message);}}
