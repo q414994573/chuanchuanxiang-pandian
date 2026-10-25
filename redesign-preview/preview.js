@@ -29,6 +29,7 @@ let user=null,member=null,auth,db,api=null,order=null,baseQty={},baseUnits={},st
 let query='',status='正在准备…',sample=false,demoRole=null,busy=false,orderDirty=false,editId=null,editSnap=null,editRaw=null;
 let undo=null,heldPrev={},ack={},yellowOn=true,yellowOnly=false,archives=[],cloudTimer=null,cloudPending=false,morePane='';
 let searchScroll=null,searchCat=null,wantFind=false,skipActUntil=0;
+let searchCatalogKey=null,searchAliasKey=null,searchIndex=null,searchQuery=null,searchResult=null;
 let rowTap=null;
 let editField='qty';
 let localSaveFailed=false;
@@ -273,6 +274,15 @@ function isOwner(){if(demoRole)return demoRole==='owner';if(member)return member
 function canCount(){return peerEnabled?(sample?!!demoRole:!!member&&['owner','editor'].includes(member.role)):isOwner();}
 function aliasesOf(p){return aliasById.get(p.id)||[];}
 function catalog(){if(order)return JSON.parse(order.snapshot).catalog;if(draft)return draft.catalog;return source.products.map(p=>({id:p.id,name:p.name,alias:p.alias||'',cat:p.cat,category:p.category,hasStock:!!p.hasStock,unit:p.unit||'',referenceStock:p.stock,referenceOrder:p.order}));}
+function matchesSearch(p){
+ if(!query)return true;
+ const key=order?order.snapshot:(draft?draft.catalog:source.products);
+ if(!searchIndex||searchCatalogKey!==key||searchAliasKey!==aliasById){
+  searchIndex=S.createIndex(catalog(),aliasesOf);searchCatalogKey=key;searchAliasKey=aliasById;searchQuery=null;
+ }
+ if(searchQuery!==query){searchResult=searchIndex.find(query);searchQuery=query;}
+ return searchResult.has(p.id);
+}
 function product(id){return catalog().find(p=>p.id===id);}
 function deferred(id){return !!(!order&&draft?.deferred?.[id]);}
 function deferredBadge(id){return deferred(id)?'<span class="tag deferred-tag">待定</span>':'';}
@@ -611,7 +621,7 @@ function finishTyping(){
 }
 function countNavigationCells(){
  if(!draft||draft.status!=='draft')return [];
- return draft.catalog.flatMap((p,i)=>Flow.catOf(p)===viewCat&&S.matches(p,query,aliasesOf(p))?Flow.countFields(p).map(which=>({id:p.id,i,which})):[]);
+ return draft.catalog.flatMap((p,i)=>Flow.catOf(p)===viewCat&&matchesSearch(p)?Flow.countFields(p).map(which=>({id:p.id,i,which})):[]);
 }
 function nextCell(direction=1){
  if(!draft||draft.status!=='draft')return;
@@ -960,7 +970,7 @@ function rememberSearchOrigin(){
 }
 function followSearchCat(){
  if(screen!=='count'||(!draft&&!sharedCount())||!query)return;
- const next=Flow.searchCatChoice(Flow.searchHitCounts(sharedCount()?catalog():draft.catalog,p=>S.matches(p,query,aliasesOf(p))),viewCat);
+ const next=Flow.searchCatChoice(Flow.searchHitCounts(sharedCount()?catalog():draft.catalog,matchesSearch),viewCat);
  if(next===viewCat)return;
  if(keypad||textMode){
   if(textMode)readPlain();
@@ -1052,14 +1062,14 @@ function countColumns(){return `<div class="count-columns"><span>商品</span><s
 function peerLoginHtml(){return `<div class="card"><h1>登录后共同盘货</h1><p>两个账号使用同一份当前盘货，都可以定稿和解除定稿。</p><p>${E(status)}</p><button class="primary" type="button" data-act="tab" data-tab="more">去登录</button></div>`;}
 function countHtml(){
  if(peerEnabled&&!sample&&!canCount())return peerLoginHtml();
- if(sharedCount())return `<div class="bar">${pinnedStatusHtml()}${textBar()}<div class="cats">${catButtonsHtml()}</div>${searchBar('搜中文、韩文，或开头辅音')}${countColumns()}</div><div id="rows">${countRows()}</div>${keypad&&editId&&!textMode?orderPad():''}${dockHtml()}`;
+ if(sharedCount())return `<div class="bar">${pinnedStatusHtml()}${textBar()}<div class="cats">${catButtonsHtml()}</div>${searchBar('可连搜多种：大葱腐竹虾丸')}${countColumns()}</div><div id="rows">${countRows()}</div>${keypad&&editId&&!textMode?orderPad():''}${dockHtml()}`;
  if(!canCount())return `<div class="card"><h1>请先打开订单</h1><p>打开已提交订单后，定稿前双方都可以修改库存和订货数量。</p><button class="primary" type="button" data-act="goto-order">去订单</button></div>`;
  try{ensureDraft();}catch(e){toast(e.message);}
  if(!draft)return `<div class="card">${backupStatusHtml()}<p>原内容仍保留。请下载备份后再处理，不要清除网站数据。</p></div>`;
- return `<div class="bar">${pinnedStatusHtml()}${countNotice()}<div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看订单':'下一个没盘的'}</button>${searchBar('搜中文、韩文，或开头辅音')}${countColumns()}</div><div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
+ return `<div class="bar">${pinnedStatusHtml()}${countNotice()}<div class="cats">${catButtonsHtml()}</div>${textBar()}<button class="gap ${allSeen()?'primary':''}" type="button" data-act="next-gap">${allSeen()?'看订单':'下一个没盘的'}</button>${searchBar('可连搜多种：大葱腐竹虾丸')}${countColumns()}</div><div id="rows">${countRows()}</div>${keypad&&!textMode?countPad():''}`;
 }
 function catButtonsHtml(){
- const counts=query&&(draft||sharedCount())?Flow.searchHitCounts(sharedCount()?catalog():draft.catalog,p=>S.matches(p,query,aliasesOf(p))):null;
+ const counts=query&&(draft||sharedCount())?Flow.searchHitCounts(sharedCount()?catalog():draft.catalog,matchesSearch):null;
  return CATS.map(([cat,short])=>{
   const n=counts&&cat!==viewCat?(counts[cat]||0):0;
   return `<button type="button" data-act="jumpcat" data-cat="${cat}" class="${viewCat===cat?'on':''}">${short} ${sharedCount()?catalog().filter(p=>Flow.catOf(p)===cat).length:seenIn(cat)}/${sharedCount()?catalog().filter(p=>Flow.catOf(p)===cat).length:totalIn(cat)}${n?`<small class="found">搜到${n}</small>`:''}</button>`;
@@ -1081,7 +1091,7 @@ function countCell(p,i,which){
 function countRows(){
  if(sharedCount())return searchHits(true);
  let html='',n=0;
- const shown=Flow.visibleCountIndexes(draft.catalog,viewCat,p=>S.matches(p,query,aliasesOf(p)),keypad?pos:-1);
+ const shown=Flow.visibleCountIndexes(draft.catalog,viewCat,matchesSearch,keypad?pos:-1);
  for(const i of shown){
   const p=draft.catalog[i];
   n++;
@@ -1133,7 +1143,7 @@ function orderCats(){
  }).join('')}</div>`;
 }
 function orderShell(head,dock){
- return `<div class="bar">${pinnedStatusHtml(head)}${yellowBanner()}${textBar()}${orderCats()}${searchBar('搜全部129种，用来补订或看库存')}</div><div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
+ return `<div class="bar">${pinnedStatusHtml(head)}${yellowBanner()}${textBar()}${orderCats()}${searchBar('搜全部129种，可连续输入多个商品')}</div><div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
 }
 function orderPane(){
  const mine=warnings().filter(p=>Flow.catOf(p)===orderCat);
@@ -1185,7 +1195,7 @@ function blockHtml(cat){
  return `<div class="card"><p class="muted order-export-note">${exportNote}</p><div class="order-actions" role="group" aria-label="本类订货文字操作"><button class="ghost" type="button" data-act="copy" data-cat="${cat}" aria-label="复制本类订货文字" ${exportDisabled?'disabled':''}>复制本类</button><button class="ghost" type="button" data-act="share" data-cat="${cat}" aria-label="分享本类订货文字" ${exportDisabled?'disabled':''}>分享本类</button><button class="ghost" type="button" data-act="preview" data-cat="${cat}" aria-label="查看本类订货文字" ${exportDisabled?'disabled':''}>查看文字</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
 }
 function searchHits(countView=false){
- return catalog().filter(p=>(!countView||Flow.catOf(p)===viewCat)&&S.matches(p,query,aliasesOf(p))).map((p,i)=>{
+ return catalog().filter(p=>(!countView||Flow.catOf(p)===viewCat)&&matchesSearch(p)).map((p,i)=>{
   const cat=CATS.find(c=>c[0]===Flow.catOf(p));
   const stock=p.hasStock?searchInput(p,'stock'):'';
   const change=bossChanges().find(c=>c.id===p.id);
@@ -1473,7 +1483,7 @@ function closePad(){
 }
 function orderNavigationCells(){
  if(order?.orderStage==='finalized')return [];
- if(query||(screen==='count'&&sharedCount()))return catalog().filter(p=>(screen!=='count'||Flow.catOf(p)===viewCat)&&S.matches(p,query,aliasesOf(p))).flatMap(p=>{
+ if(query||(screen==='count'&&sharedCount()))return catalog().filter(p=>(screen!=='count'||Flow.catOf(p)===viewCat)&&matchesSearch(p)).flatMap(p=>{
   const fields=canEditStock(p)&&(!order||screen==='count')?['stock','qty']:['qty'];
   return fields.map(which=>({id:p.id,which}));
  });

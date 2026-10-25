@@ -1,0 +1,825 @@
+{
+  "version": "20261026-v46",
+  "baseRemoteCommit": "cc4f4aa696c3d8083946985204352291e993d3a5",
+  "baseLocalCommit": "04bebd875e844a1798fce894ce57abd5accd2bb0",
+  "node": {
+    "tests": 1524.0,
+    "pass": 1524.0,
+    "fail": 0.0,
+    "cancelled": 0.0,
+    "skipped": 0.0,
+    "duration_ms": 21199.240116
+  },
+  "newNodeCasesIncluded": 166,
+  "browserFlows": 132,
+  "browserReports": [
+    {
+      "suite": "existing-mobile-workflow",
+      "engine": "chromium",
+      "browserVersion": "141.0.7390.37",
+      "sourceHashes": null,
+      "passed": 24,
+      "failed": 0,
+      "errors": [],
+      "cases": [
+        {
+          "name": "430px owner search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "430px owner preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px owner search with preview above sticky header and small viewport",
+          "pass": true,
+          "inputIdentityPreserved": true
+        },
+        {
+          "name": "430px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "430px editor search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "430px editor preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px editor search with preview above sticky header and small viewport",
+          "pass": true,
+          "inputIdentityPreserved": true
+        },
+        {
+          "name": "430px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px owner search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "375px owner preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px owner search with preview above sticky header and small viewport",
+          "pass": true,
+          "inputIdentityPreserved": true
+        },
+        {
+          "name": "375px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px editor search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "375px editor preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px editor search with preview above sticky header and small viewport",
+          "pass": true,
+          "inputIdentityPreserved": true
+        },
+        {
+          "name": "375px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft count has new stock units and beverage tab",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "suite": "existing-mobile-workflow",
+      "engine": "webkit",
+      "browserVersion": "26.0",
+      "sourceHashes": null,
+      "passed": 24,
+      "failed": 0,
+      "errors": [],
+      "cases": [
+        {
+          "name": "430px owner search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "430px owner preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px owner search with preview above sticky header and small viewport",
+          "pass": true,
+          "inputIdentityPreserved": true
+        },
+        {
+          "name": "430px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "430px editor search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "430px editor preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px editor search with preview above sticky header and small viewport",
+          "pass": true,
+          "inputIdentityPreserved": true
+        },
+        {
+          "name": "430px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px owner search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "375px owner preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px owner search with preview above sticky header and small viewport",
+          "pass": true,
+          "inputIdentityPreserved": true
+        },
+        {
+          "name": "375px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px editor search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "375px editor preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px editor search with preview above sticky header and small viewport",
+          "pass": true,
+          "inputIdentityPreserved": true
+        },
+        {
+          "name": "375px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft count has new stock units and beverage tab",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "suite": "multi-product-search",
+      "engine": "chromium",
+      "browserVersion": "141.0.7390.37",
+      "sourceHashes": {
+        "preview": "5af3cc81c6397256398b31cf991135c361a49b0c90f36b20eaea928e9f3b0656",
+        "search": "91618c453cd72f6cf610eed708da0e058e7ee43f5bae5e1be961c120ab55c3ec",
+        "css": "9e28077de31f26d81ced88aa6454e44294178022e1ad23295d277940ff5d0268",
+        "runner": "d564e887ed8892b6013e55310c9eb23b88e8f302a28c8564ad3ece7f021f77b7"
+      },
+      "passed": 42,
+      "failed": 0,
+      "errors": [],
+      "cases": [
+        {
+          "name": "430px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 45,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 58,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 58,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 45,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 44,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 46,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 45,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 49,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 47,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 48,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 46,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 45,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        }
+      ]
+    },
+    {
+      "suite": "multi-product-search",
+      "engine": "webkit",
+      "browserVersion": "26.0",
+      "sourceHashes": {
+        "preview": "5af3cc81c6397256398b31cf991135c361a49b0c90f36b20eaea928e9f3b0656",
+        "search": "91618c453cd72f6cf610eed708da0e058e7ee43f5bae5e1be961c120ab55c3ec",
+        "css": "9e28077de31f26d81ced88aa6454e44294178022e1ad23295d277940ff5d0268",
+        "runner": "d564e887ed8892b6013e55310c9eb23b88e8f302a28c8564ad3ece7f021f77b7"
+      },
+      "passed": 42,
+      "failed": 0,
+      "errors": [],
+      "cases": [
+        {
+          "name": "430px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 127,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 85,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 79,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 77,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 90,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 79,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 76,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 90,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 93,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 79,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 81,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor draft count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true,
+          "variants": 19,
+          "inputIdentityPreserved": true,
+          "compositionDispatchRetained": true,
+          "maxInputRoundTripMs": 79,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor finalized count categories and keyboard navigation share the multi-query result set",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true,
+          "readOnly": true,
+          "networkReads": 0
+        }
+      ]
+    }
+  ],
+  "hashes": {
+    "ordering/index.html": "ef2ab956af3847658a13514c1d49fc90f6e950c38c9e5d9f80485ac1abaeabfd",
+    "redesign-preview/index.html": "b2864de2e90490ca00088968c2ac6d6892dc5ef34159c96eddaeb25612242462",
+    "redesign-preview/preview.js": "5af3cc81c6397256398b31cf991135c361a49b0c90f36b20eaea928e9f3b0656",
+    "redesign-preview/search.cjs": "91618c453cd72f6cf610eed708da0e058e7ee43f5bae5e1be961c120ab55c3ec",
+    "redesign-preview/preview.bundle.js": "d3e4dc2330f8f17332070982a47cd402833445f46ca716ca0aaa842e9c1d1910",
+    "tests/multi-product-search.test.cjs": "6d9330a60e8fcc776ebc15726cf6a68a45e07817dd0fc1c9c58df41f6549e35d",
+    "tests/multi-search.browser.cjs": "d564e887ed8892b6013e55310c9eb23b88e8f302a28c8564ad3ece7f021f77b7"
+  },
+  "limitations": [
+    "Browser scripts use isolated fictional orders and block all external requests; no production order writes.",
+    "Synthetic composition dispatch is not physical iPhone IME verification.",
+    "Input round-trip timings include automation and animation frames; they are not algorithm-only or real-device latency promises.",
+    "Delimiter-free input can have genuine lexical ambiguity, e.g. 芝麻油豆腐; explicit separators disambiguate requested words.",
+    "Existing partial-name matching can intentionally include several related products.",
+    "Previous native-audio, layout-only, and cloud-emulator suites were not rerun or counted for this search change.",
+    "Adversarial review comparisons are not included in the formal test counts."
+  ]
+}
