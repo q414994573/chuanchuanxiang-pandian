@@ -27,6 +27,8 @@ const aliases=JSON.parse(fs.readFileSync(path.join(sourceDir,'redesign-preview/a
 const expose=`
 window.__ccx={copied:[],shared:[],reads:0,
  setup(role='owner',mode='finalized'){
+  if(typeof orderSearchOpen!=='undefined')orderSearchOpen=false;
+  if(typeof searchActivity!=='undefined')searchActivity.clear();
   clearTimeout(cloudTimer);clearTimeout(orderTimer);localStorage.clear();lastLocalRaw=null;
   source=${JSON.stringify(fixture)};aliasById=new Map(${JSON.stringify(aliases.items)}.map(x=>[x.id,x.aliases]));
   releaseLocked=false;configFailed=false;sample=false;demoRole=null;peerEnabled=true;peerViewing=true;
@@ -59,9 +61,11 @@ window.__ccx={copied:[],shared:[],reads:0,
 const js=esbuild.buildSync({stdin:{contents:core+imports+stripped+expose,resolveDir:sourceDir,sourcefile:'isolated-mobile-fixture.js'},bundle:true,format:'iife',write:false}).outputFiles[0].text;
 const css=fs.readFileSync(path.join(sourceDir,'redesign-preview/preview.css'),'utf8');
 const html=`<!doctype html><html lang="zh-CN" data-order-mode="production"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>${css}</style></head><body><div class="banner">川川香 · 订货总控台<small>共同盘货、实时同步、双方定稿</small></div><div id="app"></div><nav class="tabs"><button data-act="tab" data-tab="count">盘货</button><button data-act="tab" data-tab="order">订单</button><button data-act="tab" data-tab="more">更多</button></nav><div id="toast" role="status"></div><script>${js.replace(/<\/script/gi,'<\\/script')}</script></body></html>`;
-const report={baseline,source:sourceDir,engine:process.env.CCX_BROWSER_ENGINE||'chromium',cases:[],errors:[]};
+const hash=value=>require('node:crypto').createHash('sha256').update(value).digest('hex');
+const report={baseline,source:sourceDir,engine:process.env.CCX_BROWSER_ENGINE||'chromium',sourceHashes:{preview:hash(raw),search:hash(fs.readFileSync(path.join(sourceDir,'redesign-preview/search.cjs'))),...(fs.existsSync(path.join(sourceDir,'redesign-preview/search-activity.cjs'))?{activity:hash(fs.readFileSync(path.join(sourceDir,'redesign-preview/search-activity.cjs')))}:{}),css:hash(css),runner:hash(fs.readFileSync(__filename))},cases:[],errors:[]};
 const settle=page=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
 async function geometry(page){return page.evaluate(()=>{const rect=s=>{const r=document.querySelector(s)?.getBoundingClientRect();return r?{top:r.top,bottom:r.bottom,height:r.height}:null;},r=rect('#rows'),b=rect('.bar'),f=rect('#rows .search-hit');return {scrollY,rowsTop:r?.top,barBottom:b?.bottom,firstTop:f?.top,firstBottom:f?.bottom,height:innerHeight,width:innerWidth,scrollWidth:document.documentElement.scrollWidth,activeElement:document.activeElement?.id,visualViewport:window.visualViewport?{offsetTop:visualViewport.offsetTop,height:visualViewport.height,scale:visualViewport.scale}:null,banner:rect('.banner'),bar:b,rows:r,first:f,input:rect('#find'),app:rect('#app'),appPadding:getComputedStyle(document.querySelector('#app')).padding,bodyHeight:document.body.scrollHeight,documentHeight:document.documentElement.scrollHeight};});}
+async function openSearch(page){const entry=page.locator('[data-act="open-order-search"]');if(await entry.count()){await entry.click();await settle(page);}}
 async function runCase(name,fn){try{const detail=await fn();report.cases.push({name,pass:true,...(detail||{})});}catch(e){report.cases.push({name,pass:false,error:e.message});if(!baseline)console.error('FAIL',name,e.message);}}
 (async()=>{
  const browser=await playwright[process.env.CCX_BROWSER_ENGINE||'chromium'].launch({headless:true});
@@ -78,7 +82,7 @@ async function runCase(name,fn){try{const detail=await fn();report.cases.push({n
     await page.locator('[data-act="ordercat"][data-cat="cn"]').click();await settle(page);
     await page.evaluate(()=>window.scrollTo(0,1200));await settle(page);
     const origin=await page.evaluate(()=>scrollY);
-    const before=await geometry(page);await page.locator('#find').fill('腐竹');await settle(page);
+    const before=await geometry(page);await openSearch(page);await page.locator('#find').fill('腐竹');await settle(page);
     const g=await geometry(page);fs.writeFileSync(path.join(outputDir,`${baseline?'baseline':'fixed'}-${width}-${role}-search-geometry.json`),JSON.stringify({before,after:g},null,2));await page.screenshot({path:path.join(outputDir,`${baseline?'baseline':'fixed'}-${width}-${role}-search.png`)});
     assert.ok(g.firstTop>=g.barBottom-2&&g.firstBottom<=g.height-5,JSON.stringify(g));
     assert.equal(await page.evaluate(()=>window.__ccx.state().searchScroll),origin);
@@ -122,7 +126,7 @@ async function runCase(name,fn){try{const detail=await fn();report.cases.push({n
      await page.locator('[data-act="ordercat"][data-cat="cn"]').click();await settle(page);
      await page.evaluate(()=>window.scrollTo(0,1400));await settle(page);
      await page.setViewportSize({width,height:530});await settle(page);
-     await page.locator('#find').fill('腐竹');await settle(page);
+     await openSearch(page);await page.locator('#find').fill('腐竹');await settle(page);
      const g=await geometry(page);assert.ok(g.firstTop>=g.barBottom-2&&g.firstBottom<=g.height-4,JSON.stringify(g));
      assert.ok(g.scrollWidth<=width+1,'no horizontal overflow');
      const sameInput=await page.locator('#find').evaluate(el=>{el.dataset.testIdentity='same';return el.dataset.testIdentity;});

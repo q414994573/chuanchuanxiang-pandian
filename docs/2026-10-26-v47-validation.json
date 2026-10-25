@@ -1,0 +1,3269 @@
+{
+  "version": "v47",
+  "date": "2026-10-26",
+  "base_remote_commit": "b8ab6d4293cf0605d807103b04526af1323911be",
+  "source_paths": {
+    "preview": "redesign-preview/preview.js",
+    "search": "redesign-preview/search.cjs",
+    "activity": "redesign-preview/search-activity.cjs",
+    "css": "redesign-preview/preview.css",
+    "bundle": "redesign-preview/preview.bundle.js"
+  },
+  "source_sha256": {
+    "preview": "adeb827666e468c2df6b741488047fb2439249ae99660d6bb27b403ee9356fa2",
+    "search": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+    "activity": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+    "css": "70988f2d92482b1d27ce3496cb2df1aa40c4949620b746f5d2d46eb4c2bbf040",
+    "bundle": "97c6b383d85dd3ec5da59898053bc069892839840a704d6d9d19933ced8a406e"
+  },
+  "build": "npm run build:preview; node --check redesign-preview/preview.bundle.js; git diff --check",
+  "node": {
+    "command": "node --test --test-isolation=none --test-reporter=tap tests/*.test.cjs",
+    "metrics": {
+      "tests": 1618,
+      "pass": 1618,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 21302.263101
+    },
+    "new_activity_cases": 52,
+    "new_hub_integration_cases": 42,
+    "tap_sha256": "5b11b6323dec49b6f68831157c2d5d4f65579f59d1dde06f65c15ee28be13078"
+  },
+  "browser": {
+    "passed": 282,
+    "failed": 0,
+    "page_errors": 0,
+    "unexpected_requests": 0,
+    "reports": [
+      {
+        "suite": "hub",
+        "source": "/workspace/scratch/f810a28c8e7e/chuanchuanxiang-v41",
+        "engine": "chromium",
+        "sourceHashes": {
+          "preview": "adeb827666e468c2df6b741488047fb2439249ae99660d6bb27b403ee9356fa2",
+          "search": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+          "activity": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+          "css": "70988f2d92482b1d27ce3496cb2df1aa40c4949620b746f5d2d46eb4c2bbf040",
+          "runner": "b545cbc83c28a1a9889eb01e213cf5b213bf0e5e6a731511be47fc2f27e40373"
+        },
+        "cases": [
+          {
+            "name": "430px owner draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 430,
+              "height": 932,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px owner draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 430,
+              "height": 530,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px owner draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 430,
+              "height": 932,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px owner finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 430,
+              "height": 530,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px owner finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 430,
+              "height": 932,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px editor draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 430,
+              "height": 530,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px editor draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 430,
+              "height": 932,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px editor finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 430,
+              "height": 530,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px editor finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 375,
+              "height": 932,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px owner draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 375,
+              "height": 530,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px owner draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 375,
+              "height": 932,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px owner finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 375,
+              "height": 530,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px owner finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 375,
+              "height": 932,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px editor draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 375,
+              "height": 530,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px editor draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 375,
+              "height": 932,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px editor finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 375,
+              "height": 530,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px editor finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 320,
+              "height": 932,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px owner draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 320,
+              "height": 530,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px owner draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 320,
+              "height": 932,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px owner finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 320,
+              "height": 530,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px owner finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 320,
+              "height": 932,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px editor draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 320,
+              "height": 530,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px editor draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 320,
+              "height": 932,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px editor finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 320,
+              "height": 530,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px editor finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "local search history survives reload and the same rules apply after account handoff",
+            "pass": true,
+            "persists": true,
+            "sameDeviceAccountHandoff": true
+          },
+          {
+            "name": "clear history honors cancel and confirm, safely renders unmatched text and never mutates order",
+            "pass": true,
+            "cancelRespected": true,
+            "historyAndHeatCleared": true,
+            "escapedText": true,
+            "longQuerySafe": true
+          },
+          {
+            "name": "denied search storage keeps searching and session history usable",
+            "pass": true,
+            "blockedStorageHandled": true,
+            "sessionHistoryUsable": true
+          }
+        ],
+        "errors": [],
+        "browserVersion": "141.0.7390.37",
+        "passed": 51,
+        "failed": 0,
+        "raw_report_sha256": "6ab2bccbd862fbab998522ee8fb9e14ed28dd2eb2818a040a1e693a774ed27de",
+        "case_detail": "Case names, outcomes and scalar measurements retained; bulky per-row geometry omitted. Raw report fingerprint above."
+      },
+      {
+        "suite": "hub",
+        "source": "/workspace/scratch/f810a28c8e7e/chuanchuanxiang-v41",
+        "engine": "webkit",
+        "sourceHashes": {
+          "preview": "adeb827666e468c2df6b741488047fb2439249ae99660d6bb27b403ee9356fa2",
+          "search": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+          "activity": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+          "css": "70988f2d92482b1d27ce3496cb2df1aa40c4949620b746f5d2d46eb4c2bbf040",
+          "runner": "b545cbc83c28a1a9889eb01e213cf5b213bf0e5e6a731511be47fc2f27e40373"
+        },
+        "cases": [
+          {
+            "name": "430px owner draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 430,
+              "height": 932,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px owner draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 430,
+              "height": 530,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px owner draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 430,
+              "height": 932,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px owner finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 430,
+              "height": 530,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px owner finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 430,
+              "height": 932,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px editor draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 430,
+              "height": 530,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px editor draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 430,
+              "height": 932,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px editor finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 430,
+              "height": 530,
+              "scrollWidth": 430,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "430px editor finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 375,
+              "height": 932,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px owner draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 375,
+              "height": 530,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px owner draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 375,
+              "height": 932,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px owner finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 375,
+              "height": 530,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px owner finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 375,
+              "height": 932,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px editor draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 375,
+              "height": 530,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px editor draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 375,
+              "height": 932,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px editor finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 375,
+              "height": 530,
+              "scrollWidth": 375,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "375px editor finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 320,
+              "height": 932,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px owner draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 320,
+              "height": 530,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px owner draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 320,
+              "height": 932,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px owner finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 320,
+              "height": 530,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px owner finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor draft dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 320,
+              "height": 932,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px editor draft confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor draft input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 320,
+              "height": 530,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px editor draft quantity edit keeps search then returns to order",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor finalized dedicated entry, honest cold recommendations, current values and back to deep order",
+            "pass": true,
+            "origin": 1200,
+            "networkReads": 0,
+            "geometry": {
+              "width": 320,
+              "height": 932,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px editor finalized confirmed multi-search, history recall and heat use current independent units",
+            "pass": true,
+            "blankInventoryDistinctFromZero": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor finalized input identity, composition and reduced keyboard space survive result updates",
+            "pass": true,
+            "nativeInputRetained": true,
+            "syntheticCompositionChecked": true,
+            "compositionClearAndBackSafe": true,
+            "geometry": {
+              "width": 320,
+              "height": 530,
+              "scrollWidth": 320,
+              "scrollY": 0
+            }
+          },
+          {
+            "name": "320px editor finalized finalized hot/results stay read-only",
+            "pass": true,
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "local search history survives reload and the same rules apply after account handoff",
+            "pass": true,
+            "persists": true,
+            "sameDeviceAccountHandoff": true
+          },
+          {
+            "name": "clear history honors cancel and confirm, safely renders unmatched text and never mutates order",
+            "pass": true,
+            "cancelRespected": true,
+            "historyAndHeatCleared": true,
+            "escapedText": true,
+            "longQuerySafe": true
+          },
+          {
+            "name": "denied search storage keeps searching and session history usable",
+            "pass": true,
+            "blockedStorageHandled": true,
+            "sessionHistoryUsable": true
+          }
+        ],
+        "errors": [],
+        "browserVersion": "26.0",
+        "passed": 51,
+        "failed": 0,
+        "raw_report_sha256": "c23fa07c7a1c0a9945736927ee7d87af815200f55ba78ab7da3f6308d7408bc1",
+        "case_detail": "Case names, outcomes and scalar measurements retained; bulky per-row geometry omitted. Raw report fingerprint above."
+      },
+      {
+        "suite": "multi",
+        "source": "/workspace/scratch/f810a28c8e7e/chuanchuanxiang-v41",
+        "engine": "chromium",
+        "sourceHashes": {
+          "preview": "adeb827666e468c2df6b741488047fb2439249ae99660d6bb27b403ee9356fa2",
+          "search": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+          "activity": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+          "css": "70988f2d92482b1d27ce3496cb2df1aa40c4949620b746f5d2d46eb4c2bbf040",
+          "runner": "4963d6bf978e0da702af3f0a188dfad970c047ae2a03286ea1b48466b0920c23"
+        },
+        "cases": [
+          {
+            "name": "430px owner draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 45,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px owner draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 48,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px owner finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 44,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px editor draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 63,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px editor finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 58,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px owner draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 57,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px owner finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 51,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px editor draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 60,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px editor finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 46,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px owner draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 46,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px owner finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 44,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px editor draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 45,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px editor finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          }
+        ],
+        "errors": [],
+        "browserVersion": "141.0.7390.37",
+        "passed": 42,
+        "failed": 0,
+        "raw_report_sha256": "0dc6ba17bcf34c3740c2226c052bbce3328461c325479af9aaeb13d1a0669635",
+        "case_detail": "Case names, outcomes and scalar measurements retained; bulky per-row geometry omitted. Raw report fingerprint above."
+      },
+      {
+        "suite": "multi",
+        "source": "/workspace/scratch/f810a28c8e7e/chuanchuanxiang-v41",
+        "engine": "webkit",
+        "sourceHashes": {
+          "preview": "adeb827666e468c2df6b741488047fb2439249ae99660d6bb27b403ee9356fa2",
+          "search": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+          "activity": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+          "css": "70988f2d92482b1d27ce3496cb2df1aa40c4949620b746f5d2d46eb4c2bbf040",
+          "runner": "4963d6bf978e0da702af3f0a188dfad970c047ae2a03286ea1b48466b0920c23"
+        },
+        "cases": [
+          {
+            "name": "430px owner draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 61,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px owner draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 65,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px owner finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 79,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px editor draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 108,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px editor finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 81,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px owner draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 110,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px owner finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 85,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px editor draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 58,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px editor finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 63,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px owner draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 79,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px owner finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor draft order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 64,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor draft count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px editor draft order quantity edits keep multi-search and move only through matching cells",
+            "pass": true,
+            "editedId": "kr:7",
+            "quantity": "12",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor draft count inventory edits retain two matching products and skip other goods",
+            "pass": true,
+            "editedId": "cn:33",
+            "stock": "7",
+            "nextId": "cn:64",
+            "queryPreserved": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor finalized order multi-name query variants, stable input and original scroll",
+            "pass": true,
+            "variants": 19,
+            "inputIdentityPreserved": true,
+            "compositionDispatchRetained": true,
+            "maxInputRoundTripMs": 79,
+            "networkReads": 0
+          },
+          {
+            "name": "320px editor finalized count categories and keyboard navigation share the multi-query result set",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px editor finalized finalized multi-search cannot unlock stock or order quantities",
+            "pass": true,
+            "readOnly": true,
+            "networkReads": 0
+          }
+        ],
+        "errors": [],
+        "browserVersion": "26.0",
+        "passed": 42,
+        "failed": 0,
+        "raw_report_sha256": "37125ba80656e8c5ae09f47025d8b7c75daabf22bdb2b53312d54b5f30f7dca5",
+        "case_detail": "Case names, outcomes and scalar measurements retained; bulky per-row geometry omitted. Raw report fingerprint above."
+      },
+      {
+        "suite": "workflow",
+        "baseline": false,
+        "source": "/workspace/scratch/f810a28c8e7e/chuanchuanxiang-v41",
+        "engine": "chromium",
+        "sourceHashes": {
+          "preview": "adeb827666e468c2df6b741488047fb2439249ae99660d6bb27b403ee9356fa2",
+          "search": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+          "activity": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+          "css": "70988f2d92482b1d27ce3496cb2df1aa40c4949620b746f5d2d46eb4c2bbf040",
+          "runner": "91401651640e6fb5d6598c50cda70d8dccfc836a929e3c24a4c7d7c595252a43"
+        },
+        "cases": [
+          {
+            "name": "430px owner search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115.78125,
+              "barBottom": 105.78125,
+              "firstTop": 141.96875,
+              "firstBottom": 212.875,
+              "height": 932,
+              "width": 430,
+              "scrollWidth": 430,
+              "bodyHeight": 1836,
+              "documentHeight": 1836
+            }
+          },
+          {
+            "name": "430px owner preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "noQuantityChanges": true
+          },
+          {
+            "name": "430px owner search with preview above sticky header and small viewport",
+            "pass": true,
+            "inputIdentityPreserved": true,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115.78125,
+              "barBottom": 105.78125,
+              "firstTop": 141.96875,
+              "firstBottom": 212.875,
+              "height": 530,
+              "width": 430,
+              "scrollWidth": 430,
+              "bodyHeight": 1032,
+              "documentHeight": 1032
+            }
+          },
+          {
+            "name": "430px owner empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "430px owner draft count has new stock units and beverage tab",
+            "pass": true,
+            "drinkRows": 5
+          },
+          {
+            "name": "430px editor search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115.78125,
+              "barBottom": 105.78125,
+              "firstTop": 141.96875,
+              "firstBottom": 212.875,
+              "height": 932,
+              "width": 430,
+              "scrollWidth": 430,
+              "bodyHeight": 1836,
+              "documentHeight": 1836
+            }
+          },
+          {
+            "name": "430px editor preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "noQuantityChanges": true
+          },
+          {
+            "name": "430px editor search with preview above sticky header and small viewport",
+            "pass": true,
+            "inputIdentityPreserved": true,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115.78125,
+              "barBottom": 105.78125,
+              "firstTop": 141.96875,
+              "firstBottom": 212.875,
+              "height": 530,
+              "width": 430,
+              "scrollWidth": 430,
+              "bodyHeight": 1032,
+              "documentHeight": 1032
+            }
+          },
+          {
+            "name": "430px editor empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "430px editor draft count has new stock units and beverage tab",
+            "pass": true,
+            "drinkRows": 5
+          },
+          {
+            "name": "375px owner search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115.78125,
+              "barBottom": 105.78125,
+              "firstTop": 141.96875,
+              "firstBottom": 212.34375,
+              "height": 932,
+              "width": 375,
+              "scrollWidth": 375,
+              "bodyHeight": 1836,
+              "documentHeight": 1836
+            }
+          },
+          {
+            "name": "375px owner preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "noQuantityChanges": true
+          },
+          {
+            "name": "375px owner search with preview above sticky header and small viewport",
+            "pass": true,
+            "inputIdentityPreserved": true,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115.78125,
+              "barBottom": 105.78125,
+              "firstTop": 141.96875,
+              "firstBottom": 212.34375,
+              "height": 530,
+              "width": 375,
+              "scrollWidth": 375,
+              "bodyHeight": 1032,
+              "documentHeight": 1032
+            }
+          },
+          {
+            "name": "375px owner empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "375px owner draft count has new stock units and beverage tab",
+            "pass": true,
+            "drinkRows": 5
+          },
+          {
+            "name": "375px editor search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115.78125,
+              "barBottom": 105.78125,
+              "firstTop": 141.96875,
+              "firstBottom": 212.34375,
+              "height": 932,
+              "width": 375,
+              "scrollWidth": 375,
+              "bodyHeight": 1836,
+              "documentHeight": 1836
+            }
+          },
+          {
+            "name": "375px editor preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "noQuantityChanges": true
+          },
+          {
+            "name": "375px editor search with preview above sticky header and small viewport",
+            "pass": true,
+            "inputIdentityPreserved": true,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115.78125,
+              "barBottom": 105.78125,
+              "firstTop": 141.96875,
+              "firstBottom": 212.34375,
+              "height": 530,
+              "width": 375,
+              "scrollWidth": 375,
+              "bodyHeight": 1032,
+              "documentHeight": 1032
+            }
+          },
+          {
+            "name": "375px editor empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "375px editor draft count has new stock units and beverage tab",
+            "pass": true,
+            "drinkRows": 5
+          }
+        ],
+        "errors": [],
+        "browserVersion": "141.0.7390.37",
+        "passed": 24,
+        "failed": 0,
+        "raw_report_sha256": "9ab36bd287a2718541e05f631be6f299335c1fb607887ff75d1ea25909ebe089",
+        "case_detail": "Case names, outcomes and scalar measurements retained; bulky per-row geometry omitted. Raw report fingerprint above."
+      },
+      {
+        "suite": "workflow",
+        "baseline": false,
+        "source": "/workspace/scratch/f810a28c8e7e/chuanchuanxiang-v41",
+        "engine": "webkit",
+        "sourceHashes": {
+          "preview": "adeb827666e468c2df6b741488047fb2439249ae99660d6bb27b403ee9356fa2",
+          "search": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+          "activity": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+          "css": "70988f2d92482b1d27ce3496cb2df1aa40c4949620b746f5d2d46eb4c2bbf040",
+          "runner": "91401651640e6fb5d6598c50cda70d8dccfc836a929e3c24a4c7d7c595252a43"
+        },
+        "cases": [
+          {
+            "name": "430px owner search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115,
+              "barBottom": 105,
+              "firstTop": 141,
+              "firstBottom": 211,
+              "height": 932,
+              "width": 430,
+              "scrollWidth": 430,
+              "bodyHeight": 1836,
+              "documentHeight": 1836
+            }
+          },
+          {
+            "name": "430px owner preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "noQuantityChanges": true
+          },
+          {
+            "name": "430px owner search with preview above sticky header and small viewport",
+            "pass": true,
+            "inputIdentityPreserved": true,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115,
+              "barBottom": 105,
+              "firstTop": 141,
+              "firstBottom": 211,
+              "height": 530,
+              "width": 430,
+              "scrollWidth": 430,
+              "bodyHeight": 1032,
+              "documentHeight": 1032
+            }
+          },
+          {
+            "name": "430px owner empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "430px owner draft count has new stock units and beverage tab",
+            "pass": true,
+            "drinkRows": 5
+          },
+          {
+            "name": "430px editor search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115,
+              "barBottom": 105,
+              "firstTop": 141,
+              "firstBottom": 211,
+              "height": 932,
+              "width": 430,
+              "scrollWidth": 430,
+              "bodyHeight": 1836,
+              "documentHeight": 1836
+            }
+          },
+          {
+            "name": "430px editor preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "noQuantityChanges": true
+          },
+          {
+            "name": "430px editor search with preview above sticky header and small viewport",
+            "pass": true,
+            "inputIdentityPreserved": true,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115,
+              "barBottom": 105,
+              "firstTop": 141,
+              "firstBottom": 211,
+              "height": 530,
+              "width": 430,
+              "scrollWidth": 430,
+              "bodyHeight": 1032,
+              "documentHeight": 1032
+            }
+          },
+          {
+            "name": "430px editor empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "430px editor draft count has new stock units and beverage tab",
+            "pass": true,
+            "drinkRows": 5
+          },
+          {
+            "name": "375px owner search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115,
+              "barBottom": 105,
+              "firstTop": 141,
+              "firstBottom": 211,
+              "height": 932,
+              "width": 375,
+              "scrollWidth": 375,
+              "bodyHeight": 1836,
+              "documentHeight": 1836
+            }
+          },
+          {
+            "name": "375px owner preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "noQuantityChanges": true
+          },
+          {
+            "name": "375px owner search with preview above sticky header and small viewport",
+            "pass": true,
+            "inputIdentityPreserved": true,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115,
+              "barBottom": 105,
+              "firstTop": 141,
+              "firstBottom": 211,
+              "height": 530,
+              "width": 375,
+              "scrollWidth": 375,
+              "bodyHeight": 1032,
+              "documentHeight": 1032
+            }
+          },
+          {
+            "name": "375px owner empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "375px owner draft count has new stock units and beverage tab",
+            "pass": true,
+            "drinkRows": 5
+          },
+          {
+            "name": "375px editor search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115,
+              "barBottom": 105,
+              "firstTop": 141,
+              "firstBottom": 211,
+              "height": 932,
+              "width": 375,
+              "scrollWidth": 375,
+              "bodyHeight": 1836,
+              "documentHeight": 1836
+            }
+          },
+          {
+            "name": "375px editor preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "noQuantityChanges": true
+          },
+          {
+            "name": "375px editor search with preview above sticky header and small viewport",
+            "pass": true,
+            "inputIdentityPreserved": true,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 115,
+              "barBottom": 105,
+              "firstTop": 141,
+              "firstBottom": 211,
+              "height": 530,
+              "width": 375,
+              "scrollWidth": 375,
+              "bodyHeight": 1032,
+              "documentHeight": 1032
+            }
+          },
+          {
+            "name": "375px editor empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "375px editor draft count has new stock units and beverage tab",
+            "pass": true,
+            "drinkRows": 5
+          }
+        ],
+        "errors": [],
+        "browserVersion": "26.0",
+        "passed": 24,
+        "failed": 0,
+        "raw_report_sha256": "b708e537bf22aba70c9f5940a783e5f8d76fefbccf35d12206ee2aac3940387b",
+        "case_detail": "Case names, outcomes and scalar measurements retained; bulky per-row geometry omitted. Raw report fingerprint above."
+      },
+      {
+        "suite": "layout",
+        "baseline": false,
+        "source": "/workspace/scratch/f810a28c8e7e/chuanchuanxiang-v41",
+        "engine": "chromium",
+        "cases": [
+          {
+            "name": "430px finalized count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "430px finalized order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "430px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px editor compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px draft count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "430px draft order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "430px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "networkReads": 0
+          },
+          {
+            "name": "375px finalized count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "375px finalized order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "375px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px editor compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px draft count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "375px draft order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "375px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "networkReads": 0
+          },
+          {
+            "name": "320px finalized count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "320px finalized order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "320px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px editor compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px draft count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "320px draft order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "320px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "networkReads": 0
+          }
+        ],
+        "errors": [],
+        "browserVersion": "141.0.7390.37",
+        "passed": 24,
+        "failed": 0,
+        "sourceHashes": {
+          "preview": "adeb827666e468c2df6b741488047fb2439249ae99660d6bb27b403ee9356fa2",
+          "search": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+          "activity": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+          "css": "70988f2d92482b1d27ce3496cb2df1aa40c4949620b746f5d2d46eb4c2bbf040",
+          "runner": "a5ded923a6d8fcee355c36c223d240736f45e29c0e57afd3d0fb16c20ca5050a"
+        },
+        "sourceHashCapture": {
+          "when": "post-run",
+          "method": "Read unchanged final source after both layout processes completed; preview/search/activity/CSS also match all six contemporaneous hub/multi/workflow reports, which captured source hashes at startup. Layout runner itself did not capture hashes at startup.",
+          "appFilesMatchedContemporaneousStartupReports": true
+        },
+        "raw_report_sha256": "dc3dd294d8b75c747fc257f59116271e2c4e1d288c02c8b7189033654a52cce2",
+        "case_detail": "Case names, outcomes and scalar measurements retained; bulky per-row geometry omitted. Raw report fingerprint above."
+      },
+      {
+        "suite": "layout",
+        "baseline": false,
+        "source": "/workspace/scratch/f810a28c8e7e/chuanchuanxiang-v41",
+        "engine": "webkit",
+        "cases": [
+          {
+            "name": "430px finalized count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "430px finalized order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "430px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px editor compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "430px draft count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "430px draft order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "430px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "networkReads": 0
+          },
+          {
+            "name": "375px finalized count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "375px finalized order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "375px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px editor compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "375px draft count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "375px draft order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "375px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "networkReads": 0
+          },
+          {
+            "name": "320px finalized count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "320px finalized order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "320px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "networkReads": 0
+          },
+          {
+            "name": "320px owner compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px editor compact finalized order controls and unobscured last row",
+            "pass": true,
+            "networkReads": 0,
+            "category_geometry": {
+              "cn": {},
+              "kr": {},
+              "other": {},
+              "drinks": {}
+            }
+          },
+          {
+            "name": "320px draft count all four categories fit and align",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "320px draft order all four categories fit",
+            "pass": true,
+            "category_geometry": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1
+              }
+            }
+          },
+          {
+            "name": "320px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "networkReads": 0
+          }
+        ],
+        "errors": [],
+        "browserVersion": "26.0",
+        "passed": 24,
+        "failed": 0,
+        "sourceHashes": {
+          "preview": "adeb827666e468c2df6b741488047fb2439249ae99660d6bb27b403ee9356fa2",
+          "search": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+          "activity": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+          "css": "70988f2d92482b1d27ce3496cb2df1aa40c4949620b746f5d2d46eb4c2bbf040",
+          "runner": "a5ded923a6d8fcee355c36c223d240736f45e29c0e57afd3d0fb16c20ca5050a"
+        },
+        "sourceHashCapture": {
+          "when": "post-run",
+          "method": "Read unchanged final source after both layout processes completed; preview/search/activity/CSS also match all six contemporaneous hub/multi/workflow reports, which captured source hashes at startup. Layout runner itself did not capture hashes at startup.",
+          "appFilesMatchedContemporaneousStartupReports": true
+        },
+        "raw_report_sha256": "e35d241d0c6e78e64958f2d8673009bcb06f126100a2a5ed6098442d5ef5dc4e",
+        "case_detail": "Case names, outcomes and scalar measurements retained; bulky per-row geometry omitted. Raw report fingerprint above."
+      }
+    ]
+  },
+  "limitations": [
+    "All orders in tests are isolated fictional fixtures; production Firebase boot is removed and external browser requests are blocked.",
+    "No physical iPhone keyboard, IME, or hardware was tested.",
+    "Cloud emulator and native audio suites were not rerun and are not included.",
+    "Hub/multi/workflow reports embed startup source hashes; layout reports label their post-run verification hashes explicitly."
+  ],
+  "preserved": [
+    "129 product IDs, primary names, translations, original product order and supplier grouping",
+    "Separate stock and order quantities/units, including saved historical units",
+    "Login, account permissions, shared save, finalization, reopening and supplier export rules",
+    "Existing count search and multi-item search matching"
+  ]
+}

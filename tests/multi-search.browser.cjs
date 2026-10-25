@@ -23,6 +23,8 @@ const expose=`
 window.__ccx={copied:[],shared:[],reads:0,
  setup(role='owner',mode='finalized'){
   busy=false;skipActUntil=0;
+  if(typeof orderSearchOpen!=='undefined')orderSearchOpen=false;
+  if(typeof searchActivity!=='undefined')searchActivity.clear();
   clearTimeout(cloudTimer);clearTimeout(orderTimer);localStorage.clear();lastLocalRaw=null;
   source=${JSON.stringify(fixture)};aliasById=new Map(${JSON.stringify(aliases.items)}.map(x=>[x.id,x.aliases]));
   releaseLocked=false;configFailed=false;sample=false;demoRole=null;peerEnabled=true;peerViewing=true;
@@ -59,7 +61,7 @@ const css=fs.readFileSync(path.join(sourceDir,'redesign-preview/preview.css'),'u
 const html=`<!doctype html><html lang="zh-CN" data-order-mode="production"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>${css}</style></head><body><div class="banner">川川香 · 订货总控台<small>共同盘货、实时同步、双方定稿</small></div><div id="app"></div><nav class="tabs"><button data-act="tab" data-tab="count">盘货</button><button data-act="tab" data-tab="order">订单</button><button data-act="tab" data-tab="more">更多</button></nav><div id="toast" role="status"></div><script>${js.replace(/<\/script/gi,'<\\/script')}</script></body></html>`;
 
 const hash=value=>require('node:crypto').createHash('sha256').update(value).digest('hex');
-const report={source:sourceDir,engine:process.env.CCX_BROWSER_ENGINE||'chromium',sourceHashes:{preview:hash(raw),search:hash(fs.readFileSync(path.join(sourceDir,'redesign-preview/search.cjs'))),css:hash(css),runner:hash(fs.readFileSync(__filename))},cases:[],errors:[]};
+const report={source:sourceDir,engine:process.env.CCX_BROWSER_ENGINE||'chromium',sourceHashes:{preview:hash(raw),search:hash(fs.readFileSync(path.join(sourceDir,'redesign-preview/search.cjs'))),...(fs.existsSync(path.join(sourceDir,'redesign-preview/search-activity.cjs'))?{activity:hash(fs.readFileSync(path.join(sourceDir,'redesign-preview/search-activity.cjs')))}:{}),css:hash(css),runner:hash(fs.readFileSync(__filename))},cases:[],errors:[]};
 const settle=page=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
 const three=['kr:7','cn:33','cn:64'],five=[...three,'other:8','other:22'];
 const grouped={kr:['kr:7'],cn:['cn:33','cn:64'],other:['other:8'],drinks:['other:22']};
@@ -95,7 +97,8 @@ async function reset(page,role,mode,screen='order',cat='cn'){
  if(screen==='count'){await page.locator('[data-tab="count"]').click();await settle(page);}
  await page.locator(`[data-act="${screen==='count'?'jumpcat':'ordercat'}"][data-cat="${cat}"]`).click();await settle(page);
 }
-async function fill(page,q){await page.locator('#find').fill(q);await settle(page);}
+async function openSearch(page){const entry=page.locator('[data-act="open-order-search"]');if(await entry.count()){await entry.click();await settle(page);}}
+async function fill(page,q){await openSearch(page);await page.locator('#find').fill(q);await settle(page);}
 async function key(page,k){await page.locator(`[data-act="key"][data-key="${k}"]`).click();await settle(page);}
 async function next(page,shared=true){await page.locator(`[data-act="${shared?'order-next':'next'}"]`).click();await settle(page);}
 (async()=>{
@@ -111,6 +114,7 @@ async function next(page,shared=true){await page.locator(`[data-act="${shared?'o
     await runCase(prefix+' order multi-name query variants, stable input and original scroll',async()=>{
      await reset(page,role,mode);const before=await page.evaluate(()=>window.__ccx.values());
      await page.evaluate(()=>scrollTo(0,1200));await settle(page);const origin=await page.evaluate(()=>scrollY);
+     await openSearch(page);
      await page.locator('#find').evaluate(el=>{el.dataset.testIdentity='search-kept';});
      const durations=[];
      for(const [q,expected] of queries){
