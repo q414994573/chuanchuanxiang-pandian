@@ -14,7 +14,7 @@ for(const role of ['owner','editor'])for(const cat of ['kr','cn','other','drinks
   const h=setup(role,cat);h.run(`openCount(first,'qty');typeKey('2');openCount(target);`);assert.equal(h.run('seen(id)'),true);assert.equal(h.run('draft.items[id].quantity'),'2');assert.equal(JSON.parse(h.saved.get(h.run('KEY'))).draft.items[h.run('id')].quantity,'2');
  });
  test(`${role}/${cat}: pending product remains deferred after editing and direct tap`,()=>{
-  const h=setup(role,cat);h.run(`openCount(first,'qty');typeKey('2');deferActive();openCount(first,'qty');typeKey('3');openCount(target);`);assert.equal(h.run('seen(id)'),false);assert.equal(h.run('draft.deferred[id]'),true);assert.equal(h.run('draft.items[id].quantity'),'23');
+  const h=setup(role,cat);h.run(`openCount(first,'qty');typeKey('2');deferActive();openCount(first,'qty');typeKey('3');openCount(target);`);assert.equal(h.run('seen(id)'),false);assert.equal(h.run('draft.deferred[id]'),true);assert.equal(h.run('draft.items[id].quantity'),'3');
  });
  test(`${role}/${cat}: leaving quantity with Next resolves deferred without losing value`,()=>{
   const h=setup(role,cat);h.run(`openCount(first,'qty');typeKey('2');deferActive();openCount(first,'qty');nextCell();`);assert.equal(h.run('seen(id)'),true);assert.equal(h.run('draft.deferred[id]'),undefined);assert.equal(h.run('draft.items[id].quantity'),'2');

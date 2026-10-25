@@ -51,6 +51,17 @@ function create(win,options={}){
   const old=context;context=null;
   try{if(old&&old.state!=='closed')ignorePromise(old.close());}catch(e){}
  }
+ function duckSound(){
+  // Product narration briefly takes priority. Keep the reusable audio context
+  // and the stored preference intact; vibration remains an independent channel.
+  for(const node of [...active]){
+   try{node.osc.stop();}catch(e){}
+   release(node);
+  }
+ }
+ function soundMuted(){
+  try{return options.soundMuted?.()===true;}catch(e){return false;}
+ }
  function stopVibration(){
   if(vibrationStarted){try{nav.vibrate(0);}catch(e){}vibrationStarted=false;}
  }
@@ -117,11 +128,11 @@ function create(win,options={}){
    lastAt=at;events.add(event);
    let attempted=false;
    if(prefs.vibration){try{nav.vibrate(8);vibrationStarted=true;attempted=true;}catch(e){}}
-   if(prefs.sound)attempted=sound()||attempted;
+   if(prefs.sound&&!soundMuted())attempted=sound()||attempted;
    return attempted;
   }catch(e){return false;}
  }
- return {support,settings,set,play,stop};
+ return {support,settings,set,play,stop,duckSound};
 }
 
 module.exports={create};

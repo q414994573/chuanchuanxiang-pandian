@@ -13,6 +13,8 @@ const outputDir=process.env.CCX_BROWSER_OUTPUT||'/tmp/ccx-multi-search';
 fs.mkdirSync(outputDir,{recursive:true});
 const modules={C:'cloud/core.cjs',A:'cloud/account.cjs',S:'redesign-preview/search.cjs',Flow:'redesign-preview/count-flow.cjs',Backup:'redesign-preview/draft-backup.cjs',Recovery:'redesign-preview/recovery.cjs',Entry:'redesign-preview/entry-mode.cjs',Auto:'redesign-preview/order-autosave.cjs',Shared:'redesign-preview/shared-draft.cjs'};
 if(fs.existsSync(path.join(sourceDir,'redesign-preview/interaction-feedback.cjs')))modules.Feedback='redesign-preview/interaction-feedback.cjs';
+modules.Speech='redesign-preview/product-speech.cjs';
+modules.StockRepair='redesign-preview/stock-unit-corrections.cjs';
 const raw=fs.readFileSync(path.join(sourceDir,'redesign-preview/preview.js'),'utf8');
 const core=`window.CountCore=require(${JSON.stringify(path.join(sourceDir,'count-core.js'))});\n`;
 const imports=Object.entries(modules).map(([name,file])=>`const ${name}=require(${JSON.stringify(path.join(sourceDir,file))});`).join('\n');

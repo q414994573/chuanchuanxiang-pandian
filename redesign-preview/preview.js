@@ -12,6 +12,8 @@ import Entry from './entry-mode.cjs';
 import Auto from './order-autosave.cjs';
 import Shared from './shared-draft.cjs';
 import Feedback from './interaction-feedback.cjs';
+import Speech from './product-speech.cjs';
+import StockRepair from './stock-unit-corrections.cjs';
 import {sharedCountStore} from '../cloud/shared-count.js';
 
 const Core=()=>window.CountCore;
@@ -20,7 +22,8 @@ const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const CATS=Flow.CATS;
 const PRODUCTION=document.documentElement?.dataset.orderMode==='production';
 const MODE=Entry.settings(PRODUCTION),KEY=MODE.key;
-const interactionFeedback=Feedback.create(window,{key:KEY+':feedback'});
+const productSpeech=Speech.create(window,{key:KEY+':product-speech',onActiveChange:on=>{if(on)interactionFeedback.duckSound?.();}});
+const interactionFeedback=Feedback.create(window,{key:KEY+':feedback',soundMuted:()=>productSpeech.active()});
 const searchActivity=S.createActivity(window,{key:KEY+':search-activity'});
 let releaseLocked=PRODUCTION,configFailed=false;
 const app=document.getElementById('app');
@@ -34,6 +37,10 @@ let orderSearchOpen=false,searchContext=null,searchComposing=false;
 let searchCatalogKey=null,searchAliasKey=null,searchIndex=null,searchQuery=null,searchResult=null;
 let rowTap=null;
 let editField='qty';
+let editStockUnit=null;
+// Selection belongs only to the current keypad edit, never to saved data.
+// Opening a number selects it visually; only the first numeric key replaces it.
+let keySelection=null;
 let localSaveFailed=false;
 let lastLocalRaw=null,localSerial=0,localBlocked=false,localConflict=false;
 let backupUid=null,cloudBase,cloudReady=false,cloudReading=false,cloudWriting=false,cloudConflict=false;
@@ -57,14 +64,23 @@ function peerReceive(record,force=false){
  try{
   let next=record.draft;
   if(peerBase&&(keypad||textMode)&&record.stage==='draft'&&record.localId===peerBase.localId){
-   const active=editId||draft?.catalog[pos]?.id,which=editId?editField:field,key=which==='stock'?'stock':'quantity';
-   if(active&&peerBase.draft.items[active][key]!==record.draft.items[active][key]&&draft.items[active][key]!==record.draft.items[active][key])throw Shared.failure('当前正在填写的格子收到不同的云端内容，本机输入已保留，请核对后继续');
+   const active=editId||draft?.catalog[pos]?.id,which=editId?editField:field;
+   const keys=which==='stock'?['stock','stockUnit','stockStatus']:['quantity','unit','decision'];
+   const cell=d=>JSON.stringify(keys.map(key=>d.items?.[active]?.[key]));
+   if(active&&cell(peerBase.draft)!==cell(record.draft)&&cell(draft)!==cell(record.draft))throw Shared.failure('当前正在填写的格子收到不同的云端内容，本机输入已保留，请核对后继续');
   }
   if(peerBase&&peerDirty()){
    if(record.stage!=='draft'||record.localId!==peerBase.localId)throw Shared.failure('对方已定稿或开始新盘货，本机未上传内容已保留。请下载备份并核对当前盘货');
    next=Shared.merge(peerBase.draft,draft,record.draft);
   }
+  if(draft?.id!==record.localId||record.stage!=='draft'){
+   // An accepted different document or finalized snapshot cannot inherit an
+   // editor/undo baseline from the previous working draft.
+   entered=null;editId=null;editSnap=null;editRaw=null;editStockUnit=null;keypad=false;textMode=false;
+   clearKeySelection();undo=null;clearTimeout(showUndo._t);heldPrev={};ack={};
+  }
   draft=C.clone(next);peerBase=record;peerConflict='';cloudConflict=false;cloudReady=true;cloudAt=record.updatedAt?.toMillis?.()||Date.now();
+  if(record.stage==='draft')StockRepair.applyBlank(draft);
   cloudPending=peerDirty();cloudPhase=cloudPending?'waiting':'saved';
   if(record.stage==='draft'){
    order=null;orderDirty=false;orderAutoBlocked=false;preparedExport=null;
@@ -197,6 +213,7 @@ async function flushOrder(){
  }
 }
 function beginOrderSession(data){
+ clearKeySelection();
  clearTimeout(orderTimer);orderBase=C.clone(data);orderAutoBlocked=false;orderLocalFailed=false;orderMutation=null;orderRetry=5000;
  orderLocalKey=orderKey();
  try{orderLocalRaw=orderLocalKey?localStorage.getItem(orderLocalKey):null;}catch(e){orderLocalFailed=true;orderAutoBlocked=true;orderSaveNotice={id:data.id,epoch:sessionEpoch,phase:'failed',message:'本机备份暂时无法读取，自动保存已暂停，请保留页面并下载备份。'};return;}
@@ -322,6 +339,9 @@ function loadLocal(){
   const data=JSON.parse(raw);
   if(!Core().validate(data.draft,source))throw Error('草稿格式不匹配');
   peerSavedBase=data.peerBase||null;draft=data.draft;if(draft.status==='reviewed')screen='order';draft.seen=draft.seen||{};draft.ackWrong=draft.ackWrong||{};
+  // Shared drafts are corrected only after their server/base pair is loaded;
+  // otherwise a label-only difference can look like an unrelated local draft.
+  if(!peerEnabled)StockRepair.applyBlank(draft);
   pos=Math.max(0,Math.min(data.pos||0,draft.catalog.length-1));
   field=data.field==='qty'?'qty':'stock';
   if(draft.catalog[pos]&&!draft.catalog[pos].hasStock)field='qty';
@@ -554,34 +574,54 @@ function labelFor(p,which,now){
 }
 function showUndo(info){
  undo={...info,draftId:draft?.id,orderId:order?.id,expected:info.where==='count'?draft?.items[info.id]?.[info.field==='stock'?'stock':'quantity']:orderValue(info.id,info.field||'qty')};clearTimeout(showUndo._t);
+ if(info.field==='stock'&&Object.hasOwn(info,'stockUnit'))undo.expectedStockUnit=stockUnitOf(product(info.id));
  showUndo._t=setTimeout(()=>{undo=null;const n=document.querySelector('.undo');if(n)n.remove();},4500);
 }
+function clearKeySelection(){keySelection=null;}
+function keySelectionScope(){return `${sessionEpoch}:${order?.id||draft?.id||''}`;}
+function armKeySelection(where,id,which,value){
+ keySelection=/^\d+(?:\.\d{1,3})?$/.test(String(value??''))?{where,id,which,scope:keySelectionScope()}:null;
+}
+function keySelected(where,id,which){
+ return !!keySelection&&keypad&&!textMode&&keySelection.where===where&&keySelection.id===id&&keySelection.which===which&&keySelection.scope===keySelectionScope();
+}
+function keypadValueHtml(value,on,where,id,which){
+ const selected=on&&keySelected(where,id,which);
+ const number=selected?`<span class="key-selection">${E(value)}</span>`:E(value);
+ const caret=on&&!textMode&&!selected?'<i class="caret" aria-hidden="true"></i>':'';
+ return `<b>${number}${caret}</b>`;
+}
 function leaveCountCell(){
- if(!entered||!draft)return;
+ if(!entered||!draft){clearKeySelection();return true;}
+ if(!finishTyping())return false;
+ clearKeySelection();
  const p=draft.catalog.find(x=>x.id===entered.id);if(!p){entered=null;return;}
  const r=draft.items[p.id];
  const now=entered.field==='stock'?r.stock:r.quantity;
- if(now!==entered.value)showUndo({where:'count',id:p.id,field:entered.field,value:entered.value,label:labelFor(p,entered.field,now)});
+ if(now!==entered.value||(entered.field==='stock'&&r.stockUnit!==entered.stockUnit))showUndo({where:'count',id:p.id,field:entered.field,value:entered.value,...(entered.field==='stock'?{stockUnit:entered.stockUnit}:{}),label:labelFor(p,entered.field,now)});
  entered=null;
+ return true;
 }
-function captureEntered(){
+function captureEntered(select=false){
  const p=draft.catalog[pos],r=draft.items[p.id];
- entered={id:p.id,field,value:field==='stock'?r.stock:r.quantity};
+ entered={id:p.id,field,value:field==='stock'?r.stock:r.quantity,stockUnit:r.stockUnit};
+ if(select)armKeySelection('count',p.id,field,entered.value);else clearKeySelection();
 }
 function openCount(i,which){
  requirePeerDraft();
  if(!draft)return;
  if(draft.status==='reviewed'){toast('已经提交。要改数量，去订单');screen='order';keypad=false;textMode=false;render();return;}
  blurFind();
- const prev=pos;
- if(!(keypad&&pos===i&&field===which))leaveCountCell();
+ const prev=pos,p=draft.catalog[i];
+ if(!p)return;
+ const nextField=which==='stock'&&!p.hasStock?'qty':which||(p.hasStock?'stock':'qty');
+ const same=keypad&&pos===i&&field===nextField&&entered?.id===p.id;
+ if(!same&&leaveCountCell()===false)return;
  pos=i;
- const p=draft.catalog[i];
  viewCat=Flow.catOf(p)||viewCat;
- field=which||(p.hasStock?'stock':'qty');
- if(field==='stock'&&!p.hasStock)field='qty';
+ field=nextField;
  if(field==='stock')reviveStock(p);
- moduleEnd=false;keypad=true;textMode=false;screen='count';captureEntered();persistLocal();
+ moduleEnd=false;keypad=true;textMode=false;screen='count';if(!same)captureEntered(true);persistLocal();
  if(prev!==pos)flushCloud();
  render();scrollActive();
 }
@@ -589,28 +629,38 @@ function typeKey(key){
  if(peerEnabled&&!sample&&(!peerBase||peerBase.stage!=='draft'||cloudConflict||!peerViewing))return;
  if(!draft||draft.status==='reviewed')return;
  const p=draft.catalog[pos],r=draft.items[p.id];
- if(field==='stock'&&!p.hasStock){field='qty';captureEntered();render();return;}
+ if(field==='stock'&&!p.hasStock){field='qty';captureEntered(true);render();return;}
  const cur=field==='stock'?r.stock:r.quantity;
  let next=cur;
- if(!Flow.numericFragment(cur)&&key!=='del')next=key==='.'?'0.':key;
+ if(key!=='del'&&keySelected('count',p.id,field))next=key==='.'?'0.':key;
+ else if(!Flow.numericFragment(cur)&&key!=='del')next=key==='.'?'0.':key;
  else if(key==='del')next=cur.slice(0,-1);
  else if(key==='.'){if(cur.includes('.'))return;next=cur===''?'0.':cur+'.';}
  else next=cur+key;
  if(next.length>12)return;
  const parts=next.split('.');if(parts[1]&&parts[1].length>3)return;
  try{Core().edit(draft,p.id,field==='stock'?'stock':'quantity',next);}catch(e){toast(e.message);return;}
+ if(field==='stock'&&key!=='del')StockRepair.adoptEntered(draft,p.id,next);
+ clearKeySelection();
  if(next&&!next.endsWith('.'))markSeen(p.id);
- persistLocal();render();scrollActive();
+ try{persistLocal();}finally{render();scrollActive();}
 }
-function writeCell(value){
+function writeCell(value,explicit=false){
  try{requirePeerDraft();}catch(e){toast(e.message);return;}
  if(!draft||draft.status==='reviewed')return;
+ clearKeySelection();
  const p=draft.catalog[pos];
  const next=String(value??'').slice(0,40);
  const cur=field==='stock'?draft.items[p.id].stock:draft.items[p.id].quantity;
- if(cur===next)return;
+ if(cur===next){
+  // A real native-input event may re-enter the same numeric stock with its
+  // corrected unit. Merely opening/closing text mode is not such an entry.
+  if(explicit&&field==='stock'&&StockRepair.adoptEntered(draft,p.id,next))persistLocal();
+  return;
+ }
  if(field==='stock'&&!p.hasStock){toast('这项不用填库存');return;}
  try{Core().edit(draft,p.id,field==='stock'?'stock':'quantity',next);}catch(e){toast(e.message);return;}
+ if(field==='stock')StockRepair.adoptEntered(draft,p.id,next);
  if(next.trim())markSeen(p.id);
  persistLocal();
 }
@@ -618,7 +668,7 @@ function finishTyping(){
  const p=draft.catalog[pos],r=draft.items[p.id];
  const cur=field==='stock'?r.stock:r.quantity;
  if(cur==='.'||/^\d+\.$/.test(cur)){toast('数量还没写完');return false;}
- if(field==='qty'&&cur==='0'){Core().edit(draft,p.id,'quantity','');toast('订货写 0 不算订，留空就是不订');}
+ if(field==='qty'&&/^\d+(?:\.\d{1,3})?$/.test(cur)&&Number(cur)===0){Core().edit(draft,p.id,'quantity','');persistLocal();toast('订货写 0 不算订，留空就是不订');}
  return true;
 }
 function countNavigationCells(){
@@ -635,12 +685,12 @@ function nextCell(direction=1){
  if(!target){moduleEnd=direction>0&&!query;persistLocal();render();scrollActive();if(direction>0)toast('已到本列表最后一格');return;}
  const previous=pos;
  pos=target.i;field=target.which;moduleEnd=false;
- captureEntered();persistLocal();if(previous!==pos)flushCloud();render();scrollActive();
+ captureEntered(true);persistLocal();if(previous!==pos)flushCloud();render();scrollActive();
 }
 function showCat(cat){
  if((!draft&&!sharedCount())||!cat)return;
  if(readPlain()===false)return;
- if(sharedCount()){if(commitOrderEdit()===false)return;}else leaveCountCell();
+ if(sharedCount()){if(commitOrderEdit()===false)return;}else if(leaveCountCell()===false)return;
  keypad=false;textMode=false;
  if(!query){searchScroll=null;searchCat=null;}
  if(cat===viewCat){moduleEnd=false;render();return;}
@@ -653,16 +703,20 @@ function showCat(cat){
 function doUndo(){
  requirePeerDraft();
  if(!undo)return;
+ clearKeySelection();
  const info=undo;undo=null;
  if(info?.draftId&&info.draftId!==draft?.id||info?.orderId&&info.orderId!==order?.id)throw Error('已切换盘货或订单，旧操作不能撤销到这里');
  if(info&&Object.hasOwn(info,'expected')){const current=info.where==='count'?draft?.items[info.id]?.[info.field==='stock'?'stock':'quantity']:orderValue(info.id,info.field||'qty');if(current!==info.expected)throw Error('这格内容已变化，请核对后手动修改');}
+ if(Object.hasOwn(info,'expectedStockUnit')&&stockUnitOf(product(info.id))!==info.expectedStockUnit)throw Error('这格库存单位已变化，请核对后手动修改');
  if(info.where==='count'&&draft){
   try{Core().edit(draft,info.id,info.field==='stock'?'stock':'quantity',info.value);}catch(e){toast(e.message);return;}
+  if(info.field==='stock'&&Object.hasOwn(info,'stockUnit'))Core().edit(draft,info.id,'stockUnit',info.stockUnit);
   const i=draft.catalog.findIndex(p=>p.id===info.id);
   pos=i;viewCat=Flow.catOf(draft.catalog[i])||viewCat;field=info.field;keypad=true;textMode=false;screen='count';captureEntered();persistLocal();
  }else if(info.where==='order'){
-  applyOrderValue(info.id,info.field||'qty',info.value);
-  editId=info.id;editField=info.field||'qty';editSnap=info.value;editRaw=info.value;keypad=true;textMode=false;screen='order';
+  applyOrderValue(info.id,info.field||'qty',info.value,{restoreUnit:info.stockUnit});
+  editId=info.id;editField=info.field||'qty';editSnap=info.value;editRaw=info.value;editStockUnit=!order&&editField==='stock'?draft.items[info.id].stockUnit:null;keypad=true;textMode=false;
+  if(order&&editField==='stock')screen='count';else if(screen!=='count')screen='order';
  }
  render();scrollActive();
 }
@@ -726,7 +780,7 @@ function applyQty(id,text){
 }
 function canEditStock(p){if(screen==='count'&&!sharedCount())return !!p?.hasStock&&canCount()&&draft?.status==='draft';return !!p?.hasStock&&(order?(order.orderStage!=='finalized'&&(sample||['owner','editor'].includes(member?.role))):(canCount()&&draft?.status==='draft'));}
 function orderValue(id,which){return which==='stock'?stockShown(product(id)):qtyOf(id);}
-function applyOrderValue(id,which,value){
+function applyOrderValue(id,which,value,options={}){
  requirePeerDraft();
  if(orderStageWriting)throw Error('正在确认订单状态，请稍后修改');
  if(which!=='stock'){applyQty(id,value);return;}
@@ -736,6 +790,8 @@ function applyOrderValue(id,which,value){
  reviveStock(p);
  Core().edit(draft,id,'stock',value);
  if(draft.stockText)delete draft.stockText[id];
+ if(typeof options.restoreUnit==='string')Core().edit(draft,id,'stockUnit',options.restoreUnit);
+ else if(options.entered)StockRepair.adoptEntered(draft,id,value);
  if(value.trim())markSeen(id);
  persistLocal();
 }
@@ -744,22 +800,28 @@ function openOrderKey(id,which='qty'){
  if(order?.orderStage==='finalized'){toast('订单已定稿，只能查看');return;}
  if(which==='stock'&&!canEditStock(product(id))){toast('这格库存只能查看');return;}
  if(textMode&&readPlain()===false)return;
+ // A repeated tap on the same active cell must retain both the undo baseline
+ // and an already-consumed selection, including unfinished decimal input.
+ if(keypad&&editId===id&&editField===which){blurFind();textMode=false;render();scrollActive();return;}
  if(editId&&commitOrderEdit()===false)return;
  if(order&&which==='stock'&&screen!=='count'){toast('请到盘货页修改库存');return;}
  if(order&&which==='stock'&&!confirm('确认修改这项实际库存？订货数量不会改变。'))return;
  blurFind();
- editId=id;editField=which;editSnap=orderValue(id,which);editRaw=editSnap;keypad=true;textMode=false;if(!sharedCount()||screen!=='count')screen='order';render();scrollActive();
+ editId=id;editField=which;editSnap=orderValue(id,which);editRaw=editSnap;editStockUnit=!order&&which==='stock'?draft.items[id].stockUnit:null;keypad=true;textMode=false;armKeySelection('order',id,which,editRaw);if(!sharedCount()||screen!=='count')screen='order';render();scrollActive();
 }
 function commitOrderEdit(){
  if(!editId)return;
  if(localSaveFailed)persistLocal();
- if(editRaw==='.'||/^\d+\.$/.test(editRaw||'')){toast('数量还没写完');return false;}
+ if(editRaw==='.'||/^\d+\.$/.test(editRaw||'')||order&&unfinishedOrderInput()){toast('数量还没写完');return false;}
+ if(!order&&editField==='qty'&&/^\d+(?:\.\d{1,3})?$/.test(editRaw||'')&&Number(editRaw)===0){applyQty(editId,'');editRaw='';toast('订货写 0 不算订，留空就是不订');}
  const now=orderValue(editId,editField);
- if(now!==editSnap){const p=product(editId);showUndo({where:'order',id:editId,field:editField,value:editSnap,label:labelFor(p,editField,now)});}
- editId=null;editSnap=null;editRaw=null;return true;
+ const unitChanged=!order&&editField==='stock'&&editStockUnit!==null&&draft.items[editId].stockUnit!==editStockUnit;
+ if(now!==editSnap||unitChanged){const p=product(editId);showUndo({where:'order',id:editId,field:editField,value:editSnap,...(!order&&editField==='stock'&&editStockUnit!==null?{stockUnit:editStockUnit}:{}),label:labelFor(p,editField,now)});}
+ clearKeySelection();editId=null;editSnap=null;editRaw=null;editStockUnit=null;return true;
 }
 function stepQty(delta){
  if(editField!=='qty')return;
+ clearKeySelection();
  const cur=editRaw&&!/[.]$/.test(editRaw)?editRaw:qtyOf(editId);
  if(cur&&!Flow.numericFragment(cur)){toast('这格是文字。要加减请先改成数字，或点本次不订。');return;}
  const n=cur===''?0:Number(cur);
@@ -769,21 +831,34 @@ function stepQty(delta){
 }
 function typeOrderKey(key){
  let next=editRaw||'';
- if(!Flow.numericFragment(next)&&key!=='del')next=key==='.'?'0.':key;
+ if(key!=='del'&&keySelected('order',editId,editField))next=key==='.'?'0.':key;
+ else if(!Flow.numericFragment(next)&&key!=='del')next=key==='.'?'0.':key;
  else if(key==='del')next=next.slice(0,-1);
  else if(key==='.'){if(next.includes('.'))return;next=next===''?'0.':next+'.';}
  else next=next+key;
  if(next.length>12)return;
  const parts=next.split('.');if(parts[1]&&parts[1].length>3)return;
- if(next==='0'&&editField==='qty'){applyQty(editId,'');editRaw='';toast('订货写 0 不算订，留空就是不订');render();return;}
- if(!order||next===''||(next!=='.'&&!/^\d+\.$/.test(next)))applyOrderValue(editId,editField,next);
- editRaw=next;
+ const previousVersion=draft?.contentVersion;
+ const zero=next==='0'&&editField==='qty';
+ const zeroFraction=editField==='qty'&&/^0+\.0+$/.test(next);
+ try{
+  if(zero)applyQty(editId,'');
+  else if(!order||next===''||(next!=='.'&&!/^\d+\.$/.test(next)&&!zeroFraction))applyOrderValue(editId,editField,next,{entered:key!=='del'});
+ }catch(error){
+  // A local-backup failure can happen after the draft value was changed.
+  // Keep the editor on that actual value so the next digit continues it.
+  if(!order&&draft?.contentVersion!==previousVersion){editRaw=zero?'':next;clearKeySelection();render();scrollActive();}
+  throw error;
+ }
+ if(zero){clearKeySelection();editRaw='';toast('订货写 0 不算订，留空就是不订');render();return;}
+ editRaw=next;clearKeySelection();
  render();scrollActive();
 }
 function cancelLine(id){
  const cur=qtyOf(id);
  if(cur)heldPrev[id]=cur;
  applyQty(id,'');
+ clearKeySelection();
  showUndo({where:'order',id,value:cur,label:`${Flow.largeName(product(id))} 改为不订`});
  // Keep the original order keypad visible so its Undo remains reachable.
  editId=id;editField='qty';editRaw='';editSnap='';keypad=true;textMode=false;render();
@@ -1041,8 +1116,8 @@ function followSearchCat(){
  const next=Flow.searchCatChoice(Flow.searchHitCounts(sharedCount()?catalog():draft.catalog,matchesSearch),viewCat);
  if(next===viewCat)return;
  if(keypad||textMode){
-  if(textMode)readPlain();
-  if(sharedCount()){if(commitOrderEdit()===false)return;}else leaveCountCell();
+  if(textMode&&readPlain()===false)return;
+  if(sharedCount()){if(commitOrderEdit()===false)return;}else if(leaveCountCell()===false)return;
   keypad=false;textMode=false;
   document.body.classList.remove('key-open','text-mode');
   document.querySelector('.pad')?.remove();
@@ -1065,7 +1140,7 @@ function paintRows(alignResults=false){
 function clearFind(){
  if(textMode&&readPlain()===false)return;
  if(orderEditing()&&commitOrderEdit()===false)return;
- if(screen==='count'&&!sharedCount())leaveCountCell();
+ if(screen==='count'&&!sharedCount()&&leaveCountCell()===false)return;
  keypad=false;textMode=false;
  // Deliberately clearing an unfinished composition must discard that text;
  // its blur/compositionend event must not put the old query back.
@@ -1082,9 +1157,9 @@ function cancelFind(){
  const cat=searchCat;
  if(textMode&&readPlain()===false)return;
  if(orderEditing()&&commitOrderEdit()===false)return;
+ if(screen==='count'&&!sharedCount()&&leaveCountCell()===false)return;
  recordOrderSearch();resetOrderSearch();
  searchScroll=null;searchCat=null;wantFind=false;
- if(screen==='count'&&!sharedCount())leaveCountCell();
  keypad=false;textMode=false;editId=null;editSnap=null;editRaw=null;
  if(cat){if(screen==='order')orderCat=cat;else viewCat=cat;}
  blurFind();
@@ -1107,6 +1182,21 @@ function openFromRow(b){
  if(draft&&!order&&!Flow.showsOnOrder(qtyOf(id)))draft.added={...draft.added,[id]:true};
  openOrderKey(id);
 }
+function spokenNameHtml(p){
+ const name=Flow.boldName(p,E);
+ return productSpeech.settings().enabled?`<button class="spoken-name" type="button" data-act="speak-product" data-id="${E(p.id)}" aria-label="播报${E(Flow.largeName(p))}">${name}</button>`:name;
+}
+function activateProduct(b,event){
+ const id=b.dataset.id||draft?.catalog[Number(b.dataset.i)]?.id;
+ if(b.dataset.act!=='speak-product')openFromRow(b);
+ const selected=b.dataset.act==='speak-product'||keypad&&(editId===id||screen==='count'&&!sharedCount()&&draft?.catalog[pos]?.id===id);
+ const p=selected&&product(id);
+ // Speak in this same trusted gesture, before a click tone. No promise or
+ // rendering/network callback can hold up the input, clipboard, or share path.
+ if(p)productSpeech.speak(Flow.largeName(p),event);
+ interactionFeedback.play(event);
+}
+function productTapTarget(target){return target.closest('[data-act="open"],[data-act="edit"]')||target.closest('[data-act="speak-product"]');}
 function render(){
  const findFocused=document.activeElement?.id==='find';
  if(orderSearchOpen&&(screen!=='order'||searchContext!==orderSearchIdentity())){
@@ -1162,8 +1252,7 @@ function countCell(p,i,which){
   return `<div class="cell unit-cell" aria-label="${E(cellLabel(p,which)+'，只读')}" aria-disabled="true"><b>${E(value)}</b>${suffix}</div>`;
  }
  const on=keypad&&pos===i&&field===which;
- const caret=on&&!textMode?'<i class="caret" aria-hidden="true"></i>':'';
- const inner=on&&textMode?`<input class="plain" value="${E(cellRaw(p,which))}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<b>${E(cellText(p,which))}${caret}</b>`;
+ const inner=on&&textMode?`<input class="plain" value="${E(cellRaw(p,which))}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:keypadValueHtml(cellText(p,which),on,'count',p.id,which);
  const cell=`<div class="cell unit-cell ${on?'on':''}" data-act="open" data-id="${E(p.id)}" data-i="${i}" data-field="${which}" role="button" aria-label="${E(cellLabel(p,which))}">${inner}${suffix}</div>`;
  return C.units.choices[p.id]?`<div class="search-cell">${cell}${unitPicker(p,which)}</div>`:cell;
 }
@@ -1264,10 +1353,9 @@ function blockHtml(cat){
   const tags=[deferredBadge(p.id),!dead&&order&&!(baseQty[p.id]>0)?'<span class="tag">新加</span>':'',!dead&&!order&&draft?.added?.[p.id]?'<span class="tag">新加</span>':''].join('');
   const shown=editId===p.id&&editField==='qty'&&editRaw!=null?editRaw:qtyOf(p.id);
   const picking=editId===p.id&&editField==='qty'&&!dead;
-  const caret=picking&&!textMode?'<i class="caret" aria-hidden="true"></i>':'';
   const unit=E((order?order.units[p.id]:draft?.items[p.id]?.unit||p.unit)||'');
-  const editor=order?.orderStage==='finalized'?`<span class="num">${E(shown)}${unit}</span>`:dead?`<button class="ghost" type="button" data-act="restore" data-id="${E(p.id)}">恢复</button>`:(picking&&textMode?`<input class="plain on" value="${E(shown)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<button class="num${picking?' on':''}" type="button" data-act="edit" data-id="${E(p.id)}">${picking?`<b>${E(shown)}${caret}</b>${unit}`:`${E(shown)}${unit}`}</button>`);
-  return `<div class="order ${Flow.stripe(i)} ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${Flow.boldName(p,E)} ${tags}<div class="muted">${E(detailLine(p,c?changeNote(c):''))}</div></div><div>${editor}${unitPicker(p,'qty')}</div></div>`;
+  const editor=order?.orderStage==='finalized'?`<span class="num">${E(shown)}${unit}</span>`:dead?`<button class="ghost" type="button" data-act="restore" data-id="${E(p.id)}">恢复</button>`:(picking&&textMode?`<input class="plain on" value="${E(shown)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<button class="num${picking?' on':''}" type="button" data-act="edit" data-id="${E(p.id)}">${picking?keypadValueHtml(shown,true,'order',p.id,'qty')+unit:`${E(shown)}${unit}`}</button>`);
+  return `<div class="order ${Flow.stripe(i)} ${c?'yellow':''} ${dead?'dead':''} ${editId===p.id?'on':''}" data-id="${E(p.id)}"><div>${spokenNameHtml(p)} ${tags}<div class="muted">${E(detailLine(p,c?changeNote(c):''))}</div></div><div>${editor}${unitPicker(p,'qty')}</div></div>`;
  };
  const body=[...active,...gray].map(row).join('');
  const empty=yellowOnly?'这一块没有她改的。':'本分类暂无订货商品。';
@@ -1281,7 +1369,7 @@ function searchHits(countView=false){
   const stock=p.hasStock?searchInput(p,'stock'):'';
   const change=bossChanges().find(c=>c.id===p.id);
   const hint=p.name==='고수'?'香菜：再看一次冰箱。':String(p.name).startsWith('감자수제비')?'土豆面片按大包记，1大包＝2小包。':'';
-  return `<div class="line search-hit ${p.hasStock?'':'nostock'} ${Flow.stripe(i)} ${change?'yellow':''} ${keypad&&editId===p.id?'on':''}" data-id="${E(p.id)}"><div class="who">${Flow.boldName(p,E)}${deferredBadge(p.id)}<small>${E(cat?cat[2]:'')}${Flow.smallName(p)?' · '+E(Flow.smallName(p)):''}</small>${change?`<small>${E(changeNote(change))}</small>`:''}</div>${stock}${searchInput(p,'qty')}</div>${hint?`<p class="warn">${E(hint)}</p>`:''}`;
+  return `<div class="line search-hit ${p.hasStock?'':'nostock'} ${Flow.stripe(i)} ${change?'yellow':''} ${keypad&&editId===p.id?'on':''}" data-id="${E(p.id)}"><div class="who">${spokenNameHtml(p)}${deferredBadge(p.id)}<small>${E(cat?cat[2]:'')}${Flow.smallName(p)?' · '+E(Flow.smallName(p)):''}</small>${change?`<small>${E(changeNote(change))}</small>`:''}</div>${stock}${searchInput(p,'qty')}</div>${hint?`<p class="warn">${E(hint)}</p>`:''}`;
  }).join('')||'<p>没有匹配的商品。</p>';
 }
 function searchInput(p,which){
@@ -1290,7 +1378,7 @@ function searchInput(p,which){
  const on=keypad&&editId===p.id&&editField===which&&!readonly;
  const value=on?editRaw:(stock?stockShown(p):qtyOf(p.id));
  const unit=stock?((stockUnitOf(p))||''):((order?order.units[p.id]:draft?.items[p.id]?.unit||p.unit)||'');
- const inner=on&&textMode?`<input class="plain" aria-label="${E(p.name+' '+label)}" value="${E(value)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:`<b>${E(value)}${on?'<i class="caret" aria-hidden="true"></i>':''}</b>`;
+ const inner=on&&textMode?`<input class="plain" aria-label="${E(p.name+' '+label)}" value="${E(value)}" enterkeyhint="done" maxlength="40" autocomplete="off" autocapitalize="off">`:keypadValueHtml(value,on,'order',p.id,which);
  const attrs=readonly?'aria-disabled="true"':`data-act="edit" data-search="true" data-id="${E(p.id)}" data-field="${which}"`;
  return `<div class="search-cell"><small>${label}${readonly?' · 只读':''}</small><div class="cell ${on?'on':''}" ${attrs} role="button" ${readonly?'':'tabindex="0"'} aria-label="${E(p.name+' '+label)}">${inner}${unit?`<small>${E(unit)}</small>`:''}</div>${stock&&order&&screen==='order'?'':unitPicker(p,which)}</div>`;
 }
@@ -1314,9 +1402,9 @@ function dirtyCount(){
  return catalog().filter(p=>(order.quantities[p.id]||0)!==(baseQty[p.id]||0)||(order.units[p.id]||'')!==(baseUnits[p.id]??order.units[p.id]??'')||(String(stocks[p.id]??'')!==String(stockBase[p.id]??''))||((order.stockUnits?.[p.id]??JSON.parse(order.snapshot).items?.[p.id]?.stockUnit??'')!==(stockBaseUnits[p.id]??order.stockUnits?.[p.id]??JSON.parse(order.snapshot).items?.[p.id]?.stockUnit??''))).length;
 }
 function feedbackHtml(){
- const supported=interactionFeedback.support(),settings=interactionFeedback.settings();
+ const supported=interactionFeedback.support(),settings=interactionFeedback.settings(),speech=productSpeech.settings();
  const toggle=(kind,label)=>`<button class="ghost" type="button" data-act="feedback-toggle" data-kind="${kind}" aria-pressed="${settings[kind]}" ${supported[kind]?'':'disabled'}>${label}：${supported[kind]?(settings[kind]?'开':'关'):'不支持'}</button>`;
- return `<div class="card" data-feedback><h2>操作反馈</h2><p class="muted">点击按钮和数字键时轻响或轻震。开关记在这部手机上。</p><div class="pair">${toggle('sound','声音')}${toggle('vibration','震动')}</div>${!supported.vibration?'<p class="muted">当前浏览器不支持网页震动。</p>':''}<button class="ghost" type="button" data-act="feedback-test" ${settings.sound||settings.vibration?'':'disabled'}>试一下</button><p class="muted">声音受手机音量和静音设置影响。反馈只表示点按，保存结果请看云端提示。</p></div>`;
+ return `<div class="card" data-feedback><h2>操作反馈</h2><p class="muted">开关记在这部手机上。播报商品名时暂停按键提示音，数字照常输入。</p><div class="pair">${toggle('sound','声音')}${toggle('vibration','震动')}</div><button class="ghost speech-toggle" type="button" data-act="speech-toggle" aria-pressed="${speech.enabled}" ${productSpeech.support()?'':'disabled'}>商品名称播报：${productSpeech.support()?(speech.enabled?'开':'关'):'不支持'}</button>${!supported.vibration?'<p class="muted">当前浏览器不支持网页震动。</p>':''}<button class="ghost" type="button" data-act="feedback-test" ${settings.sound||settings.vibration||speech.enabled?'':'disabled'}>试一下</button><p class="muted">声音受手机音量和系统语音影响。播报仅用于确认商品，保存结果请看云端提示。</p></div>`;
 }
 function moreHtml(){
  const who=member?`<div class="card"><h1>账号 · ${E(member.name)}</h1><p class="muted">${peerEnabled?'共同盘货成员':member.role==='owner'?'盘货负责人':'订单编辑者'}</p></div>`:`<div class="card"><h1>登录</h1><p class="muted">填账号。大伟用 dawei，老板娘用 laobanniang。</p><form id="login"><label>账号<input name="account" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">登录</button></form></div>`;
@@ -1540,6 +1628,7 @@ async function changeOrderStage(stage){
 }
 function readPlain(){
  const input=document.querySelector('input.plain');if(!input)return true;
+ clearKeySelection();
  const value=input.value.slice(0,40).trim();
  if(orderEditing()&&editId){
   try{
@@ -1557,7 +1646,8 @@ function readPlain(){
 }
 function closePad(){
  if(readPlain()===false)return false;
- if(screen==='count'&&!sharedCount())leaveCountCell();
+ if(screen==='count'&&!sharedCount()&&draft&&!finishTyping())return false;
+ if(screen==='count'&&!sharedCount()){if(leaveCountCell()===false)return false;}
  else if(commitOrderEdit()===false)return false;
  keypad=false;textMode=false;render();
  return true;
@@ -1659,7 +1749,7 @@ function tryLeave(next){
  // Switching tabs preserves the same unsaved order in memory.
 
  if(readPlain()===false)return;
- if(screen==='count'&&!sharedCount())leaveCountCell();
+ if(screen==='count'&&!sharedCount()){if(leaveCountCell()===false)return;}
  else if(commitOrderEdit()===false)return;
  recordOrderSearch();resetOrderSearch();
  keypad=false;textMode=false;
@@ -1676,7 +1766,7 @@ document.body.addEventListener('click',async e=>{
  if(!b){if(!busy&&e.target.closest('summary'))interactionFeedback.play(e);if((keypad||textMode)&&!e.target.closest('.pad')&&!e.target.closest('input,button,a,label'))closePad();return;}
  if(busy||b.disabled)return;
  const act=b.dataset.act;
- if(actSkipped()&&(act==='open'||act==='edit'||act==='clear-find'||act==='cancel-find'))return;
+ if(actSkipped()&&(act==='open'||act==='edit'||act==='speak-product'||act==='clear-find'||act==='cancel-find'))return;
  try{
   if(act==='feedback-toggle'){
    const kind=b.dataset.kind;
@@ -1686,6 +1776,14 @@ document.body.addEventListener('click',async e=>{
    const card=document.querySelector('[data-feedback]');if(card)card.outerHTML=feedbackHtml();
    return;
   }
+  if(act==='speech-toggle'){
+   productSpeech.set(!productSpeech.settings().enabled);
+   interactionFeedback.play(e);
+   const card=document.querySelector('[data-feedback]');if(card)card.outerHTML=feedbackHtml();
+   return;
+  }
+  if(act==='open'||act==='edit'||act==='speak-product'){activateProduct(b,e);return;}
+  if(act==='feedback-test'&&productSpeech.settings().enabled)productSpeech.speak('川川香',e);
   // Local feedback never waits for audio or network, preserving the user
   // activation required by iPhone clipboard/share. It is not a saved signal.
   interactionFeedback.play(e);
@@ -1728,6 +1826,7 @@ document.body.addEventListener('click',async e=>{
   if(act==='prev'){nextCell(-1);return;}
   if(act==='close'){closePad();return;}
   if(act==='mode'){
+   clearKeySelection();
    if(b.dataset.mode==='num'){if(readPlain()===false)return;textMode=false;keypad=true;render();scrollActive();}
    else{textMode=true;keypad=true;render();}
    return;
@@ -1780,18 +1879,19 @@ document.body.addEventListener('click',async e=>{
 });
 document.body.addEventListener('input',e=>{
  if(e.target.classList.contains('plain')){
+  clearKeySelection();
   if(orderStageWriting){toast('正在确认订单状态，请稍后修改');render();return;}
   const value=e.target.value.slice(0,40);
   if(orderEditing()&&editId){
    editRaw=value;
    try{
-    if(!order&&draft)applyOrderValue(editId,editField,editField==='qty'&&value.trim()==='0'?'':value);
+    if(!order&&draft)applyOrderValue(editId,editField,editField==='qty'&&value.trim()==='0'?'':value,{entered:true});
     else if(order&&(!value.trim()||Flow.isNumericQty(value.trim())))applyOrderValue(editId,editField,value.trim());
    }catch(err){toast(err.message||'没有保存，请检查输入');}
    orderEdited();
    return;
   }
-  writeCell(value);
+  writeCell(value,true);
   return;
  }
  if(e.target.id==='find'&&e.target===document.getElementById('find')){rememberSearchOrigin();query=e.target.value;paintRows(true);}
@@ -1805,7 +1905,7 @@ document.body.addEventListener('keydown',e=>{
  }
  if(!e.target.classList.contains('plain')&&(e.key==='Enter'||e.key===' ')){
   const cell=e.target.closest('[data-search="true"]');
-  if(cell){e.preventDefault();if(releaseLocked||busy)return;interactionFeedback.play(e);openFromRow(cell);return;}
+  if(cell){e.preventDefault();if(releaseLocked||busy)return;activateProduct(cell,e);return;}
  }
  if(!e.target.classList.contains('plain')||e.key!=='Enter')return;
  e.preventDefault();
@@ -1825,7 +1925,7 @@ document.body.addEventListener('pointerdown',e=>{
  if(e.target.closest('[data-act="clear-find"]')){e.preventDefault();interactionFeedback.play(e);clearFind();skipAct();return;}
  if(e.target.closest('[data-act="cancel-find"]')){e.preventDefault();interactionFeedback.play(e);cancelFind();skipAct();return;}
  const find=document.getElementById('find');
- const row=e.target.closest('[data-act="open"],[data-act="edit"]');
+ const row=productTapTarget(e.target);
  if(!row)return;
  rowTap={row,id:e.pointerId,x:e.clientX,y:e.clientY,moved:false,findFocused:!!find&&document.activeElement===find};
 });
@@ -1837,10 +1937,10 @@ document.body.addEventListener('pointercancel',()=>{if(rowTap)skipAct();rowTap=n
 document.body.addEventListener('pointerup',e=>{
  const tap=rowTap;if(!tap||tap.id!==e.pointerId)return;rowTap=null;
  const moved=tap.moved||Math.hypot(e.clientX-tap.x,e.clientY-tap.y)>10;
- if(moved||e.target.closest('[data-act="open"],[data-act="edit"]')!==tap.row){skipAct();return;}
+ if(moved||productTapTarget(e.target)!==tap.row){skipAct();return;}
  if(!tap.findFocused)return; // Normal click/keyboard activation remains native.
  e.preventDefault();skipAct();if(releaseLocked||busy||tap.row.disabled)return;
- try{interactionFeedback.play(e);openFromRow(tap.row);}catch(err){toast(err.message||'没做成');}
+ try{activateProduct(tap.row,e);}catch(err){toast(err.message||'没做成');}
 });
 document.body.addEventListener('focusin',e=>{
  if(e.target.id!=='find')return;
@@ -1861,8 +1961,8 @@ document.body.addEventListener('submit',async e=>{
  if(e.target.id==='pass'){e.preventDefault();const form=e.target;const problem=A.passwordChangeError(form.elements.current.value,form.elements.next.value,form.elements.confirm.value);if(problem){toast(problem);return;}try{await reauthenticateWithCredential(user,EmailAuthProvider.credential(user.email,form.elements.current.value));await updatePassword(user,form.elements.next.value);toast('密码已改');}catch(err){toast(A.authErrorText(err.code,err.message,'password')||err.message);}finally{form.reset();}}
 });
 window.addEventListener('beforeunload',e=>{if(localSaveFailed||orderDirty||editId&&editRaw!==orderValue(editId,editField)){e.preventDefault();e.returnValue='';}});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){interactionFeedback.stop();orderEdited();flushOrder();flushCloud();}});
-window.addEventListener('pagehide',()=>{interactionFeedback.stop();orderEdited();flushOrder();flushCloud();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){productSpeech.stop();interactionFeedback.stop();orderEdited();flushOrder();flushCloud();}});
+window.addEventListener('pagehide',()=>{productSpeech.stop();interactionFeedback.stop();orderEdited();flushOrder();flushCloud();});
 window.addEventListener('online',()=>{flushOrder();if(cloudPending)flushCloud();paintBackupStatus();});
 window.addEventListener('offline',()=>{cloudPending=true;paintBackupStatus();});
 window.addEventListener('storage',e=>{if(e.key===KEY&&e.newValue!==lastLocalRaw){localConflict=true;clearTimeout(cloudTimer);paintBackupStatus();}});
@@ -1900,7 +2000,7 @@ async function boot(){
   if(!cfg.enabled){status=configFailed?'云端配置加载失败，尚未连接云端。本机草稿仍可继续盘货或下载备份；联网后刷新重试。':'云端没打开。本机照样能盘货。';render();return;}
   const firebaseApp=initializeApp(cfg.firebase);auth=getAuth(firebaseApp);db=getFirestore(firebaseApp);
   onAuthStateChanged(auth,async u=>{
-   if(peerBase)peerSavedBase=peerBase;sessionEpoch++;peerArchivePage=null;peerArchiveDetail=null;peerFlight=null;peerRestoreFlight=null;if(peerStop)peerStop();peerStop=null;peerApi=null;peerBase=null;peerLatest=null;peerConflict='';clearTimeout(orderTimer);orderAutoBlocked=false;orderBase=null;orderObserved='';cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
+   productSpeech.stop();if(peerBase)peerSavedBase=peerBase;sessionEpoch++;peerArchivePage=null;peerArchiveDetail=null;peerFlight=null;peerRestoreFlight=null;if(peerStop)peerStop();peerStop=null;peerApi=null;peerBase=null;peerLatest=null;peerConflict='';clearTimeout(orderTimer);orderAutoBlocked=false;orderBase=null;orderObserved='';cloudReady=false;cloudConflict=false;clearTimeout(cloudTimer);
    const authEpoch=sessionEpoch;
    latestRequest++;directoryRequest++;latestOrder=null;latestMessage='';directoryRecords=[];directoryCursor=null;directoryMore=false;directoryMessage='';
    if(u&&backupUid!==u.uid){cloudBase=undefined;cloudAt=null;backupUid=u.uid;}
