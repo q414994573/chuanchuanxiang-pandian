@@ -1,6 +1,7 @@
 'use strict';
 const ProductNames = require('./product-names.cjs');
 const {CATS} = require('./count-flow.cjs');
+const {createActivity} = require('./search-activity.cjs');
 const CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
 function norm(s){return String(s??'').normalize('NFKC').toLowerCase().replace(/\s/g,'');}
 function fold(s){
@@ -126,4 +127,4 @@ function bossShareText(date,counts,url){
  const summary=CATS.map(([id,name])=>`${name} ${counts?.[id]??0} 样`).join(' · ');
  return `${Number(parts[1])}月${Number(parts[2])}日 订货单\n${summary}\n请核对，点链接修改：${url}`;
 }
-module.exports={norm,fold,matches,createIndex,typoRisk,supplierText,bossShareText};
+module.exports={norm,fold,matches,createIndex,createActivity,typoRisk,supplierText,bossShareText};

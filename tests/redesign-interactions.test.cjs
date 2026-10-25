@@ -638,14 +638,18 @@ test('draft supplier exports are disabled and blocked for both copy and share',a
  await assert.rejects(h.run(`supplierExport('kr')`),/先完成盘货/);
  await assert.rejects(h.run(`supplierExport('kr',true)`),/先完成盘货/);
 });
-test('sticky search does not scroll toward its own parent and keeps a single input in each screen',()=>{
+test('sticky count search and the open order search screen each keep a single input',()=>{
  const h=harness();let scrolled=false;const search={};h.window.scrollBy=()=>{scrolled=true;};
  h.document.querySelector=s=>s==='.search'?search:s==='.bar'?{contains:el=>el===search}:null;
  h.run('scrollSearch()');assert.equal(scrolled,false);
  h.run(`screen='count';member={role:'owner'}`);
- for(const html of [h.run('countHtml()'),h.run(`orderShell('test','')`)]){
+ const count=h.run('countHtml()');
+ assert.match(h.run(`orderShell('test','')`),/data-act="open-order-search"/);
+ assert.doesNotMatch(h.run(`orderShell('test','')`),/id="find"/);
+ h.run(`screen='order';orderSearchOpen=true`);
+ for(const html of [count,h.run(`orderShell('test','')`)]){
   assert.equal((html.match(/id="find"/g)||[]).length,1);
-  assert.ok(html.indexOf('class="bar"')<html.indexOf('id="find"'));
+  assert.ok(/class="bar(?: |")/.test(html.slice(0,html.indexOf('id="find"'))));
   assert.ok(html.indexOf('id="find"')<html.indexOf('id="rows"'));
  }
 });

@@ -21,6 +21,7 @@ const CATS=Flow.CATS;
 const PRODUCTION=document.documentElement?.dataset.orderMode==='production';
 const MODE=Entry.settings(PRODUCTION),KEY=MODE.key;
 const interactionFeedback=Feedback.create(window,{key:KEY+':feedback'});
+const searchActivity=S.createActivity(window,{key:KEY+':search-activity'});
 let releaseLocked=PRODUCTION,configFailed=false;
 const app=document.getElementById('app');
 let source,aliasById=new Map(),draft,pos=0,field='stock',screen='count',keypad=false,textMode=false,viewCat='kr',orderCat='kr',moduleEnd=false,entered=null;
@@ -29,6 +30,7 @@ let user=null,member=null,auth,db,api=null,order=null,baseQty={},baseUnits={},st
 let query='',status='正在准备…',sample=false,demoRole=null,busy=false,orderDirty=false,editId=null,editSnap=null,editRaw=null;
 let undo=null,heldPrev={},ack={},yellowOn=true,yellowOnly=false,archives=[],cloudTimer=null,cloudPending=false,morePane='';
 let searchScroll=null,searchCat=null,wantFind=false,skipActUntil=0;
+let orderSearchOpen=false,searchContext=null,searchComposing=false;
 let searchCatalogKey=null,searchAliasKey=null,searchIndex=null,searchQuery=null,searchResult=null;
 let rowTap=null;
 let editField='qty';
@@ -964,6 +966,72 @@ function actSkipped(){return Date.now()<skipActUntil;}
 function searchBar(placeholder){
  return `<div class="search${query?' hasq':''}"><div class="findwrap"><input class="find" id="find" placeholder="${placeholder}" value="${E(query)}" enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off"><button class="clear" type="button" data-act="clear-find" aria-label="清空" tabindex="-1">✕</button></div><button class="cancel" type="button" data-act="cancel-find">${screen==='order'?'返回订单':'取消'}</button></div>`;
 }
+function orderSearchIdentity(){return `${sessionEpoch}:${order?.id||peerBase?.orderId||draft?.id||''}`;}
+function resetOrderSearch(){orderSearchOpen=false;searchContext=null;searchComposing=false;}
+function orderSearchEntry(){
+ return '<button class="order-search-entry" type="button" data-act="open-order-search" aria-label="搜索全部商品"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索商品 · 可连续输入多个</span></button>';
+}
+function openOrderSearch(){
+ if(screen!=='order'||orderSearchOpen)return;
+ if(textMode&&readPlain()===false)return;
+ if(commitOrderEdit()===false)return;
+ rememberSearchOrigin();
+ keypad=false;textMode=false;query='';orderSearchOpen=true;searchContext=orderSearchIdentity();
+ blurFind();render();window.scrollTo(0,0);
+ // Stay in the initiating gesture so the phone can open its native keyboard.
+ const find=document.getElementById('find');wantFind=true;find?.focus({preventScroll:true});
+}
+function recordOrderSearch(){
+ if(!orderSearchOpen||!query.trim())return;
+ searchActivity.record(query,catalog().filter(matchesSearch).map(p=>p.id));
+}
+function submitOrderSearch(term){
+ if(!orderSearchOpen||searchComposing)return;
+ if(textMode&&readPlain()===false)return;
+ if(commitOrderEdit()===false)return;
+ keypad=false;textMode=false;
+ if(typeof term==='string')query=term;
+ recordOrderSearch();blurFind();render();
+ requestAnimationFrame(()=>window.scrollTo(0,0));
+}
+function searchHotCard(p,index,recommended){
+ const stock=stockShown(p),stockUnit=stockUnitOf(p);
+ const qty=qtyOf(p.id),unit=order?order.units[p.id]:(draft?.items[p.id]?.unit||p.unit||'');
+ const inventory=!p.hasStock?'库存：无需盘库':String(stock).trim()?`库存：${stock}${stockUnit||''}`:'库存：未填写';
+ const emptyQuantity=!order&&deferred(p.id)?'订货：待定':!order&&!seen(p.id)&&draft?.items[p.id]?.decision!=='skip'?'订货：未填写':'订货：不订';
+ const quantity=Flow.showsOnOrder(qty)?`订货：${qty}${unit||''}`:emptyQuantity;
+ const cat=CATS.find(c=>c[0]===Flow.catOf(p));
+ return `<button type="button" class="search-hot-card" data-act="hot-find" data-id="${E(p.id)}"><span class="hot-rank${index<3?' leading':''}">${recommended?'荐':index+1}</span><span class="hot-product">${Flow.boldName(p,E)}<small class="hot-supplier">${E(cat?.[2]||'')}${Flow.smallName(p)?' · '+E(Flow.smallName(p)):''}</small><span class="hot-stock">${E(inventory)}</span><span class="hot-quantity">${E(quantity)}</span></span></button>`;
+}
+function orderSearchHome(){
+ const products=catalog(),byId=new Map(products.map(p=>[p.id,p]));
+ const ranked=searchActivity.ranked(products.map(p=>p.id),8),recommended=!ranked.length;
+ const ordered=products.filter(p=>Flow.showsOnOrder(qtyOf(p.id)));
+ const picks=recommended?[...ordered.filter(p=>Flow.catOf(p)===orderCat),...ordered.filter(p=>Flow.catOf(p)!==orderCat)].slice(0,8):ranked.map(x=>byId.get(x.id));
+ const saved=searchActivity.history();
+ const note=recommended?(picks.length?'暂无商品热搜记录 · 先看看本次订货推荐':'暂无商品热搜记录，搜过的商品会出现在这里。'):'本机近30天 · 最近常搜的商品更靠前';
+ const storage=searchActivity.status().persistent?'搜索记录仅保存在这部设备。':'当前无法保存搜索记录，关闭页面后可能丢失。';
+ return `<section class="search-hot" aria-labelledby="hot-title"><div class="search-section-title"><h2 id="hot-title">川川香热搜榜</h2><span class="search-local-badge">${recommended?'本次订货推荐':'本机热搜'}</span></div><p class="search-section-note">${note}</p>${picks.length?`<div class="search-hot-grid">${picks.map((p,i)=>searchHotCard(p,i,recommended)).join('')}</div>`:''}</section><section class="search-history" aria-labelledby="history-title"><div class="search-section-title"><h2 id="history-title">搜索历史</h2>${saved.length?'<button class="clear-history" type="button" data-act="clear-history" aria-label="清空搜索历史"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7m4-7v7"/></svg><span>清空</span></button>':''}</div>${saved.length?`<div class="search-history-chips">${saved.map(x=>`<button class="history-chip" type="button" data-act="history-find" data-query="${E(x.query)}">${E(x.query)}</button>`).join('')}</div>`:'<p class="search-section-note">还没有搜索历史。</p>'}<p class="search-privacy-note">${storage}</p></section>`;
+}
+function orderSearchRows(){
+ if(!query)return orderSearchHome();
+ const n=catalog().filter(matchesSearch).length;
+ return `<p class="search-result-note" role="status">搜到 ${n} 种商品 · 全部分类</p>${searchHits()}`;
+}
+function orderSearchHtml(){
+ return `<section id="order-search-page" class="order-search-page" aria-label="订单搜索"><div class="bar search-hub-bar"><div class="search search-hub-header${query?' hasq':''}"><button class="search-back" type="button" data-act="cancel-find" aria-label="返回订单"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button><div class="findwrap"><input class="find" id="find" aria-label="搜索商品" placeholder="大葱腐竹虾丸，可一起搜" value="${E(query)}" enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off"><button class="clear" type="button" data-act="clear-find" aria-label="清空" tabindex="-1">✕</button></div><button class="search-submit" type="button" data-act="submit-search">搜索</button></div><div id="search-order-status">${pinnedStatusHtml()}</div><div id="search-edit-tools">${textBar()}</div></div><div id="rows">${orderSearchRows()}</div><div id="search-pad">${keypad&&editId&&!textMode?orderPad():''}</div></section>`;
+}
+function repaintOrderSearch(){
+ // Keep #find connected through peer/autosave renders, including active IME
+ // composition. Refocusing a replacement would lose the keyboard/caret.
+ const rows=document.getElementById('rows');if(rows)rows.innerHTML=orderSearchRows();
+ const sync=document.getElementById('search-order-status');if(sync)sync.innerHTML=pinnedStatusHtml();
+ const edit=document.getElementById('search-edit-tools');if(edit)edit.innerHTML=textBar();
+ const pad=document.getElementById('search-pad');if(pad)pad.innerHTML=keypad&&editId&&!textMode?orderPad():'';
+ const find=document.getElementById('find');
+ if(find&&!searchComposing&&find.value!==query)find.value=query;
+ document.querySelector('.search')?.classList.toggle('hasq',!!query);
+}
 function rememberSearchOrigin(){
  if(searchCat==null)searchCat=screen==='order'?orderCat:viewCat;
  if(searchScroll==null)searchScroll=window.scrollY;
@@ -988,7 +1056,7 @@ function syncCatButtons(){
 function paintRows(alignResults=false){
  if(screen==='count')followSearchCat();
  const box=document.getElementById('rows');
- if(box)box.innerHTML=screen==='count'?countRows():(query?searchHits():orderPane());
+ if(box)box.innerHTML=screen==='count'?countRows():(orderSearchOpen?orderSearchRows():(query?searchHits():orderPane()));
  if(screen==='count')syncCatButtons();
  const wrap=document.querySelector('.search');
  if(wrap)wrap.classList.toggle('hasq',!!query);
@@ -999,6 +1067,9 @@ function clearFind(){
  if(orderEditing()&&commitOrderEdit()===false)return;
  if(screen==='count'&&!sharedCount())leaveCountCell();
  keypad=false;textMode=false;
+ // Deliberately clearing an unfinished composition must discard that text;
+ // its blur/compositionend event must not put the old query back.
+ if(orderSearchOpen&&searchComposing){searchComposing=false;blurFind();}
  query='';
  render();
  const find=document.getElementById('find');
@@ -1011,11 +1082,13 @@ function cancelFind(){
  const cat=searchCat;
  if(textMode&&readPlain()===false)return;
  if(orderEditing()&&commitOrderEdit()===false)return;
- searchScroll=null;searchCat=null;query='';wantFind=false;
+ recordOrderSearch();resetOrderSearch();
+ searchScroll=null;searchCat=null;wantFind=false;
  if(screen==='count'&&!sharedCount())leaveCountCell();
  keypad=false;textMode=false;editId=null;editSnap=null;editRaw=null;
  if(cat){if(screen==='order')orderCat=cat;else viewCat=cat;}
  blurFind();
+ query='';
  render();
  if(y!=null)requestAnimationFrame(()=>window.scrollTo(0,y));
 }
@@ -1028,7 +1101,7 @@ function openFromRow(b){
   return;
  }
  const id=b.dataset.id;
- if(b.dataset.search==='true'){openOrderKey(id,b.dataset.field||'qty');return;}
+ if(b.dataset.search==='true'){recordOrderSearch();openOrderKey(id,b.dataset.field||'qty');return;}
  const p=product(id);if(p)orderCat=Flow.catOf(p);
  query='';searchScroll=null;searchCat=null;
  if(draft&&!order&&!Flow.showsOnOrder(qtyOf(id)))draft.added={...draft.added,[id]:true};
@@ -1036,13 +1109,19 @@ function openFromRow(b){
 }
 function render(){
  const findFocused=document.activeElement?.id==='find';
+ if(orderSearchOpen&&(screen!=='order'||searchContext!==orderSearchIdentity())){
+  resetOrderSearch();query='';searchScroll=null;searchCat=null;
+ }
  orderEdited();
  document.body.classList.toggle('key-open',keypad&&!textMode);
  document.body.classList.toggle('text-mode',!!textMode);
  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===screen));
- if(screen==='count')app.innerHTML=countHtml();
- else if(screen==='order')app.innerHTML=orderHtml();
- else app.innerHTML=moreHtml();
+ const html=screen==='count'?countHtml():screen==='order'?orderHtml():moreHtml();
+ const inSearch=orderSearchOpen&&html.startsWith('<section id="order-search-page"');
+ document.body.classList.toggle('order-search',inSearch);
+ if(inSearch&&document.getElementById('order-search-page'))repaintOrderSearch();
+ else app.innerHTML=html;
+ if(orderSearchOpen&&!inSearch){resetOrderSearch();query='';searchScroll=null;searchCat=null;}
  if(textMode){
   const input=document.querySelector('input.plain');
   if(input){input.focus({preventScroll:true});const n=input.value.length;try{input.setSelectionRange(n,n);}catch(e){}}
@@ -1104,7 +1183,8 @@ function countRows(){
  return html+endNote('list');
 }
 function orderHtml(){
- return exportPanel()+orderContentHtml();
+ const content=orderContentHtml();
+ return (orderSearchOpen&&content.startsWith('<section id="order-search-page"')?'':exportPanel())+content;
 }
 function orderContentHtml(){
  if(peerEnabled&&!sample&&!canCount())return peerLoginHtml();
@@ -1143,7 +1223,8 @@ function orderCats(){
  }).join('')}</div>`;
 }
 function orderShell(head,dock){
- return `<div class="bar">${pinnedStatusHtml(head)}${yellowBanner()}${textBar()}${orderCats()}${searchBar('搜全部129种，可连续输入多个商品')}</div><div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
+ if(orderSearchOpen)return orderSearchHtml();
+ return `<div class="bar">${pinnedStatusHtml(head)}${yellowBanner()}${textBar()}${orderCats()}${orderSearchEntry()}</div><div id="rows">${query?searchHits():orderPane()}</div>${keypad&&editId&&!textMode?orderPad():''}${dock}`;
 }
 function orderPane(){
  const mine=warnings().filter(p=>Flow.catOf(p)===orderCat);
@@ -1580,6 +1661,7 @@ function tryLeave(next){
  if(readPlain()===false)return;
  if(screen==='count'&&!sharedCount())leaveCountCell();
  else if(commitOrderEdit()===false)return;
+ recordOrderSearch();resetOrderSearch();
  keypad=false;textMode=false;
  if(next!=='order')editId=null;
  screen=next;searchScroll=null;searchCat=null;if(next!=='count')query='';render();
@@ -1633,6 +1715,11 @@ document.body.addEventListener('click',async e=>{
   if(act==='backup-local'){if(!confirm('将先在这部手机保留云端草稿副本，再用本机这份内容备份。继续吗？'))return;await pullDraft(false,true);await flushCloud();return;}
   if(act==='tab'){tryLeave(b.dataset.tab);if(screen==='order'){busy=true;await resumeReviewedOrder();}return;}
   if(act==='open'||act==='edit'){openFromRow(b);return;}
+  if(act==='open-order-search'){openOrderSearch();return;}
+  if(act==='submit-search'){submitOrderSearch();return;}
+  if(act==='history-find'){submitOrderSearch(b.dataset.query);return;}
+  if(act==='hot-find'){const p=product(b.dataset.id);if(p)submitOrderSearch(Flow.largeName(p));return;}
+  if(act==='clear-history'){if(confirm('清空这部设备的搜索历史？热搜榜也会重新开始统计。')){searchActivity.clear();paintRows();}return;}
   if(act==='clear-find'){clearFind();return;}
   if(act==='cancel-find'){cancelFind();return;}
   if(act==='key'){if(orderEditing()&&editId){typeOrderKey(b.dataset.key);return;}typeKey(b.dataset.key);return;}
@@ -1707,10 +1794,15 @@ document.body.addEventListener('input',e=>{
   writeCell(value);
   return;
  }
- if(e.target.id==='find'){rememberSearchOrigin();query=e.target.value;paintRows(true);}
+ if(e.target.id==='find'&&e.target===document.getElementById('find')){rememberSearchOrigin();query=e.target.value;paintRows(true);}
 });
 document.body.addEventListener('keydown',e=>{
  if(e.key==='Escape'){document.querySelectorAll('.action-help[open]').forEach(el=>{el.open=false;});}
+ if(e.target.id==='find'&&orderSearchOpen){
+  if(e.key==='Enter'&&!e.isComposing&&!searchComposing&&e.keyCode!==229){e.preventDefault();if(!releaseLocked&&!busy){interactionFeedback.play(e);submitOrderSearch();}}
+  if(e.key==='Escape'&&!e.isComposing&&!searchComposing){e.preventDefault();if(!releaseLocked&&!busy)cancelFind();}
+  return;
+ }
  if(!e.target.classList.contains('plain')&&(e.key==='Enter'||e.key===' ')){
   const cell=e.target.closest('[data-search="true"]');
   if(cell){e.preventDefault();if(releaseLocked||busy)return;interactionFeedback.play(e);openFromRow(cell);return;}
@@ -1760,6 +1852,8 @@ document.body.addEventListener('focusin',e=>{
  const cat=searchCat;
  setTimeout(()=>{try{if(closePad()===false){blurFind();render();return;}searchScroll=y;searchCat=cat;const f=document.getElementById('find');if(f)f.focus({preventScroll:true});}catch(err){blurFind();toast(err.message||'没有保存');}},0);
 });
+document.body.addEventListener('compositionstart',e=>{if(orderSearchOpen&&e.target.id==='find')searchComposing=true;});
+document.body.addEventListener('compositionend',e=>{if(orderSearchOpen&&searchComposing&&e.target.id==='find'&&e.target===document.getElementById('find')){searchComposing=false;query=e.target.value;paintRows(true);}});
 if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{if(textMode)scrollActive();else scrollSearch();});
 document.body.addEventListener('submit',async e=>{
  if(!releaseLocked&&!busy&&(e.target.id==='login'||e.target.id==='pass'))interactionFeedback.play(e);
