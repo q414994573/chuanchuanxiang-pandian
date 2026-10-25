@@ -1181,9 +1181,8 @@ function blockHtml(cat){
  const body=[...active,...gray].map(row).join('');
  const empty=yellowOnly?'这一块没有她改的。':'本分类暂无订货商品。';
  const exportDisabled=!sample&&(!order||order.orderStage!=='finalized');
- const exportLabel=order&&!sample?'本类订货文字':'';
  const exportNote=sample?'样例内容，不是正式订单':order?(order.orderStage==='finalized'?(exportOffline()?'当前离线 · 使用本机已确认的定稿订单。':'已定稿 · 点击即可复制或打开分享菜单；网站不会自动发送。'):'定稿后可复制订货文字。'):'共同盘货草稿；任一方定稿后，双方都可复制、分享订货文字。';
- return `<div class="card"><p class="muted">${exportNote}</p><div class="pair"><button class="ghost" type="button" data-act="copy" data-cat="${cat}" ${exportDisabled?'disabled':''}>复制${exportLabel}</button><button class="ghost" type="button" data-act="share" data-cat="${cat}" ${exportDisabled?'disabled':''}>分享${exportLabel}</button></div><button class="ghost" type="button" data-act="preview" data-cat="${cat}" ${exportDisabled?'disabled':''}>查看本类订货文字</button>${body||`<p class="muted">${empty}</p>`}</div>`;
+ return `<div class="card"><p class="muted order-export-note">${exportNote}</p><div class="order-actions" role="group" aria-label="本类订货文字操作"><button class="ghost" type="button" data-act="copy" data-cat="${cat}" aria-label="复制本类订货文字" ${exportDisabled?'disabled':''}>复制本类</button><button class="ghost" type="button" data-act="share" data-cat="${cat}" aria-label="分享本类订货文字" ${exportDisabled?'disabled':''}>分享本类</button><button class="ghost" type="button" data-act="preview" data-cat="${cat}" aria-label="查看本类订货文字" ${exportDisabled?'disabled':''}>查看文字</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
 }
 function searchHits(countView=false){
  return catalog().filter(p=>(!countView||Flow.catOf(p)===viewCat)&&S.matches(p,query,aliasesOf(p))).map((p,i)=>{
@@ -1214,7 +1213,7 @@ function orderSaveMessage(){
 function orderSaveHtml(){const message=orderSaveMessage();return (message?`<p class="order-save-status" role="status" aria-live="polite">${E(message)}</p>`:'')+(orderAutoBlocked?'<button class="ghost" data-act="order-backup">下载当前订单备份</button><button class="ghost" data-act="use-cloud-order">查看云端新版</button>':'');}
 function dockHtml(){
  if(!order)return '';
- if(order.orderStage==='finalized')return `<div class="dock"><p>已定稿，可按分类复制发送。</p>${(peerEnabled?canCount():member?.role==='editor')?'<button class="ghost" type="button" data-act="reopen">解除定稿</button>':''}</div>`;
+ if(order.orderStage==='finalized')return `<div class="dock dock-finalized">${(peerEnabled?canCount():member?.role==='editor')?'<button class="ghost" type="button" data-act="reopen">解除定稿</button>':''}<p>已定稿，可按分类复制发送。</p></div>`;
  const n=dirtyCount();
  const text=n?`有 ${n} 处改动 · 立即保存`:'保存';
  return `<div class="dock">${orderSaveHtml()}${sample?'<p class="muted">样例不会写入云端</p>':''}<button class="primary" type="button" data-act="save" ${orderSaveNotice?.phase==='saving'&&orderSaveNotice.id===order.id&&orderSaveNotice.epoch===sessionEpoch?'disabled':''}>${text}</button>${!sample&&(peerEnabled?canCount():member?.role==='editor')?'<button class="ghost" type="button" data-act="finalize">定稿</button>':''}</div>`;

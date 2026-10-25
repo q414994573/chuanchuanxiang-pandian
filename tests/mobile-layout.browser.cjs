@@ -1,12 +1,12 @@
 'use strict';
-// Focused native select/mobile-width regression against the actual application source. No Firebase
+// Focused native select and compact-order mobile layout checks against the actual application source. No Firebase
 // boot, production credentials, or outgoing requests are allowed in this runner.
 // Usage: CCX_PLAYWRIGHT_MODULE=/path/to/playwright node tests/mobile-layout.browser.cjs
 // Optional: CCX_LAYOUT_CSS=/path/to/v43.css --baseline (records the original CSS defect).
 // Tested with Playwright 1.56.1, Chromium 141 and WebKit 26. Set
 // CCX_BROWSER_ENGINE=webkit for the second engine. Widths default to 430/375/320;
-// override CCX_BROWSER_WIDTHS for targeted reproduction. This CSS suite uses one
-// role because account rules are covered separately by the functional suite.
+// override CCX_BROWSER_WIDTHS for targeted reproduction. Native select checks use
+// one role; compact finalized orders check both shared members at each width.
 // Native iOS keyboards and
 // the OS share/clipboard UI still require a real device; outgoing payloads are
 // captured locally here instead of opening apps or sending anything.
@@ -78,6 +78,35 @@ function assertWidth(g,width){
  for(const row of g.rows){assert.ok(row.rect.left>=-1&&row.rect.right<=width+1,`row outside viewport: ${row.name}`);assert.ok(Math.abs(row.quantity.center-g.columns[2].center)<=1,`quantity/header alignment: ${row.name}`);}
  for(const picker of g.pickers){assert.ok(picker.rect.left>=0&&picker.rect.right<=width+1,'unit picker inside viewport');assert.ok(picker.rect.height>=44,'native unit picker retains 44px touch target');}
 }
+async function compactOrderBounds(page){return page.evaluate(()=>{
+ const rect=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+ const actions=[...document.querySelectorAll('#rows button[data-act="copy"],#rows button[data-act="share"],#rows button[data-act="preview"]')];
+ const card=actions[0]?.closest('.card'),first=card?.querySelector('.order'),note=card?.querySelector('p.muted'),dock=document.querySelector('.dock'),footerNote=dock?.querySelector('p'),reopen=dock?.querySelector('[data-act="reopen"]');
+ return {viewport:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,scrollX,
+  actions:actions.map(el=>({act:el.dataset.act,label:el.textContent.trim(),ariaLabel:el.getAttribute('aria-label'),disabled:el.disabled,rect:rect(el),clientWidth:el.clientWidth,scrollWidth:el.scrollWidth})),
+  topControlHeight:card&&first?first.getBoundingClientRect().top-card.getBoundingClientRect().top:null,
+  exportNote:rect(note),dock:rect(dock),reopen:rect(reopen),footerNote:footerNote?{...rect(footerNote),text:footerNote.textContent,clientHeight:footerNote.clientHeight,scrollHeight:footerNote.scrollHeight}:null,
+  tabs:rect(document.querySelector('.tabs')),bar:rect(document.querySelector('.bar')),lastRow:rect([...document.querySelectorAll('#rows .order')].at(-1))};
+});}
+function assertCompactOrder(g,width){
+ assert.equal(g.viewport,width);assert.ok(g.scrollWidth<=width+1,'compact order must not cause horizontal overflow');assert.equal(g.scrollX,0);
+ assert.deepEqual(g.actions.map(b=>b.act),['copy','share','preview']);
+ assert.deepEqual(g.actions.map(b=>b.label),['复制本类','分享本类','查看文字']);
+ assert.deepEqual(g.actions.map(b=>b.ariaLabel),['复制本类订货文字','分享本类订货文字','查看本类订货文字']);
+ const tops=g.actions.map(b=>b.rect.top);assert.ok(Math.max(...tops)-Math.min(...tops)<=1,'all three export buttons share one row');
+ for(const [i,b] of g.actions.entries()){
+  assert.ok(!b.disabled,'finalized export action stays enabled');assert.ok(b.rect.height>=44&&b.rect.width>=44,'export action retains 44px touch target');
+  assert.ok(b.rect.left>=0&&b.rect.right<=width,'export action stays inside viewport');assert.ok(b.scrollWidth<=b.clientWidth+1,'button text is not clipped');
+  if(i)assert.ok(b.rect.left>=g.actions[i-1].rect.right+3,'adjacent export targets remain separated');
+ }
+ assert.ok(g.topControlHeight<=112,'compact controls free space before first order row');
+ assert.ok(g.reopen&&g.reopen.height>=44&&g.reopen.width>=44,'reopen retains a 44px touch target');
+ assert.ok(g.dock.height<=72,'finalized footer stays compact');assert.ok(g.dock.bottom<=g.tabs.top+2,'footer does not overlap bottom navigation');
+ assert.ok(g.footerNote.left>=g.reopen.right+3,'explanation is to the right of reopen');
+ assert.ok(g.footerNote.top>=g.dock.top&&g.footerNote.bottom<=g.dock.bottom,'footer explanation fits vertically');
+ assert.ok(g.footerNote.right<=width&&g.footerNote.scrollHeight<=g.footerNote.clientHeight+1,'footer explanation is fully visible');
+ assert.equal(g.footerNote.text,'已定稿，可按分类复制发送。');
+}
 (async()=>{
  const browser=await playwright[process.env.CCX_BROWSER_ENGINE||'chromium'].launch({headless:true});report.browserVersion=browser.version();
  try{
@@ -126,6 +155,30 @@ function assertWidth(g,width){
      }
      const g=await bounds(page);assertWidth(g,width);return {locked:mode==='finalized',picker:g.pickers.find(p=>p.id==='other:11'),networkReads:await page.evaluate(()=>window.__ccx.reads)};
     });
+    if(mode==='finalized')for(const role of ['owner','editor']){
+     await runCase(`${width}px ${role} compact finalized order controls and unobscured last row`,async()=>{
+      await page.evaluate(role=>window.__ccx.setup(role,'finalized'),role);await settle(page);
+      const before=await page.evaluate(()=>window.__ccx.state().order),categories={};
+      for(const cat of ['cn','kr','other','drinks']){
+       await page.locator(`[data-act="ordercat"][data-cat="${cat}"]`).click();await settle(page);await page.evaluate(()=>window.scrollTo(0,0));await settle(page);
+       const top=await compactOrderBounds(page);categories[cat]={top};
+       if(cat==='cn'){
+        fs.writeFileSync(path.join(outputDir,`${baseline?'baseline':'fixed'}-${width}-${role}-compact-geometry.json`),JSON.stringify(top,null,2)+'\n');
+        await page.screenshot({path:path.join(outputDir,`${baseline?'baseline':'fixed'}-${width}-${role}-compact-order.png`)});
+       }
+       assertCompactOrder(top,width);
+       assert.equal(await page.evaluate(()=>window.__ccx.state().orderCat),cat,'layout keeps selected supplier');
+       await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));await settle(page);
+       const bottom=await compactOrderBounds(page);categories[cat].bottom=bottom;
+       assert.ok(bottom.lastRow.top>=bottom.bar.bottom-1,'last item remains below sticky category/search controls');
+       assert.ok(bottom.lastRow.bottom<=bottom.dock.top-2,'last item can be fully scrolled above fixed footer');
+       if(cat==='cn')await page.screenshot({path:path.join(outputDir,`${baseline?'baseline':'fixed'}-${width}-${role}-compact-bottom.png`)});
+      }
+      assert.deepEqual(await page.evaluate(()=>window.__ccx.state().order),before,'layout does not alter order values');
+      assert.equal(await page.evaluate(()=>window.__ccx.reads),0,'layout does not require backend reads');
+      return {categories,networkReads:0};
+     });
+    }
    }finally{await context.close();}
   }
  }finally{await browser.close();}
