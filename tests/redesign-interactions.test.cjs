@@ -36,7 +36,7 @@ test('defer on no-stock goods jumps to the next quantity without inventing a sto
  const h=harness();h.run(`member={role:'owner'};screen='count';viewCat='other';pos=draft.catalog.findIndex(p=>p.cat==='other');field='qty';keypad=true;globalThis.old=pos;deferActive()`);
  assert.equal(h.run('pos'),h.run('old+1'));assert.equal(h.run('field'),'qty');assert.equal(h.run('seen(draft.catalog[old].id)'),false);
 });
-function harness(production=false){
+function harness(production=false,feedbackOverride=null){
  const handlers={},saved=new Map(),find={blur(){document.activeElement=null;}};
  const document={documentElement:{dataset:{orderMode:production?'production':''}},body:{addEventListener(n,fn){handlers[n]=fn;},classList:{toggle(){},remove(){}}},
   activeElement:find,getElementById(id){return id==='find'?find:{};},
@@ -46,6 +46,7 @@ function harness(production=false){
  const ctx=vm.createContext({document,window,localStorage:{setItem(k,v){saved.set(k,v);},getItem(k){return saved.get(k)??null;}},
   setTimeout(){return 1;},clearTimeout(){},requestAnimationFrame(fn){fn();},URL,URLSearchParams,Date,Intl,console,
   Shared:require('../redesign-preview/shared-draft.cjs'),Auto:require('../redesign-preview/order-autosave.cjs'),C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup:require('../redesign-preview/draft-backup.cjs'),Recovery:require('../redesign-preview/recovery.cjs'),Entry:require('../redesign-preview/entry-mode.cjs'),
+  Feedback:feedbackOverride||require('../redesign-preview/interaction-feedback.cjs'),
   fixture:structuredClone(source),location:{search:'',href:'https://example.test/redesign-preview/'}});
  let js=fs.readFileSync(require.resolve('../redesign-preview/preview.js'),'utf8');
  js=js.replace(/^import .*;\n/gm,'').replace(/boot\(\)\.catch\([\s\S]*$/,'');vm.runInContext(js,ctx);
