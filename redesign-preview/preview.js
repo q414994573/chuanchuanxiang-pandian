@@ -1076,7 +1076,13 @@ function orderHtml(){
 function orderContentHtml(){
  if(peerEnabled&&!sample&&!canCount())return peerLoginHtml();
  const link=new URLSearchParams(location.search).get('order');
- if(link&&!order&&!sample)return `<div class="card"><h1>登录后看这份订单</h1><p>${E(status)}</p><button class="primary" type="button" data-act="tab" data-tab="more">去登录</button></div>`;
+ // Reopening a shared finalized order turns it back into a draft. Keep that
+ // authenticated draft visible on this same URL; it is not a logout.
+ const linkedSharedDraft=peerEnabled&&member&&peerViewing&&peerBase?.stage==='draft'&&peerBase.orderId===link&&draft?.id===peerBase.localId;
+ if(link&&!order&&!sample&&!linkedSharedDraft){
+  if(member)return `<div class="card"><h1>这份订单尚未打开</h1><p>${E(status)}</p><p>你仍处于登录状态。请从“更多 → 查订单”重新打开这份订单。</p><button class="primary" type="button" data-act="tab" data-tab="more">查订单</button></div>`;
+  return `<div class="card"><h1>登录后看这份订单</h1><p>${E(status)}</p><button class="primary" type="button" data-act="tab" data-tab="more">去登录</button></div>`;
+ }
  if(!peerEnabled&&member?.role==='editor'&&!order&&!sample)return '<div class="card"><h1>还没有打开已提交订单</h1><p>请到“更多 → 查订单”查看最新订单，或按日期查找。</p></div>';
  if(!order&&!draft)return `<div class="card"><h1>还没有打开订单</h1><p>${canCount()?'先在盘货里过一遍。':'请用大伟发来的链接打开。'}</p></div>`;
  if(!order&&draft)return draftOrderHtml();
@@ -1085,8 +1091,9 @@ function orderContentHtml(){
 }
 function draftOrderHtml(){
  if(draft.status==='reviewed')return `<div class="card"><h2>${E(draft.date)} · 云端订单尚未打开</h2><p>这份盘货已完成本机复核，当前尚未读到对应的云端订单。请打开云端订单后修改数量；本机记录仍保留。</p><p>${E(status)}</p><button class="primary" data-act="resume-order">打开这次盘货的云端订单</button><p>如果上次提交失败，可重试提交同一份盘货，不会用本机旧数量覆盖已有云端订单。</p><button class="ghost" data-act="confirm">重试提交</button></div>`;
- const head=currentStageText();
- const dock=canCount()?'<div class="dock"><button class="primary" type="button" data-act="confirm">定稿</button></div>':'';
+ const head=peerEnabled?'未定稿 · 可在订单页修改订货数量；库存在盘货页修改':currentStageText();
+ const save=peerEnabled?'<button class="ghost" type="button" data-act="peer-save">保存到云端</button>':'';
+ const dock=canCount()?`<div class="dock">${save}<button class="primary" type="button" data-act="confirm">定稿</button></div>`:'';
  return orderShell(head,dock);
 }
 function yellowBanner(){
@@ -1357,7 +1364,7 @@ async function resumeReviewedOrder(){
 async function openOrder(id,fixed=false){
  const request=++orderOpenRequest,headRevision=peerLatest?.orderId===id?peerLatest.revision:null;
  if(peerEnabled&&peerLatest?.orderId===id&&peerLatest.stage==='draft'){
- if(peerDirty()||cloudConflict)throw Error('本机仍有修改，请先保存或下载备份');peerViewing=true;order=null;peerBase=null;peerReceive(peerLatest);screen='count';render();return;}
+ if(peerDirty()||cloudConflict)throw Error('本机仍有修改，请先保存或下载备份');peerViewing=true;order=null;peerBase=null;peerReceive(peerLatest);screen='order';render();return;}
  if(peerEnabled&&peerViewing&&peerDirty()){await peerSave();if(peerDirty()||cloudConflict)throw Error('请先保存当前盘货修改');}
  if(peerEnabled&&cloudConflict)throw Error('请先核对同步冲突并保留本机备份');
  if(orderFlight||orderStageWriting)throw Error('正在保存，请稍后再切换订单');
@@ -1383,7 +1390,7 @@ async function changeOrderStage(stage){
  if(peerEnabled&&peerLatest?.orderId===order?.id){
   if(stage!=='pending')throw Error('请在当前盘货页面定稿');
   if(!confirm('解除定稿后，双方都可继续修改；再次定稿后才能复制分享。继续吗？'))return;
-  const epoch=sessionEpoch,result=await peerApi.reopen(peerLatest);if(epoch!==sessionEpoch)return;peerViewing=true;peerReceive(result);screen='count';render();return;
+  const epoch=sessionEpoch,result=await peerApi.reopen(peerLatest);if(epoch!==sessionEpoch)return;peerViewing=true;peerReceive(result);screen='order';render();toast('已解除定稿，可直接在订单页修改订货数量');return;
  }
  if(sample||!api||!order||!(peerEnabled?canCount():member?.role==='editor'))throw Error('请登录授权账号');
  if(textMode&&readPlain()===false)return;
@@ -1601,6 +1608,14 @@ document.body.addEventListener('click',async e=>{
   if(act==='resume-order'){busy=true;await resumeReviewedOrder();return;}
   if(act==='confirm'){busy=true;await confirmShare();return;}
   if(act==='save'){busy=true;await saveOrder();return;}
+  if(act==='peer-save'){
+   if(!peerEnabled||!canCount()||!peerViewing||peerBase?.stage!=='draft')throw Error('请先打开双方当前盘货');
+   if(textMode&&readPlain()===false)return;
+   if(editId&&commitOrderEdit()===false)return;
+   busy=true;await peerSave();
+   if(peerDirty()||cloudConflict||cloudPending)throw Error('尚未确认保存到云端，请核对同步状态后重试');
+   toast('已保存到云端');render();return;
+  }
   if(act==='sample'){if(PRODUCTION)return;buildSample('order');render();return;}
   if(act==='pane'){morePane=morePane===b.dataset.pane?'':b.dataset.pane;render();return;}
   if(act==='return-draft'){if(peerEnabled)await peerOpenCurrent();else returnToDraft();return;}
