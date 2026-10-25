@@ -17,7 +17,9 @@ body.text-mode .dock{display:none}
 .backup-status{font-size:12px;line-height:1.4;padding:5px 7px;margin-bottom:6px;border-radius:8px;background:#fff5dc;color:#473b27;overflow-wrap:anywhere}
 .backup-status span{display:block}
 .backup-status button{min-height:36px;margin:4px 6px 0 0;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:12px;padding:4px 8px}
-.cats,.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cats,.stats{display:grid;gap:6px}
+.cats{grid-template-columns:repeat(4,minmax(0,1fr))}
+.stats{grid-template-columns:repeat(3,1fr)}
 .cats button,.gap{min-height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:800;line-height:1.15;padding:4px 2px}
 .cats button.on{border-color:var(--red);color:var(--red);background:#fff}
 .cats button small.found{display:block;color:var(--red);font-size:11px;font-weight:800;line-height:1.1}

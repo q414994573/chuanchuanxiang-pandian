@@ -28,7 +28,8 @@ test('preview retains 129 original main names, units and confirmed translations'
  assert.equal(rows.length,129);
  assert.equal(rows.filter(r=>r.block==='韩国食品').length,45);
  assert.equal(rows.filter(r=>r.block==='中国食品').length,66);
- assert.equal(rows.filter(r=>r.block==='其他商品').length,18);
+ assert.equal(rows.filter(r=>r.block==='其他商品').length,13);
+ assert.equal(rows.filter(r=>r.block==='饮料').length,5);
  assert.deepEqual(rows.map(r=>r.large),official.map(p=>p.name));
  assert.deepEqual(rows.map(r=>r.small),official.map(p=>confirmed.get(p.id)?.ko||(p.alias===p.name?'':p.alias||'')));
  assert.deepEqual(rows.map(r=>r.unit),official.map(p=>p.unit??''));

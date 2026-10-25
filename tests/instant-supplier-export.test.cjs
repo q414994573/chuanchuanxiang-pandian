@@ -12,7 +12,7 @@ const setup=(role,offline=false)=>{
  h.run(`buildSample('boss');sample=false;member={role:'${role}',name:'测试账号'};order.orderStage='finalized';baseQty={...order.quantities};orderBase=C.clone(order);api={read:()=>{throw Error('copied with unnecessary server read')}};`);
  return {h,deliveries,calls};
 };
-for(const role of ['owner','editor'])for(const cat of ['kr','cn','other']){
+for(const role of ['owner','editor'])for(const cat of ['kr','cn','other','drinks']){
  test(`one tap copy and share are equally immediate for ${role} / ${cat}`,async()=>{
   const {h,deliveries,calls}=setup(role);
   const expected=h.run(`blockText('${cat}')`);

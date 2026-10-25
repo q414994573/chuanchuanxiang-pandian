@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import {sharedCountStore} from '../cloud/shared-count.js';
 import {store} from '../cloud/store.js';
 import Core from '../count-core.js';
+import Flow from '../redesign-preview/count-flow.cjs';
 const require=createRequire(import.meta.url),source=JSON.parse(readFileSync('current-order.json'));
 const existing=readFileSync('tests/redesign-interactions.test.cjs','utf8');
 const body=existing.slice(existing.indexOf('function harness('),existing.indexOf("test('production mode"));
@@ -30,13 +31,15 @@ try{
  async function checkExport(){
   h.ctx.loaded=await orders.read(head.orderId);h.run(`peerEnabled=true;member={role:'editor'};sample=false;acceptOrder(loaded);api=orderApi;query='不匹配任何商品';yellowOnly=true;`);
   assert.equal(Object.keys(h.ctx.loaded.quantities).length,129);
-  for(const cat of ['kr','cn','other']){
-   const lines=source.products.filter(p=>p.cat===cat&&expected.has(p.id)).map(p=>{const v=expected.get(p.id);return p.name+' '+v.qty+v.unit;});
+  for(const [cat] of Flow.CATS){
+   const lines=source.products.filter(p=>Flow.catOf(p)===cat&&expected.has(p.id)).map(p=>{const v=expected.get(p.id);return p.name+' '+v.qty+v.unit;});
    await h.run(`supplierExport('${cat}')`);
    assert.equal(copied.at(-1),'10/25 천천향 주문\n'+(lines.length?lines.join('\n'):'这次不订'));
   }
  }
- await checkExport();console.log('PASS both accounts jointly fill all 129; previously server-confirmed order copies three supplier texts on first tap');
+ await checkExport();
+ for(const [id,unit] of [['kr:31','개'],['cn:21','包']])assert.equal(JSON.parse(h.ctx.loaded.snapshot).items[id].stockUnit,unit);
+ console.log('PASS both accounts jointly fill all 129; server-confirmed order copies four separate supplier texts on first tap, including five drinks; new stock units survive persistence');
  // A preview must not survive once the new cloud state is loaded after a reopen.
  h.run(`supplierPreview('kr')`);const copiesBefore=copied.length;head=await a.reopen(head);
  h.ctx.reopened=await orders.read(head.orderId);h.run('acceptOrder(reopened)');

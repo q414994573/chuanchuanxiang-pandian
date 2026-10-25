@@ -1,0 +1,358 @@
+{
+  "release": "v43",
+  "date": "2026-10-26",
+  "automated": {
+    "tests": 1308,
+    "pass": 1308,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "baseline": {
+    "release": "v42",
+    "reproducedProblems": [
+      "430px owner search from deep order scroll",
+      "430px owner preview follows supplier switch and copy/share"
+    ]
+  },
+  "firebaseEmulatorSuites": [
+    {
+      "name": "rules",
+      "pass": true,
+      "checks": [
+        "PASS simulated three-product chain, reread, duplicate, audit, permissions and simultaneous conflict",
+        "PASS shared inventory, blank/zero, immutable catalog, invalid values, stale edits and finalized lock",
+        "PASS equal-member finalization, immutable final quantities, audit, stale rejection, idempotent retry and reopen",
+        "PASS submission ordering, pagination beyond 30, exact-date lookup and unauthorized list denial",
+        "PASS full catalog inventory permission validation",
+        "PASS 129-product rules, authorized edit, invalid quantity denied; no production service used",
+        "PASS dropdown units, unchanged stock, unit-only audit, stale conflict, server validation and finalized lock",
+        "PASS draft backup transaction: one winner, stale writer blocked, lost-ack retry idempotent",
+        "PASS owner-only count draft; editor and strangers cannot read it",
+        "PASS live and preview drafts isolated; owner-only permissions preserved"
+      ]
+    },
+    {
+      "name": "shared",
+      "pass": true,
+      "checks": [
+        "PASS equal roles, singleton race, independent-cell merge, same-cell conflict, stale finalization, atomic finalize/reopen, legacy bypass denied, anonymous/disabled denied, history preserved, new blank atomic archives, archive tamper denied, stale and concurrent new blank protected"
+      ]
+    },
+    {
+      "name": "shared-view",
+      "pass": true,
+      "checks": [
+        "PASS owner all 129 products: rapid entry, next cell, live watch, save returns and persisted count progress",
+        "PASS editor all 129 products: rapid entry, next cell, live watch, save returns and persisted count progress"
+      ]
+    },
+    {
+      "name": "shared-transitions",
+      "pass": true,
+      "checks": [
+        "PASS 5 live-watch finalize/reopen/new-blank cycles with immediate result assertions and archives"
+      ]
+    },
+    {
+      "name": "supplier-rehearsal",
+      "pass": true,
+      "checks": [
+        "PASS both accounts jointly fill all 129; server-confirmed order copies four separate supplier texts on first tap, including five drinks; new stock units survive persistence",
+        "PASS refreshed remote reopen invalidates preview; cancellations, smallest decimals and alternate units survive re-finalize/export; new blank preserves finalized history"
+      ]
+    }
+  ],
+  "safety": {
+    "productionInventoryWritten": false,
+    "realSupplierMessagesSent": false,
+    "catalogProductCount": 129,
+    "displayGroups": {
+      "kr": 45,
+      "cn": 66,
+      "other": 13,
+      "drinks": 5
+    },
+    "stockDefaultsOnlyForNewCounts": {
+      "kr:31": "개",
+      "cn:21": "包"
+    }
+  },
+  "browsers": [
+    {
+      "engine": "chromium",
+      "version": "141.0.7390.37",
+      "viewportWidths": [
+        430,
+        375
+      ],
+      "roles": [
+        "owner",
+        "editor"
+      ],
+      "passed": 24,
+      "failed": 0,
+      "pageErrors": [],
+      "cases": [
+        {
+          "name": "430px owner search from deep order scroll",
+          "pass": true,
+          "firstResultTop": 226.765625,
+          "stickyBarBottom": 226.765625,
+          "viewportHeight": 932
+        },
+        {
+          "name": "430px owner preview follows supplier switch and copy/share",
+          "pass": true
+        },
+        {
+          "name": "430px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px owner search with preview above sticky header and small viewport",
+          "pass": true,
+          "firstResultTop": 229.734375,
+          "stickyBarBottom": 229.734375,
+          "viewportHeight": 530
+        },
+        {
+          "name": "430px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "430px editor search from deep order scroll",
+          "pass": true,
+          "firstResultTop": 226.765625,
+          "stickyBarBottom": 226.765625,
+          "viewportHeight": 932
+        },
+        {
+          "name": "430px editor preview follows supplier switch and copy/share",
+          "pass": true
+        },
+        {
+          "name": "430px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px editor search with preview above sticky header and small viewport",
+          "pass": true,
+          "firstResultTop": 229.734375,
+          "stickyBarBottom": 229.734375,
+          "viewportHeight": 530
+        },
+        {
+          "name": "430px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px owner search from deep order scroll",
+          "pass": true,
+          "firstResultTop": 226.765625,
+          "stickyBarBottom": 226.765625,
+          "viewportHeight": 932
+        },
+        {
+          "name": "375px owner preview follows supplier switch and copy/share",
+          "pass": true
+        },
+        {
+          "name": "375px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px owner search with preview above sticky header and small viewport",
+          "pass": true,
+          "firstResultTop": 230.328125,
+          "stickyBarBottom": 230.328125,
+          "viewportHeight": 530
+        },
+        {
+          "name": "375px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px editor search from deep order scroll",
+          "pass": true,
+          "firstResultTop": 226.765625,
+          "stickyBarBottom": 226.765625,
+          "viewportHeight": 932
+        },
+        {
+          "name": "375px editor preview follows supplier switch and copy/share",
+          "pass": true
+        },
+        {
+          "name": "375px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px editor search with preview above sticky header and small viewport",
+          "pass": true,
+          "firstResultTop": 230.328125,
+          "stickyBarBottom": 230.328125,
+          "viewportHeight": 530
+        },
+        {
+          "name": "375px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft count has new stock units and beverage tab",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "engine": "webkit",
+      "version": "26.0",
+      "viewportWidths": [
+        430,
+        375
+      ],
+      "roles": [
+        "owner",
+        "editor"
+      ],
+      "passed": 24,
+      "failed": 0,
+      "pageErrors": [],
+      "cases": [
+        {
+          "name": "430px owner search from deep order scroll",
+          "pass": true,
+          "firstResultTop": 225,
+          "stickyBarBottom": 225,
+          "viewportHeight": 932
+        },
+        {
+          "name": "430px owner preview follows supplier switch and copy/share",
+          "pass": true
+        },
+        {
+          "name": "430px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px owner search with preview above sticky header and small viewport",
+          "pass": true,
+          "firstResultTop": 229,
+          "stickyBarBottom": 229,
+          "viewportHeight": 530
+        },
+        {
+          "name": "430px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "430px editor search from deep order scroll",
+          "pass": true,
+          "firstResultTop": 225,
+          "stickyBarBottom": 225,
+          "viewportHeight": 932
+        },
+        {
+          "name": "430px editor preview follows supplier switch and copy/share",
+          "pass": true
+        },
+        {
+          "name": "430px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px editor search with preview above sticky header and small viewport",
+          "pass": true,
+          "firstResultTop": 229,
+          "stickyBarBottom": 229,
+          "viewportHeight": 530
+        },
+        {
+          "name": "430px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px owner search from deep order scroll",
+          "pass": true,
+          "firstResultTop": 225,
+          "stickyBarBottom": 225,
+          "viewportHeight": 932
+        },
+        {
+          "name": "375px owner preview follows supplier switch and copy/share",
+          "pass": true
+        },
+        {
+          "name": "375px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px owner search with preview above sticky header and small viewport",
+          "pass": true,
+          "firstResultTop": 229,
+          "stickyBarBottom": 229,
+          "viewportHeight": 530
+        },
+        {
+          "name": "375px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px editor search from deep order scroll",
+          "pass": true,
+          "firstResultTop": 225,
+          "stickyBarBottom": 225,
+          "viewportHeight": 932
+        },
+        {
+          "name": "375px editor preview follows supplier switch and copy/share",
+          "pass": true
+        },
+        {
+          "name": "375px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px editor search with preview above sticky header and small viewport",
+          "pass": true,
+          "firstResultTop": 229,
+          "stickyBarBottom": 229,
+          "viewportHeight": 530
+        },
+        {
+          "name": "375px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft count has new stock units and beverage tab",
+          "pass": true
+        }
+      ]
+    }
+  ],
+  "browserLimitations": "Linux browser engines with mobile-size viewports. Reduced height simulates available keyboard space. Native iPhone keyboard, authentication session and system share sheet are not physically tested."
+}
