@@ -7,7 +7,7 @@ function harness(shared=new Map()){
  const ctx=vm.createContext({document,Entry,window:{CountCore:Core,addEventListener(n,fn){events[n]=fn;}},navigator:{onLine:true},
  localStorage:{getItem(k){return shared.get(k)||null;},setItem(k,v){shared.set(k,v);}},
  setTimeout(fn,ms){timers.push({fn,ms});return timers.length;},clearTimeout(){},console,Date,Intl,URL,URLSearchParams,
- C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Backup,
+ C:require('../cloud/core.cjs'),A:require('../cloud/account.cjs'),S:require('../redesign-preview/search.cjs'),Flow:require('../redesign-preview/count-flow.cjs'),Feedback:require('../redesign-preview/interaction-feedback.cjs'),Backup,
  fixture:structuredClone(fixture),crypto:{randomUUID:()=>String(Math.random()).slice(2)},
  doc:()=>({id:'owner'}),serverTimestamp:()=>({server:true}),
  getDocFromServer:async()=>{h.reads++;if(h.readWait)await h.readWait;const data=h.remote;return {exists:()=>!!data,data:()=>data};},

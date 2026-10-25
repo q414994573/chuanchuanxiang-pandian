@@ -11,6 +11,7 @@ import Recovery from './recovery.cjs';
 import Entry from './entry-mode.cjs';
 import Auto from './order-autosave.cjs';
 import Shared from './shared-draft.cjs';
+import Feedback from './interaction-feedback.cjs';
 import {sharedCountStore} from '../cloud/shared-count.js';
 
 const Core=()=>window.CountCore;
@@ -19,6 +20,7 @@ const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const CATS=Flow.CATS;
 const PRODUCTION=document.documentElement?.dataset.orderMode==='production';
 const MODE=Entry.settings(PRODUCTION),KEY=MODE.key;
+const interactionFeedback=Feedback.create(window,{key:KEY+':feedback'});
 let releaseLocked=PRODUCTION,configFailed=false;
 const app=document.getElementById('app');
 let source,aliasById=new Map(),draft,pos=0,field='stock',screen='count',keypad=false,textMode=false,viewCat='kr',orderCat='kr',moduleEnd=false,entered=null;
@@ -678,7 +680,7 @@ function selectUnit(id,which,value){
 }
 document.body.addEventListener('change',e=>{
  if(!e.target.dataset?.unit||releaseLocked)return;
- try{if(busy)throw Error('正在保存，请稍后再选择');selectUnit(e.target.dataset.unit,e.target.dataset.field,e.target.value);}
+ try{if(busy)throw Error('正在保存，请稍后再选择');interactionFeedback.play(e);selectUnit(e.target.dataset.unit,e.target.dataset.field,e.target.value);}
  catch(err){toast(err.message);render();}
 });
 
@@ -1221,6 +1223,11 @@ function dirtyCount(){
  if(!order||sample)return 0;
  return catalog().filter(p=>(order.quantities[p.id]||0)!==(baseQty[p.id]||0)||(order.units[p.id]||'')!==(baseUnits[p.id]??order.units[p.id]??'')||(String(stocks[p.id]??'')!==String(stockBase[p.id]??''))||((order.stockUnits?.[p.id]??JSON.parse(order.snapshot).items?.[p.id]?.stockUnit??'')!==(stockBaseUnits[p.id]??order.stockUnits?.[p.id]??JSON.parse(order.snapshot).items?.[p.id]?.stockUnit??''))).length;
 }
+function feedbackHtml(){
+ const supported=interactionFeedback.support(),settings=interactionFeedback.settings();
+ const toggle=(kind,label)=>`<button class="ghost" type="button" data-act="feedback-toggle" data-kind="${kind}" aria-pressed="${settings[kind]}" ${supported[kind]?'':'disabled'}>${label}：${supported[kind]?(settings[kind]?'开':'关'):'不支持'}</button>`;
+ return `<div class="card" data-feedback><h2>操作反馈</h2><p class="muted">点击按钮和数字键时轻响或轻震。开关记在这部手机上。</p><div class="pair">${toggle('sound','声音')}${toggle('vibration','震动')}</div>${!supported.vibration?'<p class="muted">当前浏览器不支持网页震动。</p>':''}<button class="ghost" type="button" data-act="feedback-test" ${settings.sound||settings.vibration?'':'disabled'}>试一下</button><p class="muted">声音受手机音量和静音设置影响。反馈只表示点按，保存结果请看云端提示。</p></div>`;
+}
 function moreHtml(){
  const who=member?`<div class="card"><h1>账号 · ${E(member.name)}</h1><p class="muted">${peerEnabled?'共同盘货成员':member.role==='owner'?'盘货负责人':'订单编辑者'}</p></div>`:`<div class="card"><h1>登录</h1><p class="muted">填账号。大伟用 dawei，老板娘用 laobanniang。</p><form id="login"><label>账号<input name="account" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">登录</button></form></div>`;
  const accountTools=member?`<div class="card"><h2>修改密码</h2><form id="pass"><label>当前密码<input name="current" type="password" required></label><label>新密码<input name="next" type="password" required></label><label>再输入一次<input name="confirm" type="password" required></label><button class="ghost" type="submit">保存新密码</button></form><button class="ghost" type="button" data-act="logout">退出登录</button></div>`:'';
@@ -1236,7 +1243,7 @@ function moreHtml(){
  const historyTools=toolSection('history','历史资料',`<p>这里只查看以前确认的记录，不代表当前库存。新版云端订单请用上方“查订单”。</p>${toolButton('查看基准存档','pane','查看最初确认的历史订单快照，仅供查证，不会替换当前盘货。','data-pane="archive"')}${toolButton('查看旧历史档案','pane','查看原来保留的历史记录，不会改变当前订单。','data-pane="history"')}${peerEnabled&&canCount()?peerArchivesHtml():''}${['archive','history'].includes(morePane)?morePaneHtml():''}${legacy}`);
  const account=member?toolSection('account','账号设置',accountTools):'';
  const home=toolSection('home','添加到手机桌面','<p>iPhone：用 Safari 打开，选择分享 → 添加到主屏幕。安卓：在浏览器菜单中选择添加到主屏幕或安装应用。名称是“천천향 盘货”。如果在聊天软件里打开，请先转到手机浏览器。</p>');
- return `${who}${quick}${order&&draft?.status==='draft'&&canCount()&&!sample?'<div class="card"><p>另有一份未提交盘货：'+E(draft.date)+'</p><button class="ghost" type="button" data-act="return-draft">返回未提交盘货</button></div>':''}${date}${completed&&restart?'<div class="card">'+restart+'</div>':''}<div class="card"><h2>查订单</h2><div id="cloudList">${api&&!sample?entryHtml():'<p class="muted">'+(sample?'样例不查询云端订单。':'登录后可按日期查看已提交订单。')+'</p>'}</div><p class="muted">${E(status)}</p></div><div class="card">${toolButton('修改记录','pane','查看当前打开的订单由谁修改、改了哪些内容。','data-pane="log"')}</div>${morePane==='log'?morePaneHtml():''}${backups}${account}${historyTools}${!completed&&restart?toolSection('restart','作废与重新填写',restart):''}${home}${!PRODUCTION?toolSection('demo','测试样例','<button class="ghost" data-act="sample">看一张样例订单（不写入云端）</button>'):''}`;
+ return `${who}${quick}${feedbackHtml()}${order&&draft?.status==='draft'&&canCount()&&!sample?'<div class="card"><p>另有一份未提交盘货：'+E(draft.date)+'</p><button class="ghost" type="button" data-act="return-draft">返回未提交盘货</button></div>':''}${date}${completed&&restart?'<div class="card">'+restart+'</div>':''}<div class="card"><h2>查订单</h2><div id="cloudList">${api&&!sample?entryHtml():'<p class="muted">'+(sample?'样例不查询云端订单。':'登录后可按日期查看已提交订单。')+'</p>'}</div><p class="muted">${E(status)}</p></div><div class="card">${toolButton('修改记录','pane','查看当前打开的订单由谁修改、改了哪些内容。','data-pane="log"')}</div>${morePane==='log'?morePaneHtml():''}${backups}${account}${historyTools}${!completed&&restart?toolSection('restart','作废与重新填写',restart):''}${home}${!PRODUCTION?toolSection('demo','测试样例','<button class="ghost" data-act="sample">看一张样例订单（不写入云端）</button>'):''}`;
 }
 document.body.addEventListener('toggle',e=>{if(e.target.dataset?.moreSection)moreSections[e.target.dataset.moreSection]=e.target.open;},true);
 
@@ -1575,10 +1582,23 @@ document.body.addEventListener('click',async e=>{
  if(!e.target.closest('.action-help'))document.querySelectorAll('.action-help[open]').forEach(el=>{el.open=false;});
  if(e.target.closest('input.plain,select[data-unit]'))return;
  const b=e.target.closest('[data-act]');
- if(!b){if((keypad||textMode)&&!e.target.closest('.pad')&&!e.target.closest('input,button,a,label'))closePad();return;}
+ if(!b){if(!busy&&e.target.closest('summary'))interactionFeedback.play(e);if((keypad||textMode)&&!e.target.closest('.pad')&&!e.target.closest('input,button,a,label'))closePad();return;}
  if(busy||b.disabled)return;
  const act=b.dataset.act;
+ if(actSkipped()&&(act==='open'||act==='edit'||act==='clear-find'||act==='cancel-find'))return;
  try{
+  if(act==='feedback-toggle'){
+   const kind=b.dataset.kind;
+   if(kind!=='sound'&&kind!=='vibration')return;
+   interactionFeedback.set(kind,!interactionFeedback.settings()[kind]);
+   interactionFeedback.play(e);
+   const card=document.querySelector('[data-feedback]');if(card)card.outerHTML=feedbackHtml();
+   return;
+  }
+  // Local feedback never waits for audio or network, preserving the user
+  // activation required by iPhone clipboard/share. It is not a saved signal.
+  interactionFeedback.play(e);
+  if(act==='feedback-test')return;
   if(act==='backup-export'){backupRecovery();return;}
   if(act==='legacy-import'){busy=true;await importLegacy();return;}
   if(act==='order-backup'){downloadOrderBackup();return;}
@@ -1603,7 +1623,6 @@ document.body.addEventListener('click',async e=>{
   if(act==='backup-remote'){if(!confirm('将先保留一份本机恢复副本，再读取云端草稿。继续吗？'))return;await pullDraft(true);return;}
   if(act==='backup-local'){if(!confirm('将先在这部手机保留云端草稿副本，再用本机这份内容备份。继续吗？'))return;await pullDraft(false,true);await flushCloud();return;}
   if(act==='tab'){tryLeave(b.dataset.tab);if(screen==='order'){busy=true;await resumeReviewedOrder();}return;}
-  if(actSkipped()&&(act==='open'||act==='edit'||act==='clear-find'||act==='cancel-find'))return;
   if(act==='open'||act==='edit'){openFromRow(b);return;}
   if(act==='clear-find'){clearFind();return;}
   if(act==='cancel-find'){cancelFind();return;}
@@ -1685,23 +1704,25 @@ document.body.addEventListener('keydown',e=>{
  if(e.key==='Escape'){document.querySelectorAll('.action-help[open]').forEach(el=>{el.open=false;});}
  if(!e.target.classList.contains('plain')&&(e.key==='Enter'||e.key===' ')){
   const cell=e.target.closest('[data-search="true"]');
-  if(cell){e.preventDefault();openFromRow(cell);return;}
+  if(cell){e.preventDefault();if(releaseLocked||busy)return;interactionFeedback.play(e);openFromRow(cell);return;}
  }
  if(!e.target.classList.contains('plain')||e.key!=='Enter')return;
  e.preventDefault();
+ if(releaseLocked||busy)return;
  if(readPlain()===false)return;
+ interactionFeedback.play(e);
  textMode=false;
  if(screen==='count'&&!sharedCount())nextCell();
  else advanceOrder();
 });
 document.body.addEventListener('pointerdown',e=>{
  rowTap=null;
- if(e.isPrimary===false||e.button>0)return;
+ if(releaseLocked||busy||e.isPrimary===false||e.button>0)return;
  skipActUntil=0;
  if(e.target.closest('#find')){wantFind=true;rememberSearchOrigin();return;}
  wantFind=false;
- if(e.target.closest('[data-act="clear-find"]')){e.preventDefault();clearFind();skipAct();return;}
- if(e.target.closest('[data-act="cancel-find"]')){e.preventDefault();cancelFind();skipAct();return;}
+ if(e.target.closest('[data-act="clear-find"]')){e.preventDefault();interactionFeedback.play(e);clearFind();skipAct();return;}
+ if(e.target.closest('[data-act="cancel-find"]')){e.preventDefault();interactionFeedback.play(e);cancelFind();skipAct();return;}
  const find=document.getElementById('find');
  const row=e.target.closest('[data-act="open"],[data-act="edit"]');
  if(!row)return;
@@ -1717,7 +1738,8 @@ document.body.addEventListener('pointerup',e=>{
  const moved=tap.moved||Math.hypot(e.clientX-tap.x,e.clientY-tap.y)>10;
  if(moved||e.target.closest('[data-act="open"],[data-act="edit"]')!==tap.row){skipAct();return;}
  if(!tap.findFocused)return; // Normal click/keyboard activation remains native.
- e.preventDefault();skipAct();try{openFromRow(tap.row);}catch(err){toast(err.message||'没做成');}
+ e.preventDefault();skipAct();if(releaseLocked||busy||tap.row.disabled)return;
+ try{interactionFeedback.play(e);openFromRow(tap.row);}catch(err){toast(err.message||'没做成');}
 });
 document.body.addEventListener('focusin',e=>{
  if(e.target.id!=='find')return;
@@ -1731,12 +1753,13 @@ document.body.addEventListener('focusin',e=>{
 });
 if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{if(textMode)scrollActive();else scrollSearch();});
 document.body.addEventListener('submit',async e=>{
+ if(!releaseLocked&&!busy&&(e.target.id==='login'||e.target.id==='pass'))interactionFeedback.play(e);
  if(e.target.id==='login'){e.preventDefault();const form=e.target;try{if(!auth)throw Error('云端尚未连接，请联网后刷新重试。本机草稿仍保留。');await signInWithEmailAndPassword(auth,A.accountEmail(form.elements.account.value),form.elements.password.value);}catch(err){toast(A.authErrorText(err.code,err.message)||err.message||'登录失败');}finally{form.elements.password.value='';}}
  if(e.target.id==='pass'){e.preventDefault();const form=e.target;const problem=A.passwordChangeError(form.elements.current.value,form.elements.next.value,form.elements.confirm.value);if(problem){toast(problem);return;}try{await reauthenticateWithCredential(user,EmailAuthProvider.credential(user.email,form.elements.current.value));await updatePassword(user,form.elements.next.value);toast('密码已改');}catch(err){toast(A.authErrorText(err.code,err.message,'password')||err.message);}finally{form.reset();}}
 });
 window.addEventListener('beforeunload',e=>{if(localSaveFailed||orderDirty||editId&&editRaw!==orderValue(editId,editField)){e.preventDefault();e.returnValue='';}});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){orderEdited();flushOrder();flushCloud();}});
-window.addEventListener('pagehide',()=>{orderEdited();flushOrder();flushCloud();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){interactionFeedback.stop();orderEdited();flushOrder();flushCloud();}});
+window.addEventListener('pagehide',()=>{interactionFeedback.stop();orderEdited();flushOrder();flushCloud();});
 window.addEventListener('online',()=>{flushOrder();if(cloudPending)flushCloud();paintBackupStatus();});
 window.addEventListener('offline',()=>{cloudPending=true;paintBackupStatus();});
 window.addEventListener('storage',e=>{if(e.key===KEY&&e.newValue!==lastLocalRaw){localConflict=true;clearTimeout(cloudTimer);paintBackupStatus();}});

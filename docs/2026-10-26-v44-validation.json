@@ -1,0 +1,4457 @@
+{
+  "release": "v44",
+  "dateAsiaSeoul": "2026-10-26",
+  "baseReleasedCommit": "30bb341608c366872e39dd229bf941408ca5815f",
+  "node": {
+    "tests": 1358,
+    "pass": 1358,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "duration_ms": 22394.086623
+  },
+  "browserFlows": 104,
+  "browser": {
+    "workflow": {
+      "chromium": {
+        "engine": "chromium",
+        "browserVersion": "141.0.7390.37",
+        "passed": 24,
+        "failed": 0,
+        "errors": [],
+        "cases": [
+          {
+            "name": "430px owner search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 226.765625,
+              "barBottom": 226.765625,
+              "firstTop": 226.765625,
+              "firstBottom": 297.671875,
+              "height": 932,
+              "width": 430,
+              "scrollWidth": 430,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 932,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54.78125,
+                "height": 54.78125
+              },
+              "bar": {
+                "top": 62.78125,
+                "bottom": 226.765625,
+                "height": 163.984375
+              },
+              "rows": {
+                "top": 226.765625,
+                "bottom": 297.671875,
+                "height": 70.90625
+              },
+              "first": {
+                "top": 226.765625,
+                "bottom": 297.671875,
+                "height": 70.90625
+              },
+              "input": {
+                "top": 176.765625,
+                "bottom": 220.765625,
+                "height": 44
+              },
+              "app": {
+                "top": 54.78125,
+                "bottom": 1229.671875,
+                "height": 1174.890625
+              },
+              "appPadding": "8px 12px 932px",
+              "bodyHeight": 1230,
+              "documentHeight": 1230
+            }
+          },
+          {
+            "name": "430px owner preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "counts": {
+              "kr": 45,
+              "cn": 66,
+              "other": 13,
+              "drinks": 5
+            },
+            "noQuantityChanges": true
+          },
+          {
+            "name": "430px owner search with preview above sticky header and small viewport",
+            "pass": true,
+            "geometry": {
+              "scrollY": 379,
+              "rowsTop": 229.734375,
+              "barBottom": 229.734375,
+              "firstTop": 229.734375,
+              "firstBottom": 300.640625,
+              "height": 530,
+              "width": 430,
+              "scrollWidth": 430,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 530,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54.78125,
+                "height": 54.78125
+              },
+              "bar": {
+                "top": 65.75,
+                "bottom": 229.734375,
+                "height": 163.984375
+              },
+              "rows": {
+                "top": 229.734375,
+                "bottom": 300.640625,
+                "height": 70.90625
+              },
+              "first": {
+                "top": 229.734375,
+                "bottom": 300.640625,
+                "height": 70.90625
+              },
+              "input": {
+                "top": 179.734375,
+                "bottom": 223.734375,
+                "height": 44
+              },
+              "app": {
+                "top": -324.21875,
+                "bottom": 830.640625,
+                "height": 1154.859375
+              },
+              "appPadding": "8px 12px 530px",
+              "bodyHeight": 1210,
+              "documentHeight": 1210
+            },
+            "inputIdentityPreserved": true
+          },
+          {
+            "name": "430px owner empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "430px owner draft count has new stock units and beverage tab",
+            "pass": true,
+            "stockUnits": [
+              "개",
+              "包"
+            ],
+            "drinkRows": 5
+          },
+          {
+            "name": "430px editor search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 226.765625,
+              "barBottom": 226.765625,
+              "firstTop": 226.765625,
+              "firstBottom": 297.671875,
+              "height": 932,
+              "width": 430,
+              "scrollWidth": 430,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 932,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54.78125,
+                "height": 54.78125
+              },
+              "bar": {
+                "top": 62.78125,
+                "bottom": 226.765625,
+                "height": 163.984375
+              },
+              "rows": {
+                "top": 226.765625,
+                "bottom": 297.671875,
+                "height": 70.90625
+              },
+              "first": {
+                "top": 226.765625,
+                "bottom": 297.671875,
+                "height": 70.90625
+              },
+              "input": {
+                "top": 176.765625,
+                "bottom": 220.765625,
+                "height": 44
+              },
+              "app": {
+                "top": 54.78125,
+                "bottom": 1229.671875,
+                "height": 1174.890625
+              },
+              "appPadding": "8px 12px 932px",
+              "bodyHeight": 1230,
+              "documentHeight": 1230
+            }
+          },
+          {
+            "name": "430px editor preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "counts": {
+              "kr": 45,
+              "cn": 66,
+              "other": 13,
+              "drinks": 5
+            },
+            "noQuantityChanges": true
+          },
+          {
+            "name": "430px editor search with preview above sticky header and small viewport",
+            "pass": true,
+            "geometry": {
+              "scrollY": 379,
+              "rowsTop": 229.734375,
+              "barBottom": 229.734375,
+              "firstTop": 229.734375,
+              "firstBottom": 300.640625,
+              "height": 530,
+              "width": 430,
+              "scrollWidth": 430,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 530,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54.78125,
+                "height": 54.78125
+              },
+              "bar": {
+                "top": 65.75,
+                "bottom": 229.734375,
+                "height": 163.984375
+              },
+              "rows": {
+                "top": 229.734375,
+                "bottom": 300.640625,
+                "height": 70.90625
+              },
+              "first": {
+                "top": 229.734375,
+                "bottom": 300.640625,
+                "height": 70.90625
+              },
+              "input": {
+                "top": 179.734375,
+                "bottom": 223.734375,
+                "height": 44
+              },
+              "app": {
+                "top": -324.21875,
+                "bottom": 830.640625,
+                "height": 1154.859375
+              },
+              "appPadding": "8px 12px 530px",
+              "bodyHeight": 1210,
+              "documentHeight": 1210
+            },
+            "inputIdentityPreserved": true
+          },
+          {
+            "name": "430px editor empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "430px editor draft count has new stock units and beverage tab",
+            "pass": true,
+            "stockUnits": [
+              "개",
+              "包"
+            ],
+            "drinkRows": 5
+          },
+          {
+            "name": "375px owner search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 226.765625,
+              "barBottom": 226.765625,
+              "firstTop": 226.765625,
+              "firstBottom": 297.140625,
+              "height": 932,
+              "width": 375,
+              "scrollWidth": 375,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 932,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54.78125,
+                "height": 54.78125
+              },
+              "bar": {
+                "top": 62.78125,
+                "bottom": 226.765625,
+                "height": 163.984375
+              },
+              "rows": {
+                "top": 226.765625,
+                "bottom": 297.140625,
+                "height": 70.375
+              },
+              "first": {
+                "top": 226.765625,
+                "bottom": 297.140625,
+                "height": 70.375
+              },
+              "input": {
+                "top": 176.765625,
+                "bottom": 220.765625,
+                "height": 44
+              },
+              "app": {
+                "top": 54.78125,
+                "bottom": 1229.140625,
+                "height": 1174.359375
+              },
+              "appPadding": "8px 12px 932px",
+              "bodyHeight": 1229,
+              "documentHeight": 1229
+            }
+          },
+          {
+            "name": "375px owner preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "counts": {
+              "kr": 45,
+              "cn": 66,
+              "other": 13,
+              "drinks": 5
+            },
+            "noQuantityChanges": true
+          },
+          {
+            "name": "375px owner search with preview above sticky header and small viewport",
+            "pass": true,
+            "geometry": {
+              "scrollY": 400,
+              "rowsTop": 230.328125,
+              "barBottom": 230.328125,
+              "firstTop": 230.328125,
+              "firstBottom": 300.703125,
+              "height": 530,
+              "width": 375,
+              "scrollWidth": 375,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 530,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54.78125,
+                "height": 54.78125
+              },
+              "bar": {
+                "top": 66.34375,
+                "bottom": 230.328125,
+                "height": 163.984375
+              },
+              "rows": {
+                "top": 230.328125,
+                "bottom": 300.703125,
+                "height": 70.375
+              },
+              "first": {
+                "top": 230.328125,
+                "bottom": 300.703125,
+                "height": 70.375
+              },
+              "input": {
+                "top": 180.328125,
+                "bottom": 224.328125,
+                "height": 44
+              },
+              "app": {
+                "top": -345.21875,
+                "bottom": 830.703125,
+                "height": 1175.921875
+              },
+              "appPadding": "8px 12px 530px",
+              "bodyHeight": 1231,
+              "documentHeight": 1231
+            },
+            "inputIdentityPreserved": true
+          },
+          {
+            "name": "375px owner empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "375px owner draft count has new stock units and beverage tab",
+            "pass": true,
+            "stockUnits": [
+              "개",
+              "包"
+            ],
+            "drinkRows": 5
+          },
+          {
+            "name": "375px editor search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 226.765625,
+              "barBottom": 226.765625,
+              "firstTop": 226.765625,
+              "firstBottom": 297.140625,
+              "height": 932,
+              "width": 375,
+              "scrollWidth": 375,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 932,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54.78125,
+                "height": 54.78125
+              },
+              "bar": {
+                "top": 62.78125,
+                "bottom": 226.765625,
+                "height": 163.984375
+              },
+              "rows": {
+                "top": 226.765625,
+                "bottom": 297.140625,
+                "height": 70.375
+              },
+              "first": {
+                "top": 226.765625,
+                "bottom": 297.140625,
+                "height": 70.375
+              },
+              "input": {
+                "top": 176.765625,
+                "bottom": 220.765625,
+                "height": 44
+              },
+              "app": {
+                "top": 54.78125,
+                "bottom": 1229.140625,
+                "height": 1174.359375
+              },
+              "appPadding": "8px 12px 932px",
+              "bodyHeight": 1229,
+              "documentHeight": 1229
+            }
+          },
+          {
+            "name": "375px editor preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "counts": {
+              "kr": 45,
+              "cn": 66,
+              "other": 13,
+              "drinks": 5
+            },
+            "noQuantityChanges": true
+          },
+          {
+            "name": "375px editor search with preview above sticky header and small viewport",
+            "pass": true,
+            "geometry": {
+              "scrollY": 400,
+              "rowsTop": 230.328125,
+              "barBottom": 230.328125,
+              "firstTop": 230.328125,
+              "firstBottom": 300.703125,
+              "height": 530,
+              "width": 375,
+              "scrollWidth": 375,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 530,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54.78125,
+                "height": 54.78125
+              },
+              "bar": {
+                "top": 66.34375,
+                "bottom": 230.328125,
+                "height": 163.984375
+              },
+              "rows": {
+                "top": 230.328125,
+                "bottom": 300.703125,
+                "height": 70.375
+              },
+              "first": {
+                "top": 230.328125,
+                "bottom": 300.703125,
+                "height": 70.375
+              },
+              "input": {
+                "top": 180.328125,
+                "bottom": 224.328125,
+                "height": 44
+              },
+              "app": {
+                "top": -345.21875,
+                "bottom": 830.703125,
+                "height": 1175.921875
+              },
+              "appPadding": "8px 12px 530px",
+              "bodyHeight": 1231,
+              "documentHeight": 1231
+            },
+            "inputIdentityPreserved": true
+          },
+          {
+            "name": "375px editor empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "375px editor draft count has new stock units and beverage tab",
+            "pass": true,
+            "stockUnits": [
+              "개",
+              "包"
+            ],
+            "drinkRows": 5
+          }
+        ]
+      },
+      "webkit": {
+        "engine": "webkit",
+        "browserVersion": "26.0",
+        "passed": 24,
+        "failed": 0,
+        "errors": [],
+        "cases": [
+          {
+            "name": "430px owner search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 225,
+              "barBottom": 225,
+              "firstTop": 225,
+              "firstBottom": 295,
+              "height": 932,
+              "width": 430,
+              "scrollWidth": 430,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 932,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54,
+                "height": 54
+              },
+              "bar": {
+                "top": 62,
+                "bottom": 225,
+                "height": 163
+              },
+              "rows": {
+                "top": 225,
+                "bottom": 295,
+                "height": 70
+              },
+              "first": {
+                "top": 225,
+                "bottom": 295,
+                "height": 70
+              },
+              "input": {
+                "top": 175,
+                "bottom": 219,
+                "height": 44
+              },
+              "app": {
+                "top": 54,
+                "bottom": 1227,
+                "height": 1173
+              },
+              "appPadding": "8px 12px 932px",
+              "bodyHeight": 1227,
+              "documentHeight": 1227
+            }
+          },
+          {
+            "name": "430px owner preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px owner four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "counts": {
+              "kr": 45,
+              "cn": 66,
+              "other": 13,
+              "drinks": 5
+            },
+            "noQuantityChanges": true
+          },
+          {
+            "name": "430px owner search with preview above sticky header and small viewport",
+            "pass": true,
+            "geometry": {
+              "scrollY": 378,
+              "rowsTop": 229,
+              "barBottom": 229,
+              "firstTop": 229,
+              "firstBottom": 299,
+              "height": 530,
+              "width": 430,
+              "scrollWidth": 430,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 530,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54,
+                "height": 54
+              },
+              "bar": {
+                "top": 66,
+                "bottom": 229,
+                "height": 163
+              },
+              "rows": {
+                "top": 229,
+                "bottom": 299,
+                "height": 70
+              },
+              "first": {
+                "top": 229,
+                "bottom": 299,
+                "height": 70
+              },
+              "input": {
+                "top": 179,
+                "bottom": 223,
+                "height": 44
+              },
+              "app": {
+                "top": -324,
+                "bottom": 829,
+                "height": 1153
+              },
+              "appPadding": "8px 12px 530px",
+              "bodyHeight": 1207,
+              "documentHeight": 1207
+            },
+            "inputIdentityPreserved": true
+          },
+          {
+            "name": "430px owner empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "430px owner draft count has new stock units and beverage tab",
+            "pass": true,
+            "stockUnits": [
+              "개",
+              "包"
+            ],
+            "drinkRows": 5
+          },
+          {
+            "name": "430px editor search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 225,
+              "barBottom": 225,
+              "firstTop": 225,
+              "firstBottom": 295,
+              "height": 932,
+              "width": 430,
+              "scrollWidth": 430,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 932,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54,
+                "height": 54
+              },
+              "bar": {
+                "top": 62,
+                "bottom": 225,
+                "height": 163
+              },
+              "rows": {
+                "top": 225,
+                "bottom": 295,
+                "height": 70
+              },
+              "first": {
+                "top": 225,
+                "bottom": 295,
+                "height": 70
+              },
+              "input": {
+                "top": 175,
+                "bottom": 219,
+                "height": 44
+              },
+              "app": {
+                "top": 54,
+                "bottom": 1227,
+                "height": 1173
+              },
+              "appPadding": "8px 12px 932px",
+              "bodyHeight": 1227,
+              "documentHeight": 1227
+            }
+          },
+          {
+            "name": "430px editor preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "430px editor four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "counts": {
+              "kr": 45,
+              "cn": 66,
+              "other": 13,
+              "drinks": 5
+            },
+            "noQuantityChanges": true
+          },
+          {
+            "name": "430px editor search with preview above sticky header and small viewport",
+            "pass": true,
+            "geometry": {
+              "scrollY": 378,
+              "rowsTop": 229,
+              "barBottom": 229,
+              "firstTop": 229,
+              "firstBottom": 299,
+              "height": 530,
+              "width": 430,
+              "scrollWidth": 430,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 530,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54,
+                "height": 54
+              },
+              "bar": {
+                "top": 66,
+                "bottom": 229,
+                "height": 163
+              },
+              "rows": {
+                "top": 229,
+                "bottom": 299,
+                "height": 70
+              },
+              "first": {
+                "top": 229,
+                "bottom": 299,
+                "height": 70
+              },
+              "input": {
+                "top": 179,
+                "bottom": 223,
+                "height": 44
+              },
+              "app": {
+                "top": -324,
+                "bottom": 829,
+                "height": 1153
+              },
+              "appPadding": "8px 12px 530px",
+              "bodyHeight": 1207,
+              "documentHeight": 1207
+            },
+            "inputIdentityPreserved": true
+          },
+          {
+            "name": "430px editor empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "430px editor draft count has new stock units and beverage tab",
+            "pass": true,
+            "stockUnits": [
+              "개",
+              "包"
+            ],
+            "drinkRows": 5
+          },
+          {
+            "name": "375px owner search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 225,
+              "barBottom": 225,
+              "firstTop": 225,
+              "firstBottom": 295,
+              "height": 932,
+              "width": 375,
+              "scrollWidth": 375,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 932,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54,
+                "height": 54
+              },
+              "bar": {
+                "top": 62,
+                "bottom": 225,
+                "height": 163
+              },
+              "rows": {
+                "top": 225,
+                "bottom": 295,
+                "height": 70
+              },
+              "first": {
+                "top": 225,
+                "bottom": 295,
+                "height": 70
+              },
+              "input": {
+                "top": 175,
+                "bottom": 219,
+                "height": 44
+              },
+              "app": {
+                "top": 54,
+                "bottom": 1227,
+                "height": 1173
+              },
+              "appPadding": "8px 12px 932px",
+              "bodyHeight": 1227,
+              "documentHeight": 1227
+            }
+          },
+          {
+            "name": "375px owner preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px owner four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "counts": {
+              "kr": 45,
+              "cn": 66,
+              "other": 13,
+              "drinks": 5
+            },
+            "noQuantityChanges": true
+          },
+          {
+            "name": "375px owner search with preview above sticky header and small viewport",
+            "pass": true,
+            "geometry": {
+              "scrollY": 399,
+              "rowsTop": 229,
+              "barBottom": 229,
+              "firstTop": 229,
+              "firstBottom": 299,
+              "height": 530,
+              "width": 375,
+              "scrollWidth": 375,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 530,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54,
+                "height": 54
+              },
+              "bar": {
+                "top": 66,
+                "bottom": 229,
+                "height": 163
+              },
+              "rows": {
+                "top": 229,
+                "bottom": 299,
+                "height": 70
+              },
+              "first": {
+                "top": 229,
+                "bottom": 299,
+                "height": 70
+              },
+              "input": {
+                "top": 179,
+                "bottom": 223,
+                "height": 44
+              },
+              "app": {
+                "top": -345,
+                "bottom": 829,
+                "height": 1174
+              },
+              "appPadding": "8px 12px 530px",
+              "bodyHeight": 1228,
+              "documentHeight": 1228
+            },
+            "inputIdentityPreserved": true
+          },
+          {
+            "name": "375px owner empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "375px owner draft count has new stock units and beverage tab",
+            "pass": true,
+            "stockUnits": [
+              "개",
+              "包"
+            ],
+            "drinkRows": 5
+          },
+          {
+            "name": "375px editor search from deep order scroll",
+            "pass": true,
+            "origin": 1200,
+            "geometry": {
+              "scrollY": 0,
+              "rowsTop": 225,
+              "barBottom": 225,
+              "firstTop": 225,
+              "firstBottom": 295,
+              "height": 932,
+              "width": 375,
+              "scrollWidth": 375,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 932,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54,
+                "height": 54
+              },
+              "bar": {
+                "top": 62,
+                "bottom": 225,
+                "height": 163
+              },
+              "rows": {
+                "top": 225,
+                "bottom": 295,
+                "height": 70
+              },
+              "first": {
+                "top": 225,
+                "bottom": 295,
+                "height": 70
+              },
+              "input": {
+                "top": 175,
+                "bottom": 219,
+                "height": 44
+              },
+              "app": {
+                "top": 54,
+                "bottom": 1227,
+                "height": 1173
+              },
+              "appPadding": "8px 12px 932px",
+              "bodyHeight": 1227,
+              "documentHeight": 1227
+            }
+          },
+          {
+            "name": "375px editor preview follows supplier switch and copy/share",
+            "pass": true,
+            "changed": true,
+            "networkReads": 0
+          },
+          {
+            "name": "375px editor four supplier tabs partition existing 129 goods",
+            "pass": true,
+            "counts": {
+              "kr": 45,
+              "cn": 66,
+              "other": 13,
+              "drinks": 5
+            },
+            "noQuantityChanges": true
+          },
+          {
+            "name": "375px editor search with preview above sticky header and small viewport",
+            "pass": true,
+            "geometry": {
+              "scrollY": 399,
+              "rowsTop": 229,
+              "barBottom": 229,
+              "firstTop": 229,
+              "firstBottom": 299,
+              "height": 530,
+              "width": 375,
+              "scrollWidth": 375,
+              "activeElement": "find",
+              "visualViewport": {
+                "offsetTop": 0,
+                "height": 530,
+                "scale": 1
+              },
+              "banner": {
+                "top": 0,
+                "bottom": 54,
+                "height": 54
+              },
+              "bar": {
+                "top": 66,
+                "bottom": 229,
+                "height": 163
+              },
+              "rows": {
+                "top": 229,
+                "bottom": 299,
+                "height": 70
+              },
+              "first": {
+                "top": 229,
+                "bottom": 299,
+                "height": 70
+              },
+              "input": {
+                "top": 179,
+                "bottom": 223,
+                "height": 44
+              },
+              "app": {
+                "top": -345,
+                "bottom": 829,
+                "height": 1174
+              },
+              "appPadding": "8px 12px 530px",
+              "bodyHeight": 1228,
+              "documentHeight": 1228
+            },
+            "inputIdentityPreserved": true
+          },
+          {
+            "name": "375px editor empty supplier preview replaces previous text",
+            "pass": true
+          },
+          {
+            "name": "375px editor draft count has new stock units and beverage tab",
+            "pass": true,
+            "stockUnits": [
+              "개",
+              "包"
+            ],
+            "drinkRows": 5
+          }
+        ]
+      }
+    },
+    "layout": {
+      "chromium": {
+        "engine": "chromium",
+        "browserVersion": "141.0.7390.37",
+        "passed": 18,
+        "failed": 0,
+        "errors": [],
+        "cases": [
+          {
+            "name": "430px finalized count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 344,
+                      "right": 418,
+                      "width": 74,
+                      "height": 44,
+                      "center": 381
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 344,
+                      "right": 418,
+                      "width": 74,
+                      "height": 44,
+                      "center": 381
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "430px finalized order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 318,
+                      "right": 405,
+                      "width": 87,
+                      "height": 44,
+                      "center": 361.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 215,
+                      "right": 405,
+                      "width": 190,
+                      "height": 44,
+                      "center": 310
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "430px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": true,
+              "value": "세트",
+              "rect": {
+                "left": 344,
+                "right": 418,
+                "width": 74,
+                "height": 44,
+                "center": 381
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          },
+          {
+            "name": "430px draft count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 344,
+                      "right": 418,
+                      "width": 74,
+                      "height": 44,
+                      "center": 381
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 344,
+                      "right": 418,
+                      "width": 74,
+                      "height": 44,
+                      "center": 381
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "430px draft order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 318,
+                      "right": 405,
+                      "width": 87,
+                      "height": 44,
+                      "center": 361.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 215,
+                      "right": 405,
+                      "width": 190,
+                      "height": 44,
+                      "center": 310
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "430px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": false,
+              "value": "세트",
+              "rect": {
+                "left": 344,
+                "right": 418,
+                "width": 74,
+                "height": 44,
+                "center": 381
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          },
+          {
+            "name": "375px finalized count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 299,
+                      "right": 363,
+                      "width": 64,
+                      "height": 44,
+                      "center": 331
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 299,
+                      "right": 363,
+                      "width": 64,
+                      "height": 44,
+                      "center": 331
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "375px finalized order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 263,
+                      "right": 350,
+                      "width": 87,
+                      "height": 44,
+                      "center": 306.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 160,
+                      "right": 350,
+                      "width": 190,
+                      "height": 44,
+                      "center": 255
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "375px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": true,
+              "value": "세트",
+              "rect": {
+                "left": 299,
+                "right": 363,
+                "width": 64,
+                "height": 44,
+                "center": 331
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          },
+          {
+            "name": "375px draft count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 299,
+                      "right": 363,
+                      "width": 64,
+                      "height": 44,
+                      "center": 331
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 299,
+                      "right": 363,
+                      "width": 64,
+                      "height": 44,
+                      "center": 331
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "375px draft order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 263,
+                      "right": 350,
+                      "width": 87,
+                      "height": 44,
+                      "center": 306.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 160,
+                      "right": 350,
+                      "width": 190,
+                      "height": 44,
+                      "center": 255
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "375px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": false,
+              "value": "세트",
+              "rect": {
+                "left": 299,
+                "right": 363,
+                "width": 64,
+                "height": 44,
+                "center": 331
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          },
+          {
+            "name": "320px finalized count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 244,
+                      "right": 308,
+                      "width": 64,
+                      "height": 44,
+                      "center": 276
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 244,
+                      "right": 308,
+                      "width": 64,
+                      "height": 44,
+                      "center": 276
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "320px finalized order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 208,
+                      "right": 295,
+                      "width": 87,
+                      "height": 44,
+                      "center": 251.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 113.015625,
+                      "right": 295,
+                      "width": 181.984375,
+                      "height": 44,
+                      "center": 204.0078125
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "320px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": true,
+              "value": "세트",
+              "rect": {
+                "left": 244,
+                "right": 308,
+                "width": 64,
+                "height": 44,
+                "center": 276
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          },
+          {
+            "name": "320px draft count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 244,
+                      "right": 308,
+                      "width": 64,
+                      "height": 44,
+                      "center": 276
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 244,
+                      "right": 308,
+                      "width": 64,
+                      "height": 44,
+                      "center": 276
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "320px draft order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 208,
+                      "right": 295,
+                      "width": 87,
+                      "height": 44,
+                      "center": 251.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 113.015625,
+                      "right": 295,
+                      "width": 181.984375,
+                      "height": 44,
+                      "center": 204.0078125
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "320px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": false,
+              "value": "세트",
+              "rect": {
+                "left": 244,
+                "right": 308,
+                "width": 64,
+                "height": 44,
+                "center": 276
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          }
+        ]
+      },
+      "webkit": {
+        "engine": "webkit",
+        "browserVersion": "26.0",
+        "passed": 18,
+        "failed": 0,
+        "errors": [],
+        "cases": [
+          {
+            "name": "430px finalized count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 344,
+                      "right": 418,
+                      "width": 74,
+                      "height": 44,
+                      "center": 381
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 344,
+                      "right": 418,
+                      "width": 74,
+                      "height": 44,
+                      "center": 381
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "430px finalized order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 312,
+                      "right": 405,
+                      "width": 93,
+                      "height": 44,
+                      "center": 358.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 215,
+                      "right": 405,
+                      "width": 190,
+                      "height": 44,
+                      "center": 310
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "430px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": true,
+              "value": "세트",
+              "rect": {
+                "left": 344,
+                "right": 418,
+                "width": 74,
+                "height": 44,
+                "center": 381
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          },
+          {
+            "name": "430px draft count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 344,
+                      "right": 418,
+                      "width": 74,
+                      "height": 44,
+                      "center": 381
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 344,
+                      "right": 418,
+                      "width": 74,
+                      "height": 44,
+                      "center": 381
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 426
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "430px draft order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 312,
+                      "right": 405,
+                      "width": 93,
+                      "height": 44,
+                      "center": 358.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 215,
+                      "right": 405,
+                      "width": 190,
+                      "height": 44,
+                      "center": 310
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 430,
+                "scrollWidth": 430,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "430px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": false,
+              "value": "세트",
+              "rect": {
+                "left": 344,
+                "right": 418,
+                "width": 74,
+                "height": 44,
+                "center": 381
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          },
+          {
+            "name": "375px finalized count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 299,
+                      "right": 363,
+                      "width": 64,
+                      "height": 44,
+                      "center": 331
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 299,
+                      "right": 363,
+                      "width": 64,
+                      "height": 44,
+                      "center": 331
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "375px finalized order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 257,
+                      "right": 350,
+                      "width": 93,
+                      "height": 44,
+                      "center": 303.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 160,
+                      "right": 350,
+                      "width": 190,
+                      "height": 44,
+                      "center": 255
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "375px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": true,
+              "value": "세트",
+              "rect": {
+                "left": 299,
+                "right": 363,
+                "width": 64,
+                "height": 44,
+                "center": 331
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          },
+          {
+            "name": "375px draft count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 299,
+                      "right": 363,
+                      "width": 64,
+                      "height": 44,
+                      "center": 331
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 299,
+                      "right": 363,
+                      "width": 64,
+                      "height": 44,
+                      "center": 331
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 371
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "375px draft order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 257,
+                      "right": 350,
+                      "width": 93,
+                      "height": 44,
+                      "center": 303.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 160,
+                      "right": 350,
+                      "width": 190,
+                      "height": 44,
+                      "center": 255
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 375,
+                "scrollWidth": 375,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "375px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": false,
+              "value": "세트",
+              "rect": {
+                "left": 299,
+                "right": 363,
+                "width": 64,
+                "height": 44,
+                "center": 331
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          },
+          {
+            "name": "320px finalized count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 244,
+                      "right": 308,
+                      "width": 64,
+                      "height": 44,
+                      "center": 276
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 244,
+                      "right": 308,
+                      "width": 64,
+                      "height": 44,
+                      "center": 276
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "320px finalized order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "봉",
+                    "rect": {
+                      "left": 202,
+                      "right": 295,
+                      "width": 93,
+                      "height": 44,
+                      "center": 248.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": true,
+                    "value": "세트",
+                    "rect": {
+                      "left": 113.015625,
+                      "right": 295,
+                      "width": 181.984375,
+                      "height": 44,
+                      "center": 204.0078125
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "320px finalized native bowl unit choices stay usable",
+            "pass": true,
+            "locked": true,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": true,
+              "value": "세트",
+              "rect": {
+                "left": 244,
+                "right": 308,
+                "width": 64,
+                "height": 44,
+                "center": 276
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          },
+          {
+            "name": "320px draft count all four categories fit and align",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 45,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 66,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 244,
+                      "right": 308,
+                      "width": 64,
+                      "height": 44,
+                      "center": 276
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 13,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 244,
+                      "right": 308,
+                      "width": 64,
+                      "height": 44,
+                      "center": 276
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 5,
+                "rowEdges": {
+                  "left": 4,
+                  "right": 316
+                },
+                "maxOrderColumnCenterErrorPx": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "320px draft order all four categories fit",
+            "pass": true,
+            "categories": {
+              "kr": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              },
+              "cn": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "cn:45",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "봉",
+                    "rect": {
+                      "left": 202,
+                      "right": 295,
+                      "width": 93,
+                      "height": 44,
+                      "center": 248.5
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "박스",
+                        "text": "박스 · 整箱"
+                      },
+                      {
+                        "value": "봉",
+                        "text": "봉 · 单包"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "other": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": [
+                  {
+                    "id": "other:11",
+                    "field": "qty",
+                    "disabled": false,
+                    "value": "세트",
+                    "rect": {
+                      "left": 113.015625,
+                      "right": 295,
+                      "width": 181.984375,
+                      "height": 44,
+                      "center": 204.0078125
+                    },
+                    "options": [
+                      {
+                        "value": "",
+                        "text": "请选择"
+                      },
+                      {
+                        "value": "세트",
+                        "text": "세트 · 盒身和盖子一套"
+                      },
+                      {
+                        "value": "몸통만",
+                        "text": "몸통만 · 只要盒身，不要盖子"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "drinks": {
+                "viewport": 320,
+                "scrollWidth": 320,
+                "scrollX": 0,
+                "scale": 1,
+                "rowCount": 0,
+                "pickers": []
+              }
+            }
+          },
+          {
+            "name": "320px draft native bowl unit choices stay usable",
+            "pass": true,
+            "locked": false,
+            "picker": {
+              "id": "other:11",
+              "field": "qty",
+              "disabled": false,
+              "value": "세트",
+              "rect": {
+                "left": 244,
+                "right": 308,
+                "width": 64,
+                "height": 44,
+                "center": 276
+              },
+              "options": [
+                {
+                  "value": "",
+                  "text": "请选择"
+                },
+                {
+                  "value": "세트",
+                  "text": "세트 · 盒身和盖子一套"
+                },
+                {
+                  "value": "몸통만",
+                  "text": "몸통만 · 只要盒身，不要盖子"
+                }
+              ]
+            },
+            "networkReads": 0
+          }
+        ]
+      }
+    },
+    "feedback": {
+      "chromium": {
+        "engine": "chromium",
+        "browserVersion": "141.0.7390.37",
+        "passed": 10,
+        "failed": 0,
+        "errors": [],
+        "cases": [
+          {
+            "name": "owner: default settings never create audio or autoplay",
+            "pass": true
+          },
+          {
+            "name": "owner: a trusted enabling tap starts a real reusable AudioContext",
+            "pass": true,
+            "audio": {
+              "created": 1,
+              "started": 2,
+              "resumes": 0,
+              "closed": 0,
+              "states": [
+                "running"
+              ]
+            }
+          },
+          {
+            "name": "owner: alternating copy/share remains immediate with feedback enabled",
+            "pass": true,
+            "deliveryDelayMs": [
+              26.90000000037253,
+              17.199999999254942,
+              28.299999998882413,
+              20.40000000037253
+            ],
+            "audioContexts": 1
+          },
+          {
+            "name": "owner: disabling sound stops it without changing data or later actions",
+            "pass": true
+          },
+          {
+            "name": "owner: preference survives reload without autoplay",
+            "pass": true
+          },
+          {
+            "name": "editor: default settings never create audio or autoplay",
+            "pass": true
+          },
+          {
+            "name": "editor: a trusted enabling tap starts a real reusable AudioContext",
+            "pass": true,
+            "audio": {
+              "created": 1,
+              "started": 2,
+              "resumes": 0,
+              "closed": 0,
+              "states": [
+                "running"
+              ]
+            }
+          },
+          {
+            "name": "editor: alternating copy/share remains immediate with feedback enabled",
+            "pass": true,
+            "deliveryDelayMs": [
+              19,
+              19.90000000037253,
+              19,
+              20.700000001117587
+            ],
+            "audioContexts": 1
+          },
+          {
+            "name": "editor: disabling sound stops it without changing data or later actions",
+            "pass": true
+          },
+          {
+            "name": "editor: preference survives reload without autoplay",
+            "pass": true
+          }
+        ]
+      },
+      "webkit": {
+        "engine": "webkit",
+        "browserVersion": "26.0",
+        "passed": 10,
+        "failed": 0,
+        "errors": [],
+        "cases": [
+          {
+            "name": "owner: default settings never create audio or autoplay",
+            "pass": true
+          },
+          {
+            "name": "owner: a trusted enabling tap starts a real reusable AudioContext",
+            "pass": true,
+            "audio": {
+              "created": 1,
+              "started": 2,
+              "resumes": 1,
+              "closed": 0,
+              "states": [
+                "running"
+              ]
+            }
+          },
+          {
+            "name": "owner: alternating copy/share remains immediate with feedback enabled",
+            "pass": true,
+            "deliveryDelayMs": [
+              26.999999999999886,
+              27,
+              23.999999999999773,
+              19
+            ],
+            "audioContexts": 1
+          },
+          {
+            "name": "owner: disabling sound stops it without changing data or later actions",
+            "pass": true
+          },
+          {
+            "name": "owner: preference survives reload without autoplay",
+            "pass": true
+          },
+          {
+            "name": "editor: default settings never create audio or autoplay",
+            "pass": true
+          },
+          {
+            "name": "editor: a trusted enabling tap starts a real reusable AudioContext",
+            "pass": true,
+            "audio": {
+              "created": 1,
+              "started": 2,
+              "resumes": 1,
+              "closed": 0,
+              "states": [
+                "running"
+              ]
+            }
+          },
+          {
+            "name": "editor: alternating copy/share remains immediate with feedback enabled",
+            "pass": true,
+            "deliveryDelayMs": [
+              35,
+              20,
+              29,
+              27.999999999999773
+            ],
+            "audioContexts": 1
+          },
+          {
+            "name": "editor: disabling sound stops it without changing data or later actions",
+            "pass": true
+          },
+          {
+            "name": "editor: preference survives reload without autoplay",
+            "pass": true
+          }
+        ]
+      }
+    }
+  },
+  "oldCssBaseline": {
+    "engine": "webkit",
+    "browserVersion": "26.0",
+    "passed": 2,
+    "failed": 4,
+    "errors": [],
+    "cases": [
+      {
+        "name": "430px finalized count all four categories fit and align",
+        "pass": false,
+        "error": "document 479px exceeds 430px viewport"
+      },
+      {
+        "name": "430px finalized order all four categories fit",
+        "pass": true,
+        "categories": {
+          "kr": {
+            "viewport": 430,
+            "scrollWidth": 430,
+            "scrollX": 0,
+            "scale": 1,
+            "rowCount": 0,
+            "pickers": []
+          },
+          "cn": {
+            "viewport": 430,
+            "scrollWidth": 430,
+            "scrollX": 0,
+            "scale": 1,
+            "rowCount": 0,
+            "pickers": [
+              {
+                "id": "cn:45",
+                "field": "qty",
+                "disabled": true,
+                "value": "봉",
+                "rect": {
+                  "left": 312,
+                  "right": 405,
+                  "width": 93,
+                  "height": 44,
+                  "center": 358.5
+                },
+                "options": [
+                  {
+                    "value": "",
+                    "text": "请选择"
+                  },
+                  {
+                    "value": "박스",
+                    "text": "박스 · 整箱"
+                  },
+                  {
+                    "value": "봉",
+                    "text": "봉 · 单包"
+                  }
+                ]
+              }
+            ]
+          },
+          "other": {
+            "viewport": 430,
+            "scrollWidth": 430,
+            "scrollX": 0,
+            "scale": 1,
+            "rowCount": 0,
+            "pickers": [
+              {
+                "id": "other:11",
+                "field": "qty",
+                "disabled": true,
+                "value": "세트",
+                "rect": {
+                  "left": 215,
+                  "right": 405,
+                  "width": 190,
+                  "height": 44,
+                  "center": 310
+                },
+                "options": [
+                  {
+                    "value": "",
+                    "text": "请选择"
+                  },
+                  {
+                    "value": "세트",
+                    "text": "세트 · 盒身和盖子一套"
+                  },
+                  {
+                    "value": "몸통만",
+                    "text": "몸통만 · 只要盒身，不要盖子"
+                  }
+                ]
+              }
+            ]
+          },
+          "drinks": {
+            "viewport": 430,
+            "scrollWidth": 430,
+            "scrollX": 0,
+            "scale": 1,
+            "rowCount": 0,
+            "pickers": []
+          }
+        }
+      },
+      {
+        "name": "430px finalized native bowl unit choices stay usable",
+        "pass": false,
+        "error": "document 479px exceeds 430px viewport"
+      },
+      {
+        "name": "430px draft count all four categories fit and align",
+        "pass": false,
+        "error": "document 479px exceeds 430px viewport"
+      },
+      {
+        "name": "430px draft order all four categories fit",
+        "pass": true,
+        "categories": {
+          "kr": {
+            "viewport": 430,
+            "scrollWidth": 430,
+            "scrollX": 0,
+            "scale": 1,
+            "rowCount": 0,
+            "pickers": []
+          },
+          "cn": {
+            "viewport": 430,
+            "scrollWidth": 430,
+            "scrollX": 0,
+            "scale": 1,
+            "rowCount": 0,
+            "pickers": [
+              {
+                "id": "cn:45",
+                "field": "qty",
+                "disabled": false,
+                "value": "봉",
+                "rect": {
+                  "left": 312,
+                  "right": 405,
+                  "width": 93,
+                  "height": 44,
+                  "center": 358.5
+                },
+                "options": [
+                  {
+                    "value": "",
+                    "text": "请选择"
+                  },
+                  {
+                    "value": "박스",
+                    "text": "박스 · 整箱"
+                  },
+                  {
+                    "value": "봉",
+                    "text": "봉 · 单包"
+                  }
+                ]
+              }
+            ]
+          },
+          "other": {
+            "viewport": 430,
+            "scrollWidth": 430,
+            "scrollX": 0,
+            "scale": 1,
+            "rowCount": 0,
+            "pickers": [
+              {
+                "id": "other:11",
+                "field": "qty",
+                "disabled": false,
+                "value": "세트",
+                "rect": {
+                  "left": 215,
+                  "right": 405,
+                  "width": 190,
+                  "height": 44,
+                  "center": 310
+                },
+                "options": [
+                  {
+                    "value": "",
+                    "text": "请选择"
+                  },
+                  {
+                    "value": "세트",
+                    "text": "세트 · 盒身和盖子一套"
+                  },
+                  {
+                    "value": "몸통만",
+                    "text": "몸통만 · 只要盒身，不要盖子"
+                  }
+                ]
+              }
+            ]
+          },
+          "drinks": {
+            "viewport": 430,
+            "scrollWidth": 430,
+            "scrollX": 0,
+            "scale": 1,
+            "rowCount": 0,
+            "pickers": []
+          }
+        }
+      },
+      {
+        "name": "430px draft native bowl unit choices stay usable",
+        "pass": false,
+        "error": "document 518px exceeds 430px viewport"
+      }
+    ]
+  },
+  "sha256": {
+    "ordering/index.html": "b8d07e70171286652aaa75cc1dbf1f42ee1e0f22ec421446d60e00e30d3e3541",
+    "redesign-preview/index.html": "9298d458049307c6999b59c43ee3fa9942aca7dbe8b7eb695c2865156f63550a",
+    "redesign-preview/preview.css": "67a39c61b3a80981694921d74d6383b31d4e73a49ed8a2d93ec49d47471e6a2b",
+    "redesign-preview/preview.js": "5b14ec0298c5f16101e4eba7dd41cd9b5cb46cf0bce2c2485b9f8de58790d80b",
+    "redesign-preview/preview.bundle.js": "a0fc871015e27bc92f26b151cb392008e39f042d7deca09df07dcbf5ea5e9bfb",
+    "redesign-preview/interaction-feedback.cjs": "63a47730ff62f2c3f8f54c46aaf3bb0385fd4bc6c17b6616db6301fd8d5cda67"
+  },
+  "preservedSha256": {
+    "current-order.json": "d9cf4a283a86030e3a331cc66d4d0cb92375e95f486029a525d705a14e63a1f9",
+    "count-core.js": "c504b9052689bc4048dfffc50a9dd376aec9ec4749a4aee0d17c216178628d3c",
+    "redesign-preview/product-names.cjs": "cfde741c9395eafb3bde4e91a8d66f5da77b144bd27a0ab2d62b24587b8a946a",
+    "redesign-preview/aliases.json": "6c70b68c57012ce98d3d2babd2f1a9770f208ca8e24610b11f1bcbf6ebee466c",
+    "cloud/core.cjs": "6e5f8936916aa2731f015a7740e6e52710e039189ffb87f5a33d330b27f64b8d",
+    "cloud/store.js": "73b88907fb0d606b47bf0d193415958d21cdb390f7a3f0ca26ef83cda5dbf9a2",
+    "cloud/shared-count.js": "01615d20ef0ca719aa87425a535b929dcc440ddcdf2980d88d4a264cb84d82d4"
+  },
+  "scope": "Local display and optional per-device interaction feedback. No production order writes or actual message sending.",
+  "limitations": [
+    "Mobile viewport Chromium/WebKit tests are not real iPhone device tests.",
+    "Native AudioContext/oscillator calls were observed, not physical sound loudness or haptic output.",
+    "Clipboard/share payloads captured locally; actual system share sheet was not opened.",
+    "No new Firebase emulator run: cloud code and rules unchanged; prior release emulator evidence is not counted in this release."
+  ]
+}

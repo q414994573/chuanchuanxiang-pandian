@@ -125,7 +125,16 @@ label input{display:block;width:100%;min-height:48px;margin-top:4px;border:1px s
 }
 :where(.tabs)[hidden]{display:none!important}
 
-.unit-picker{display:block;font-size:11px;margin:5px 0;color:#555}.unit-picker select{display:block;width:100%;max-width:190px;min-width:0;font:inherit;font-size:13px;min-height:44px;border:1px solid #ccc;border-radius:6px;background:#fff;color:#222}.search-cell{min-width:0}
+/* WebKit can include a native select's long option text in its ancestor's
+   scroll width, even when the select itself is only one quantity column wide.
+   Contain that closed-control overflow here; keep the native picker and all
+   full option labels, without clipping the page, rows or product names. */
+.unit-picker{display:block;min-width:0;max-width:100%;overflow:hidden;font-size:11px;margin:5px 0;color:#555}
+.unit-picker select{display:block;width:100%;max-width:190px;min-width:0;font:inherit;font-size:13px;min-height:44px;border:1px solid #ccc;border-radius:6px;background:#fff;color:#222}
+.unit-picker:focus-within{border-radius:6px;outline:2px solid var(--red);outline-offset:2px}
+.search-cell{min-width:0}
+
+[data-feedback] button[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
 
 /* Allow even a single search hit to scroll above the native phone keyboard. */
 body:has(#find:focus) #app{padding-bottom:calc(100vh + env(safe-area-inset-bottom))}
