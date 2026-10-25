@@ -1,0 +1,1389 @@
+{
+  "version": "20261026-v45",
+  "baseRemoteCommit": "cfb1d454adeb1e74ddd975793519a964a7cc433e",
+  "baseLocalCommit": "bff2fbe869db00934dd93db31ff890e2519fae34",
+  "node": {
+    "tests": 1358.0,
+    "pass": 1358.0,
+    "fail": 0.0,
+    "cancelled": 0.0,
+    "skipped": 0.0,
+    "duration_ms": 20903.369159
+  },
+  "browserFlows": 96,
+  "browserReports": [
+    {
+      "suite": "mobile-workflow",
+      "engine": "chromium",
+      "browserVersion": "141.0.7390.37",
+      "passed": 24,
+      "failed": 0,
+      "errors": [],
+      "cases": [
+        {
+          "name": "430px owner search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "430px owner preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px owner search with preview above sticky header and small viewport",
+          "pass": true
+        },
+        {
+          "name": "430px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "430px editor search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "430px editor preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px editor search with preview above sticky header and small viewport",
+          "pass": true
+        },
+        {
+          "name": "430px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px owner search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "375px owner preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px owner search with preview above sticky header and small viewport",
+          "pass": true
+        },
+        {
+          "name": "375px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px editor search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "375px editor preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px editor search with preview above sticky header and small viewport",
+          "pass": true
+        },
+        {
+          "name": "375px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft count has new stock units and beverage tab",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "suite": "mobile-workflow",
+      "engine": "webkit",
+      "browserVersion": "26.0",
+      "passed": 24,
+      "failed": 0,
+      "errors": [],
+      "cases": [
+        {
+          "name": "430px owner search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "430px owner preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px owner search with preview above sticky header and small viewport",
+          "pass": true
+        },
+        {
+          "name": "430px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "430px editor search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "430px editor preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "430px editor search with preview above sticky header and small viewport",
+          "pass": true
+        },
+        {
+          "name": "430px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px owner search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "375px owner preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px owner search with preview above sticky header and small viewport",
+          "pass": true
+        },
+        {
+          "name": "375px owner empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft count has new stock units and beverage tab",
+          "pass": true
+        },
+        {
+          "name": "375px editor search from deep order scroll",
+          "pass": true
+        },
+        {
+          "name": "375px editor preview follows supplier switch and copy/share",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px editor four supplier tabs partition existing 129 goods",
+          "pass": true
+        },
+        {
+          "name": "375px editor search with preview above sticky header and small viewport",
+          "pass": true
+        },
+        {
+          "name": "375px editor empty supplier preview replaces previous text",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft count has new stock units and beverage tab",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "suite": "mobile-layout",
+      "engine": "chromium",
+      "browserVersion": "141.0.7390.37",
+      "passed": 24,
+      "failed": 0,
+      "errors": [],
+      "cases": [
+        {
+          "name": "430px finalized count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "430px finalized order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "430px finalized native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "430px editor compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "430px draft count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "430px draft order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "430px draft native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px finalized count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "375px finalized order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "375px finalized native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "375px editor compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 87.796875,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "375px draft count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "375px draft order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "375px draft native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px finalized count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "320px finalized order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "320px finalized native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 104.59375,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 104.59375,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 104.59375,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 104.59375,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "320px editor compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 104.59375,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 104.59375,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 104.59375,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 104.59375,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "320px draft count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "320px draft order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "320px draft native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        }
+      ]
+    },
+    {
+      "suite": "mobile-layout",
+      "engine": "webkit",
+      "browserVersion": "26.0",
+      "passed": 24,
+      "failed": 0,
+      "errors": [],
+      "cases": [
+        {
+          "name": "430px finalized count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "430px finalized order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "430px finalized native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "430px owner compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "430px editor compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "430px draft count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "430px draft order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "430px draft native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px finalized count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "375px finalized order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "375px finalized native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "375px owner compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "375px editor compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 87,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "375px draft count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "375px draft order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "375px draft native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px finalized count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "320px finalized order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "320px finalized native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        },
+        {
+          "name": "320px owner compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 103,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 103,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 103,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 103,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "320px editor compact finalized order controls and unobscured last row",
+          "pass": true,
+          "networkReads": 0,
+          "measurements": {
+            "cn": {
+              "topControlHeight": 103,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "kr": {
+              "topControlHeight": 103,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "other": {
+              "topControlHeight": 103,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            },
+            "drinks": {
+              "topControlHeight": 103,
+              "footerHeight": 57,
+              "buttonHeights": [
+                44,
+                44,
+                44
+              ],
+              "reopen": {
+                "left": 12,
+                "right": 90,
+                "top": 824,
+                "bottom": 868,
+                "width": 78,
+                "height": 44
+              },
+              "lastRowAboveFooter": true
+            }
+          }
+        },
+        {
+          "name": "320px draft count all four categories fit and align",
+          "pass": true
+        },
+        {
+          "name": "320px draft order all four categories fit",
+          "pass": true
+        },
+        {
+          "name": "320px draft native bowl unit choices stay usable",
+          "pass": true,
+          "networkReads": 0
+        }
+      ]
+    }
+  ],
+  "comparison": {
+    "engine": "webkit",
+    "viewportWidth": 430,
+    "viewportHeight": 932,
+    "before": {
+      "topControlHeight": 160,
+      "footerHeight": 118
+    },
+    "after": {
+      "topControlHeight": 87,
+      "footerHeight": 57
+    },
+    "verticalSpaceSaved": 134
+  },
+  "hashes": {
+    "ordering/index.html": "3c5823039d5e047ea0398532459511dbfde7ba78a630d4050b710ca04ae59ea8",
+    "redesign-preview/index.html": "d5e8d0d6d86e5b8a6d5feb0dc64fad8bd203c7b3bc76a9588720f55c9e2c848c",
+    "redesign-preview/preview.js": "09e70ce52e8e3c3ba1cb762d8534f1e7eb8811df221a3cc44ec2e58cea6ba87f",
+    "redesign-preview/preview.css": "9e28077de31f26d81ced88aa6454e44294178022e1ad23295d277940ff5d0268",
+    "redesign-preview/preview.bundle.js": "561cf5e3ac3e1fdf6b041349300c9e2d8d8c377c85f3b173bcbdb27a9e30d24a",
+    "tests/mobile-layout.browser.cjs": "a5ded923a6d8fcee355c36c223d240736f45e29c0e57afd3d0fb16c20ca5050a"
+  },
+  "limitations": [
+    "Isolated fixture runs the actual application source with Firebase boot removed; no production order writes.",
+    "Clipboard and share payloads captured locally; no messages sent.",
+    "Browser emulation is not a physical iPhone.",
+    "v44 native-audio browser tests and cloud-emulator tests were not rerun or counted for this layout-only change.",
+    "Old layout baseline expected failures are excluded from passing totals."
+  ]
+}

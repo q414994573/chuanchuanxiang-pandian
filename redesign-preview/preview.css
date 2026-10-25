@@ -98,6 +98,12 @@ body.key-open .dock{display:none}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .card>.pair{margin-bottom:8px}
 .ghost{border:1px solid var(--line);background:#fff}
+.order-export-note{margin:0 0 8px;font-size:12px;line-height:1.4}
+.order-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:6px}
+.order-actions>.ghost{min-width:0;min-height:44px;padding:4px 3px;border-radius:9px;font-size:14px;line-height:1.25}
+.dock.dock-finalized{display:flex;align-items:center;gap:10px;padding:6px 12px}
+.dock-finalized>.ghost{flex:none;min-height:44px;padding:4px 10px;border-radius:9px;font-size:14px;line-height:1.25}
+.dock-finalized>p{min-width:0;margin:0;color:var(--muted);font-size:12px;line-height:1.4}
 .alert{background:#ffe58a;border-radius:14px;padding:10px 12px;margin:0 0 10px}
 .alert button{margin-top:6px}
 label{display:block;font-size:14px;margin:8px 0}
