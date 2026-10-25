@@ -23,7 +23,7 @@ try{
  const stop=api.watch(record=>{h.ctx.incoming=record;h.run('peerReceive(incoming)');},e=>{throw e;});
  try{
   for(let round=0;round<source.products.length;round++){
-   h.run(`viewCat=draft.catalog[${round}].cat;openCount(${round},'qty');typeKey('1');expectations[draft.catalog[pos].id]='1';nextCell();`);
+   h.run(`viewCat=Flow.catOf(draft.catalog[${round}]);openCount(${round},'qty');typeKey('1');expectations[draft.catalog[pos].id]='1';nextCell();`);
    if(round%2===0)await new Promise(r=>setTimeout(r,25));
   }
   for(let round=0;round<8&&h.run('peerDirty()||!!peerFlight');round++)await h.run('peerSave()');

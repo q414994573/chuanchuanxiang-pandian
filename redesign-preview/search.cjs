@@ -1,5 +1,6 @@
 'use strict';
 const ProductNames = require('./product-names.cjs');
+const {CATS} = require('./count-flow.cjs');
 const CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
 function norm(s){return String(s??'').normalize('NFKC').toLowerCase().replace(/\s/g,'');}
 function fold(s){
@@ -40,6 +41,7 @@ function supplierText(date,rows){
 }
 function bossShareText(date,counts,url){
  const parts=String(date||'').split('-');
- return `${Number(parts[1])}月${Number(parts[2])}日 订货单\n韩国 ${counts.kr} 样 · 中国 ${counts.cn} 样 · 其他 ${counts.other} 样\n请核对，点链接修改：${url}`;
+ const summary=CATS.map(([id,name])=>`${name} ${counts?.[id]??0} 样`).join(' · ');
+ return `${Number(parts[1])}月${Number(parts[2])}日 订货单\n${summary}\n请核对，点链接修改：${url}`;
 }
 module.exports={norm,fold,matches,typoRisk,supplierText,bossShareText};

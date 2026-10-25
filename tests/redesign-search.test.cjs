@@ -36,8 +36,9 @@ test('tenfold or an extra zero is a typo reminder, not a stock rule',()=>{
 test('supplier copy stays one product per line and the boss text has no name suffix',()=>{
  const text=supplierText('2026-10-25',[{name:'대파',qty:'2',unit:'단'},{name:'辣椒段',qty:'5',unit:'봉'}]);
  assert.equal(text,'10/25 천천향 주문\n대파 2단\n辣椒段 5봉');
- const share=bossShareText('2026-10-25',{kr:11,cn:18,other:0},'https://example.test/order');
- assert.match(share,/^10月25日 订货单\n韩国 11 样 · 中国 18 样 · 其他 0 样\n请核对，点链接修改：https:\/\/example\.test\/order$/);
+ const share=bossShareText('2026-10-25',{kr:11,cn:18,other:0,drinks:3},'https://example.test/order');
+ assert.match(share,/^10月25日 订货单\n韩国 11 样 · 中国 18 样 · 其他 0 样 · 饮料 3 样\n请核对，点链接修改：https:\/\/example\.test\/order$/);
  assert.equal(share.includes('（大伟）'),false);
  assert.equal(share.includes('大伟'),false);
+ assert.match(bossShareText('2026-10-25',{kr:11,cn:18,other:0},'https://example.test/order'),/饮料 0 样/);
 });

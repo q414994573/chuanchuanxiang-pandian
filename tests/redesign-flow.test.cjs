@@ -22,10 +22,13 @@ test('next item stays inside the current supplier block',()=>{
  assert.deepEqual(Flow.advance(catalog,0),{stay:false,index:1,cat:'kr',nextCat:null});
  assert.deepEqual(Flow.advance(catalog,44),{stay:true,cat:'kr',nextCat:'cn'});
  assert.deepEqual(Flow.advance(catalog,110),{stay:true,cat:'cn',nextCat:'other'});
- assert.deepEqual(Flow.advance(catalog,128),{stay:true,cat:'other',nextCat:null});
+ assert.deepEqual(Flow.advance(catalog,123),{stay:true,cat:'other',nextCat:'drinks'});
+ assert.deepEqual(Flow.advance(catalog,124),{stay:false,index:125,cat:'drinks',nextCat:null});
+ assert.deepEqual(Flow.advance(catalog,128),{stay:true,cat:'drinks',nextCat:null});
  assert.equal(Flow.endLabel('kr'),'韩国食品盘完了 · 去中国食品');
  assert.equal(Flow.endLabel('cn'),'中国食品盘完了 · 去其他商品');
- assert.equal(Flow.endLabel('other'),'其他商品盘完了 · 看今日订单');
+ assert.equal(Flow.endLabel('other'),'其他商品盘完了 · 去饮料');
+ assert.equal(Flow.endLabel('drinks'),'饮料盘完了 · 看今日订单');
 });
 
 test('count search jumps to another block only when this block has no hit',()=>{

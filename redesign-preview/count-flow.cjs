@@ -2,7 +2,19 @@
 const ProductNames = require('./product-names.cjs');
 
 const NUM = /^\d+(?:\.\d{1,3})?$/;
-const NAMES = {kr:'韩国食品', cn:'中国食品', other:'其他商品'};
+const CATS = [
+  ['kr', '韩国', '韩国食品'],
+  ['cn', '中国', '中国食品'],
+  ['other', '其他', '其他商品'],
+  ['drinks', '饮料', '饮料']
+];
+const NAMES = Object.fromEntries(CATS.map(([id, , name]) => [id, name]));
+// Supplier grouping is a view over stable product IDs. Keep the original catalog
+// intact so saved drafts, finalized snapshots and history still validate.
+const DRINK_IDS = new Set(['other:18', 'other:19', 'other:20', 'other:21', 'other:22']);
+function catOf(product) {
+  return DRINK_IDS.has(product?.id) ? 'drinks' : product?.cat;
+}
 
 function isNumericQty(text) {
   const s = String(text ?? '').trim();
@@ -25,18 +37,20 @@ function numericFragment(text) {
 function advance(catalog, index) {
   const cur = catalog[index];
   const next = catalog[index + 1];
-  if (!cur || !next || next.cat !== cur.cat) {
-    const cat = cur ? cur.cat : null;
-    const nextCat = cat === 'kr' ? 'cn' : cat === 'cn' ? 'other' : null;
+  const cat = cur ? catOf(cur) : null;
+  if (!cur || !next || catOf(next) !== cat) {
+    const at = CATS.findIndex(([id]) => id === cat);
+    const nextCat = at >= 0 ? CATS[at + 1]?.[0] || null : null;
     return {stay: true, cat, nextCat};
   }
-  return {stay: false, index: index + 1, cat: cur.cat, nextCat: null};
+  return {stay: false, index: index + 1, cat, nextCat: null};
 }
 
 function endLabel(cat) {
   const name = NAMES[cat] || '这一类';
-  if (cat === 'kr') return `${name}盘完了 · 去中国食品`;
-  if (cat === 'cn') return `${name}盘完了 · 去其他商品`;
+  const at = CATS.findIndex(([id]) => id === cat);
+  const next = at >= 0 ? CATS[at + 1] : null;
+  if (next) return `${name}盘完了 · 去${next[2]}`;
   return `${name}盘完了 · 看今日订单`;
 }
 
@@ -69,9 +83,9 @@ function smallName(p) {
 
 function sheetRows(products) {
   const rows = [];
-  for (const cat of ['kr', 'cn', 'other']) {
+  for (const [cat] of CATS) {
     for (const p of products) {
-      if (p.cat !== cat) continue;
+      if (catOf(p) !== cat) continue;
       rows.push({
         n: rows.length + 1,
         block: NAMES[cat],
@@ -113,20 +127,21 @@ function indexById(catalog, id) {
 function visibleCountIndexes(catalog, cat, matches, activeIndex) {
   const out = [];
   (catalog || []).forEach((p, i) => {
-    if (!p || p.cat !== cat) return;
+    if (!p || catOf(p) !== cat) return;
     if (i !== activeIndex && !(typeof matches === 'function' && matches(p))) return;
     out.push(i);
   });
   return out;
 }
 
-const SEARCH_CATS = ['kr', 'cn', 'other'];
+const SEARCH_CATS = CATS.map(([id]) => id);
 
 function searchHitCounts(catalog, matches) {
-  const counts = {kr: 0, cn: 0, other: 0};
+  const counts = Object.fromEntries(SEARCH_CATS.map(id => [id, 0]));
   (catalog || []).forEach(p => {
-    if (!p || counts[p.cat] == null || typeof matches !== 'function' || !matches(p)) return;
-    counts[p.cat]++;
+    const cat = catOf(p);
+    if (!p || counts[cat] == null || typeof matches !== 'function' || !matches(p)) return;
+    counts[cat]++;
   });
   return counts;
 }
@@ -147,7 +162,7 @@ function searchCatChoice(counts, current) {
 }
 
 module.exports = {
-  isNumericQty, showsOnOrder, numericFragment, advance, endLabel, textOrderIds, parkTextStocks, NAMES,
+  isNumericQty, showsOnOrder, numericFragment, advance, endLabel, textOrderIds, parkTextStocks, NAMES, CATS, catOf,
   largeName, smallName, sheetRows, countTitleHtml, boldName, stripe, countFields, indexById, visibleCountIndexes,
   searchHitCounts, searchCatChoice
 };

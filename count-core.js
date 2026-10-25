@@ -2,8 +2,9 @@
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x));
 const number=v=>typeof v==='string'&&/^\d+(?:\.\d{1,3})?$/.test(v)&&Number(v)<=1000000?Number(v):null;
-// Stock counting units confirmed by the owner on 2026-10-22. No pack conversion.
-const stockDefaults={'kr:43':'개','cn:9':'包','cn:12':'包','cn:13':'包','cn:14':'包','cn:25':'통','cn:33':'包','cn:37':'包','cn:39':'瓶','cn:44':'包','cn:45':'包','cn:46':'包','cn:47':'包'};
+// Stock counting units confirmed by the owner; latest corrections 2026-10-26.
+// Defaults apply to new counts only. Existing snapshots keep their recorded units.
+const stockDefaults={'kr:31':'개','kr:43':'개','cn:9':'包','cn:12':'包','cn:13':'包','cn:14':'包','cn:21':'包','cn:25':'통','cn:33':'包','cn:37':'包','cn:39':'瓶','cn:44':'包','cn:45':'包','cn:46':'包','cn:47':'包'};
 const special=p=>p.name==='고수'||p.name.startsWith('감자수제비');
 function create(source,date,id){return {schema:'ccx-count-1',id,date,seq:0,contentVersion:0,status:'draft',savedAt:null,reviewedAt:null,sourceDate:source.date,sourceHash:source.sourceSha256||null,catalog:source.products.map(p=>({id:p.id,name:p.name,alias:p.alias||'',cat:p.cat,category:p.category,hasStock:!!p.hasStock,unit:p.unit||'',referenceStock:p.stock,referenceOrder:p.order,referenceStockUnit:typeof p.stock==='string'?'':p.unit||''})),items:Object.fromEntries(source.products.map(p=>[p.id,{stock:'',stockUnit:stockDefaults[p.id]??p.unit??'',stockStatus:'pending',quantity:'',unit:p.unit||'',decision:'pending',physical:false,acknowledged:false,processed:false}])),sent:{},log:[],lastId:source.products[0].id};}
 function warnings(d,p){const r=d.items[p.id],a=[];if(number(r.stock)===0&&r.stockStatus==='counted'&&r.decision==='skip')a.push('库存为0，但本次不订，请确认。');if(r.decision==='order'&&r.stockStatus==='counted'&&r.stockUnit.trim()!==r.unit.trim())a.push('库存单位与订货单位不同，请核对换算，系统不会自动换算。');if(r.decision==='order'&&typeof p.referenceOrder==='number'&&p.referenceOrder>0&&p.unit===r.unit&&number(r.quantity)!==null&&(number(r.quantity)>=p.referenceOrder*3||number(r.quantity)<=p.referenceOrder/3))a.push(`上次订货 ${p.referenceOrder}${p.unit}，本次数量变化较大，请确认。`);return a;}
