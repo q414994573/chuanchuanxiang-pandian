@@ -753,6 +753,65 @@ test('both roles render identical shared draft, finalized, and historical pendin
   assert.equal(editor,owner,phase);
  }
 });
+test('reopen keeps both members on editable order page without a false login prompt',async()=>{
+ for(const role of ['owner','editor']){
+  const h=harness(true);h.ctx.confirm=()=>true;
+  h.run(`releaseLocked=false;peerEnabled=true;member={role:'${role}',name:'共同盘货成员'};user={uid:'shared-user'};peerViewing=true;
+   for(const p of draft.catalog){Core().finish(draft,p.id,true);draft.seen[p.id]=true;}
+   Core().edit(draft,'cn:9','quantity','2');Core().finish(draft,'cn:9');draft.status='reviewed';
+   order={id:'count-test-interactions',orderStage:'finalized',revision:3};
+   location.search='?order=count-test-interactions';screen='order';
+   globalThis.finalHead={localId:draft.id,orderId:order.id,stage:'finalized',revision:6,draft:C.clone(draft)};
+   peerBase=C.clone(finalHead);peerLatest=C.clone(finalHead);
+   peerApi={reopen:async base=>{globalThis.calledWith=base.revision;const d=C.clone(base.draft);d.status='draft';d.reviewedAt=null;return {...base,stage:'draft',revision:base.revision+1,draft:d};}};`);
+  await h.run(`changeOrderStage('pending')`);
+  assert.equal(h.run('calledWith'),6,role);
+  assert.equal(h.run('screen'),'order',role);
+  assert.equal(h.run('order'),null,role);
+  assert.equal(h.run('draft.status'),'draft',role);
+  assert.equal(h.run('peerBase.stage'),'draft',role);
+  assert.doesNotMatch(h.run('orderContentHtml()'),/去登录|登录后看这份订单/,role);
+  assert.match(h.run('orderContentHtml()'),/可在订单页修改订货数量/,role);
+  assert.match(h.run('orderContentHtml()'),/data-act="peer-save">保存到云端/,role);
+  assert.match(h.run('orderContentHtml()'),/data-act="confirm">定稿/,role);
+  h.run(`openOrderKey('cn:9');applyQty('cn:9','3');editRaw='3';`);
+  assert.equal(h.run("draft.items['cn:9'].quantity"),'3',role);
+  assert.equal(h.run('peerDirty()'),true,role);
+  assert.match(h.run('orderContentHtml()'),/3包|3箱|3/,role);
+  h.run(`peerApi.save=async(base,sent)=>({...base,revision:base.revision+1,draft:C.clone(sent)});
+   peerApi.finalize=async(base,reviewed)=>({...base,stage:'finalized',revision:base.revision+1,draft:C.clone(reviewed)});
+   openOrder=async id=>globalThis.finalOrderOpened=id;`);
+  const saveButton={dataset:{act:'peer-save'}};
+  await h.handlers.click({target:{closest:s=>s==='[data-act]'?saveButton:null}});
+  assert.equal(h.run('peerDirty()'),false,role);
+  assert.equal(h.run('screen'),'order',role);
+  assert.match(h.run('lastToast'),/已保存到云端/,role);
+  await h.run('peerFinalize()');
+  assert.equal(h.run('peerBase.stage'),'finalized',role);
+  assert.equal(h.run('finalOrderOpened'),'count-test-interactions',role);
+  assert.equal(h.run('screen'),'order',role);
+ }
+});
+test('shared linked draft stays on order tab when opened directly or received from another member',async()=>{
+ const h=harness(true);
+ h.run(`peerEnabled=true;member={role:'editor',name:'共同盘货成员'};peerViewing=true;
+  globalThis.current={localId:draft.id,orderId:'count-test-interactions',stage:'draft',revision:10,draft:C.clone(draft)};
+  peerLatest=C.clone(current);peerBase=C.clone(current);peerApi={};
+  location.search='?order=count-test-interactions';screen='order';order=null;`);
+ await h.run(`openOrder('count-test-interactions')`);
+ assert.equal(h.run('screen'),'order');
+ assert.doesNotMatch(h.run('orderContentHtml()'),/去登录/);
+ h.run(`order={id:'count-test-interactions',orderStage:'finalized'};peerLatest={...current,stage:'finalized',revision:11};
+  peerBase=C.clone(peerLatest);screen='order';peerReceive({...current,revision:12});`);
+ assert.equal(h.run('screen'),'order');
+ assert.equal(h.run('order'),null);
+ assert.doesNotMatch(h.run('orderContentHtml()'),/去登录/);
+ h.run(`location.search='?order=count-some-other-order'`);
+ assert.match(h.run('orderContentHtml()'),/你仍处于登录状态/);
+ assert.doesNotMatch(h.run('orderContentHtml()'),/去登录/);
+ h.run(`member=null`);
+ assert.match(h.run('orderContentHtml()'),/登录后共同盘货/);
+});
 test('prepared supplier copy is invalidated when local finalized order reopens',async()=>{
  const h=harness();let copied=false;h.ctx.navigator={clipboard:{writeText:async()=>{copied=true;}}};
  h.run(`buildSample('boss');sample=false;order.orderStage='finalized';baseQty={...order.quantities};orderBase=C.clone(order)`);
