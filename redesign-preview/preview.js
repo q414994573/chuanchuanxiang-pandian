@@ -624,6 +624,7 @@ function openCount(i,which){
  moduleEnd=false;keypad=true;textMode=false;screen='count';if(!same)captureEntered(true);persistLocal();
  if(prev!==pos)flushCloud();
  render();scrollActive();
+ return p.id;
 }
 function typeKey(key){
  if(peerEnabled&&!sample&&(!peerBase||peerBase.stage!=='draft'||cloudConflict||!peerViewing))return;
@@ -686,6 +687,7 @@ function nextCell(direction=1){
  const previous=pos;
  pos=target.i;field=target.which;moduleEnd=false;
  captureEntered(true);persistLocal();if(previous!==pos)flushCloud();render();scrollActive();
+ return target.id;
 }
 function showCat(cat){
  if((!draft&&!sharedCount())||!cat)return;
@@ -708,17 +710,21 @@ function doUndo(){
  if(info?.draftId&&info.draftId!==draft?.id||info?.orderId&&info.orderId!==order?.id)throw Error('已切换盘货或订单，旧操作不能撤销到这里');
  if(info&&Object.hasOwn(info,'expected')){const current=info.where==='count'?draft?.items[info.id]?.[info.field==='stock'?'stock':'quantity']:orderValue(info.id,info.field||'qty');if(current!==info.expected)throw Error('这格内容已变化，请核对后手动修改');}
  if(Object.hasOwn(info,'expectedStockUnit')&&stockUnitOf(product(info.id))!==info.expectedStockUnit)throw Error('这格库存单位已变化，请核对后手动修改');
+ let restored=false;
  if(info.where==='count'&&draft){
   try{Core().edit(draft,info.id,info.field==='stock'?'stock':'quantity',info.value);}catch(e){toast(e.message);return;}
   if(info.field==='stock'&&Object.hasOwn(info,'stockUnit'))Core().edit(draft,info.id,'stockUnit',info.stockUnit);
   const i=draft.catalog.findIndex(p=>p.id===info.id);
   pos=i;viewCat=Flow.catOf(draft.catalog[i])||viewCat;field=info.field;keypad=true;textMode=false;screen='count';captureEntered();persistLocal();
+  restored=true;
  }else if(info.where==='order'){
   applyOrderValue(info.id,info.field||'qty',info.value,{restoreUnit:info.stockUnit});
   editId=info.id;editField=info.field||'qty';editSnap=info.value;editRaw=info.value;editStockUnit=!order&&editField==='stock'?draft.items[info.id].stockUnit:null;keypad=true;textMode=false;
   if(order&&editField==='stock')screen='count';else if(screen!=='count')screen='order';
+  restored=true;
  }
  render();scrollActive();
+ return restored?info.id:undefined;
 }
 
 function unitPicker(p,which){
@@ -802,12 +808,13 @@ function openOrderKey(id,which='qty'){
  if(textMode&&readPlain()===false)return;
  // A repeated tap on the same active cell must retain both the undo baseline
  // and an already-consumed selection, including unfinished decimal input.
- if(keypad&&editId===id&&editField===which){blurFind();textMode=false;render();scrollActive();return;}
+ if(keypad&&editId===id&&editField===which){blurFind();textMode=false;render();scrollActive();return id;}
  if(editId&&commitOrderEdit()===false)return;
  if(order&&which==='stock'&&screen!=='count'){toast('请到盘货页修改库存');return;}
  if(order&&which==='stock'&&!confirm('确认修改这项实际库存？订货数量不会改变。'))return;
  blurFind();
  editId=id;editField=which;editSnap=orderValue(id,which);editRaw=editSnap;editStockUnit=!order&&which==='stock'?draft.items[id].stockUnit:null;keypad=true;textMode=false;armKeySelection('order',id,which,editRaw);if(!sharedCount()||screen!=='count')screen='order';render();scrollActive();
+ return id;
 }
 function commitOrderEdit(){
  if(!editId)return;
@@ -946,9 +953,11 @@ function deferActive(){
  draft.seen=draft.seen||{};draft.seen[id]=false;draft.items[id].processed=false;
  draft.contentVersion++;undo=null;entered=null;editId=null;editRaw=null;editSnap=null;textMode=false;
  persistLocal();
- if(target){if(inCount)openCount(target.i,target.which);else openOrderKey(target.id,target.which);}
+ let selected;
+ if(target)selected=inCount?openCount(target.i,target.which):openOrderKey(target.id,target.which);
  else{keypad=false;moduleEnd=false;render();}
  toast(target?'已标为待定，稍后从“下一个没盘的”找回':'已标为待定，已到本列表最后一个商品');
+ return selected;
 }
 function padBar(){return `<div class="padbar"><button type="button" data-act="mode" data-mode="text">文字</button><button type="button" data-act="defer" ${canDefer()?'':'disabled'}>待定</button><button class="fold" type="button" data-act="close">⌄ 收起</button></div>`;}
 function textBar(){return textMode?`<div class="textbar"><button type="button" data-act="mode" data-mode="num">123</button><span>点完成保存并到下一格</span><button class="fold" type="button" data-act="close">⌄ 收起</button></div>`:'';}
@@ -1068,6 +1077,7 @@ function submitOrderSearch(term){
  if(typeof term==='string')query=term;
  recordOrderSearch();blurFind();render();
  requestAnimationFrame(()=>window.scrollTo(0,0));
+ return true;
 }
 function searchHotCard(p,index,recommended){
  const stock=stockShown(p),stockUnit=stockUnitOf(p);
@@ -1172,31 +1182,61 @@ function openFromRow(b){
   const id=b.dataset.id;
   const i=id&&draft?Flow.indexById(draft.catalog,id):Number(b.dataset.i);
   if(!(i>=0))return;
-  openCount(i,b.dataset.field);
-  return;
+  return openCount(i,b.dataset.field);
  }
  const id=b.dataset.id;
- if(b.dataset.search==='true'){recordOrderSearch();openOrderKey(id,b.dataset.field||'qty');return;}
+ if(b.dataset.search==='true'){recordOrderSearch();return openOrderKey(id,b.dataset.field||'qty');}
  const p=product(id);if(p)orderCat=Flow.catOf(p);
  query='';searchScroll=null;searchCat=null;
  if(draft&&!order&&!Flow.showsOnOrder(qtyOf(id)))draft.added={...draft.added,[id]:true};
- openOrderKey(id);
+ return openOrderKey(id);
 }
 function spokenNameHtml(p){
  const name=Flow.boldName(p,E);
  return productSpeech.settings().enabled?`<button class="spoken-name" type="button" data-act="speak-product" data-id="${E(p.id)}" aria-label="播报${E(Flow.largeName(p))}">${name}</button>`:name;
 }
-function activateProduct(b,event){
- const id=b.dataset.id||draft?.catalog[Number(b.dataset.i)]?.id;
- if(b.dataset.act!=='speak-product')openFromRow(b);
- const selected=b.dataset.act==='speak-product'||keypad&&(editId===id||screen==='count'&&!sharedCount()&&draft?.catalog[pos]?.id===id);
- const p=selected&&product(id);
+function performProductAction(action,event){
+ // Every explicit way of selecting a product returns its accepted destination.
+ // Failed validation and list boundaries return nothing, so they cannot announce
+ // a product that was never selected. Background/programmatic movement is silent.
+ const id=action(),p=id&&product(id);
  // Speak in this same trusted gesture, before a click tone. No promise or
  // rendering/network callback can hold up the input, clipboard, or share path.
  if(p)productSpeech.speak(Flow.largeName(p),event);
  interactionFeedback.play(event);
+ return id;
 }
-function productTapTarget(target){return target.closest('[data-act="open"],[data-act="edit"]')||target.closest('[data-act="speak-product"]');}
+function activateProduct(b,event){
+ const navigate=productNavigationAction(b);
+ return performProductAction(navigate||(()=>b.dataset.act==='speak-product'?b.dataset.id:openFromRow(b)),event);
+}
+function productNavigationAction(b){
+ switch(b.dataset.act){
+  case 'next':return ()=>nextCell();
+  case 'prev':return ()=>nextCell(-1);
+  case 'order-next':return ()=>advanceOrder();
+  case 'order-prev':return ()=>advanceOrder(-1);
+  case 'defer':return ()=>deferActive();
+  case 'undo':return ()=>doUndo();
+  case 'next-gap':return ()=>{
+   if(allSeen()){tryLeave('order');return;}
+   const i=firstGap();if(i<0)return;
+   query='';const cat=Flow.catOf(draft.catalog[i]);
+   if(cat!==viewCat){catScroll[viewCat]=window.scrollY;viewCat=cat;}
+   moduleEnd=false;return openCount(i,'stock');
+  };
+  case 'warn':return ()=>{
+   query='';const p=product(b.dataset.id);if(p)orderCat=Flow.catOf(p);
+   return openOrderKey(b.dataset.id);
+  };
+  case 'hot-find':return ()=>{
+   const p=product(b.dataset.id);
+   if(p&&submitOrderSearch(Flow.largeName(p))===true)return p.id;
+  };
+  default:return null;
+ }
+}
+function productTapTarget(target){return target.closest('[data-act="open"],[data-act="edit"]')||target.closest('[data-act="speak-product"]')||target.closest('[data-act="hot-find"]');}
 function render(){
  const findFocused=document.activeElement?.id==='find';
  if(orderSearchOpen&&(screen!=='order'||searchContext!==orderSearchIdentity())){
@@ -1669,7 +1709,7 @@ function advanceOrder(direction=1){
  if(commitOrderEdit()===false){textMode=false;keypad=true;render();return;}
  if(resolveId){markSeen(resolveId,true);persistLocal();}
  textMode=false;
- if(target)openOrderKey(target.id,target.which);
+ if(target)return openOrderKey(target.id,target.which);
  else{keypad=false;render();toast('已到最后一格');}
 }
 function returnToDraft(){
@@ -1766,7 +1806,7 @@ document.body.addEventListener('click',async e=>{
  if(!b){if(!busy&&e.target.closest('summary'))interactionFeedback.play(e);if((keypad||textMode)&&!e.target.closest('.pad')&&!e.target.closest('input,button,a,label'))closePad();return;}
  if(busy||b.disabled)return;
  const act=b.dataset.act;
- if(actSkipped()&&(act==='open'||act==='edit'||act==='speak-product'||act==='clear-find'||act==='cancel-find'))return;
+ if(actSkipped()&&(act==='open'||act==='edit'||act==='speak-product'||act==='hot-find'||act==='clear-find'||act==='cancel-find'))return;
  try{
   if(act==='feedback-toggle'){
    const kind=b.dataset.kind;
@@ -1783,6 +1823,8 @@ document.body.addEventListener('click',async e=>{
    return;
   }
   if(act==='open'||act==='edit'||act==='speak-product'){activateProduct(b,e);return;}
+  const navigate=productNavigationAction(b);
+  if(navigate){performProductAction(navigate,e);return;}
   if(act==='feedback-test'&&productSpeech.settings().enabled)productSpeech.speak('川川香',e);
   // Local feedback never waits for audio or network, preserving the user
   // activation required by iPhone clipboard/share. It is not a saved signal.
@@ -1812,18 +1854,13 @@ document.body.addEventListener('click',async e=>{
   if(act==='backup-remote'){if(!confirm('将先保留一份本机恢复副本，再读取云端草稿。继续吗？'))return;await pullDraft(true);return;}
   if(act==='backup-local'){if(!confirm('将先在这部手机保留云端草稿副本，再用本机这份内容备份。继续吗？'))return;await pullDraft(false,true);await flushCloud();return;}
   if(act==='tab'){tryLeave(b.dataset.tab);if(screen==='order'){busy=true;await resumeReviewedOrder();}return;}
-  if(act==='open'||act==='edit'){openFromRow(b);return;}
   if(act==='open-order-search'){openOrderSearch();return;}
   if(act==='submit-search'){submitOrderSearch();return;}
   if(act==='history-find'){submitOrderSearch(b.dataset.query);return;}
-  if(act==='hot-find'){const p=product(b.dataset.id);if(p)submitOrderSearch(Flow.largeName(p));return;}
   if(act==='clear-history'){if(confirm('清空这部设备的搜索历史？热搜榜也会重新开始统计。')){searchActivity.clear();paintRows();}return;}
   if(act==='clear-find'){clearFind();return;}
   if(act==='cancel-find'){cancelFind();return;}
   if(act==='key'){if(orderEditing()&&editId){typeOrderKey(b.dataset.key);return;}typeKey(b.dataset.key);return;}
-  if(act==='next'){nextCell();return;}
-  if(act==='defer'){deferActive();return;}
-  if(act==='prev'){nextCell(-1);return;}
   if(act==='close'){closePad();return;}
   if(act==='mode'){
    clearKeySelection();
@@ -1837,18 +1874,13 @@ document.body.addEventListener('click',async e=>{
    if(step.nextCat)showCat(step.nextCat);else tryLeave('order');
    return;
   }
-  if(act==='undo'){doUndo();return;}
   if(act==='jumpcat'){showCat(b.dataset.cat);return;}
   if(act==='ordercat'){showOrderCat(b.dataset.cat);return;}
-  if(act==='next-gap'){if(allSeen()){tryLeave('order');return;}const i=firstGap();if(i<0)return;query='';const cat=Flow.catOf(draft.catalog[i]);if(cat!==viewCat){catScroll[viewCat]=window.scrollY;viewCat=cat;}moduleEnd=false;openCount(i,'stock');return;}
   if(act==='goto-order'){tryLeave('order');if(screen==='order'){busy=true;await resumeReviewedOrder();}return;}
   if(act==='minus'){stepQty(-1);return;}
   if(act==='plus'){stepQty(1);return;}
   if(act==='zero'){cancelLine(editId);return;}
-  if(act==='order-next'){advanceOrder();return;}
-  if(act==='order-prev'){advanceOrder(-1);return;}
   if(act==='restore'){restoreLine(b.dataset.id);return;}
-  if(act==='warn'){query='';const p=product(b.dataset.id);if(p)orderCat=Flow.catOf(p);openOrderKey(b.dataset.id);return;}
   if(act==='ack'){const id=b.dataset.id;const qty=qtyOf(id);if(order)ack[id]=qty;else{draft.ackWrong[id]=qty;persistLocal();}render();return;}
   if(act==='yellow-only'){yellowOnly=!yellowOnly;query='';render();return;}
   if(act==='yellow-ok'){yellowOn=false;yellowOnly=false;if(order)localStorage.setItem(`ccx-redesign-yellow:${order.id}:${history[0]?.revision||0}`,'1');render();return;}
@@ -1908,13 +1940,12 @@ document.body.addEventListener('keydown',e=>{
   if(cell){e.preventDefault();if(releaseLocked||busy)return;activateProduct(cell,e);return;}
  }
  if(!e.target.classList.contains('plain')||e.key!=='Enter')return;
+ if(e.isComposing||e.keyCode===229)return;
  e.preventDefault();
  if(releaseLocked||busy)return;
  if(readPlain()===false)return;
- interactionFeedback.play(e);
  textMode=false;
- if(screen==='count'&&!sharedCount())nextCell();
- else advanceOrder();
+ performProductAction(()=>screen==='count'&&!sharedCount()?nextCell():advanceOrder(),e);
 });
 document.body.addEventListener('pointerdown',e=>{
  rowTap=null;
