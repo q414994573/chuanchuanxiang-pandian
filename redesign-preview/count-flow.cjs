@@ -98,12 +98,29 @@ function sheetRows(products) {
   return rows;
 }
 
-function countTitleHtml(p, esc) {
+// Reuse the original count-workflow progress rule in every view. Quantities,
+// inventory status and finalization are separate facts, not substitutes for seen.
+function progressSeen(record, id) {
+  return !!(record && record.seen && record.seen[id] && !record.deferred?.[id]);
+}
+
+function progressDotHtml(id, done, esc) {
+  const e = esc || (s => String(s ?? ''));
+  return `<i class="dot" data-progress-id="${e(id)}" data-progress="${done ? 'seen' : 'unseen'}" role="img" aria-label="${done ? '已盘' : '未盘'}"></i>`;
+}
+
+function progressNameHtml(p, done, esc) {
+  const e = esc || (s => String(s ?? ''));
+  return `<b>${progressDotHtml(p?.id, done, e)}${e(largeName(p))}</b>`;
+}
+
+function countTitleHtml(p, esc, done = false) {
   const e = esc || (s => String(s ?? ''));
   const small = smallName(p);
-  if (p?.hideUnit) return `<b><i class="dot"></i>${e(largeName(p))}</b>${small ? `<small>${e(small)}</small>` : ''}`;
+  const name = progressNameHtml(p, done, e);
+  if (p?.hideUnit) return `${name}${small ? `<small>${e(small)}</small>` : ''}`;
   const unit = p && p.unit ? String(p.unit) : '单位未定';
-  return `<b><i class="dot"></i>${e(largeName(p))}</b><small>${small ? e(small) + ' · ' : ''}${e(unit)}</small>`;
+  return `${name}<small>${small ? e(small) + ' · ' : ''}${e(unit)}</small>`;
 }
 
 function boldName(p, esc) {
@@ -164,5 +181,5 @@ function searchCatChoice(counts, current) {
 module.exports = {
   isNumericQty, showsOnOrder, numericFragment, advance, endLabel, textOrderIds, parkTextStocks, NAMES, CATS, catOf,
   largeName, smallName, sheetRows, countTitleHtml, boldName, stripe, countFields, indexById, visibleCountIndexes,
-  searchHitCounts, searchCatChoice
+  searchHitCounts, searchCatChoice, progressSeen, progressDotHtml, progressNameHtml
 };

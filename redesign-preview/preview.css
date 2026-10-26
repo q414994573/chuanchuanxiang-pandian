@@ -64,7 +64,7 @@ h1{font-size:22px;margin:4px 0 8px}
 #app>.textbar{position:sticky;top:var(--banner);z-index:18;background:var(--bg);padding:8px 0;margin:0}
 .bar .textbar{position:static;background:transparent;padding:0;margin-top:6px}
 .dot{display:inline-block;width:8px;height:8px;border-radius:99px;background:#b7aea6;margin-right:4px;vertical-align:middle;box-shadow:0 0 0 1px #fff}
-.line.seen .dot{background:var(--red)}
+.line.seen .dot,.dot[data-progress="seen"]{background:var(--red)}
 .note{background:#fff8e8;border-radius:12px;padding:8px 10px;font-size:13px;margin:8px 0}
 .warn{background:#fff4e5;border-radius:10px;padding:6px 8px;font-size:12px;margin:4px 0}
 .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin:0 0 10px}

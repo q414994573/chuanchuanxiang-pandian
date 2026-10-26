@@ -35,6 +35,7 @@ let undo=null,heldPrev={},ack={},yellowOn=true,yellowOnly=false,archives=[],clou
 let searchScroll=null,searchCat=null,wantFind=false,skipActUntil=0;
 let orderSearchOpen=false,searchContext=null,searchComposing=false;
 let searchCatalogKey=null,searchAliasKey=null,searchIndex=null,searchQuery=null,searchResult=null;
+let progressSnapshotKey=null,progressSnapshot=null;
 let rowTap=null;
 let editField='qty';
 let editStockUnit=null;
@@ -305,7 +306,31 @@ function matchesSearch(p){
 function product(id){return catalog().find(p=>p.id===id);}
 function deferred(id){return !!(!order&&draft?.deferred?.[id]);}
 function deferredBadge(id){return deferred(id)?'<span class="tag deferred-tag">待定</span>':'';}
-function seen(id){return !!(draft&&draft.seen&&draft.seen[id]&&!draft.deferred?.[id]);}
+function seen(id){return Flow.progressSeen(draft,id);}
+function currentProgressRecord(){
+ // An opened historical order can coexist with a different local draft. The
+ // indicator belongs to the displayed record, never that unrelated draft.
+ if(!order)return draft;
+ if(progressSnapshotKey!==order.snapshot){progressSnapshot=JSON.parse(order.snapshot);progressSnapshotKey=order.snapshot;}
+ return progressSnapshot;
+}
+function progressSeen(id){return Flow.progressSeen(currentProgressRecord(),id);}
+function paintProgress(){
+ // Native text editors keep their node, caret, composition and scroll while
+ // local saves or peer updates repaint only these small status decorations.
+ const dots=document.querySelectorAll('.dot[data-progress-id]');
+ if(!dots.length)return;
+ const record=currentProgressRecord();
+ dots.forEach(dot=>{
+  const done=Flow.progressSeen(record,dot.dataset.progressId);
+  const label=done?'已盘':'未盘';
+  dot.dataset.progress=done?'seen':'unseen';
+  dot.setAttribute('aria-label',label);
+  const speaker=dot.closest('.spoken-name');
+  if(speaker)speaker.setAttribute('aria-label','播报'+speaker.textContent+'，'+label);
+  dot.closest('.line')?.classList.toggle('seen',done);
+ });
+}
 function markSeen(id,resolve=false){if(draft){if(draft.deferred?.[id]){if(!resolve)return;delete draft.deferred[id];}draft.seen=draft.seen||{};draft.seen[id]=true;}}
 function seenIn(cat){return (draft?draft.catalog:[]).filter(p=>Flow.catOf(p)===cat&&seen(p.id)).length;}
 function totalIn(cat){return (draft?draft.catalog:source.products).filter(p=>Flow.catOf(p)===cat).length;}
@@ -373,7 +398,7 @@ function backupStatusHtml(){
  const trouble=localSaveFailed||cloudConflict||cloudPhase==='failed';
  return `<div class="backup-status" data-backup-status role="status"><span>${E(backupMessage())}</span>${trouble?'<button type="button" data-act="backup-retry">重试</button><button type="button" data-act="backup-export">下载本机备份</button>':''}${cloudConflict&&peerEnabled?'<button type="button" data-act="peer-remote">保留本机副本并读取云端</button>':cloudConflict?'<button type="button" data-act="backup-local">用本机这份备份</button><button type="button" data-act="backup-remote">读取云端草稿</button>':''}</div>`;
 }
-function paintBackupStatus(){document.querySelectorAll('[data-backup-status]').forEach(el=>{el.outerHTML=backupStatusHtml();});}
+function paintBackupStatus(){document.querySelectorAll('[data-backup-status]').forEach(el=>{el.outerHTML=backupStatusHtml();});paintProgress();}
 function backupRecovery(){
  const value=localBlocked?lastLocalRaw:JSON.stringify({draft,pos,field,savedAt:draft?.savedAt});
  const blob=new Blob([value||''],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
@@ -1086,7 +1111,7 @@ function searchHotCard(p,index,recommended){
  const emptyQuantity=!order&&deferred(p.id)?'订货：待定':!order&&!seen(p.id)&&draft?.items[p.id]?.decision!=='skip'?'订货：未填写':'订货：不订';
  const quantity=Flow.showsOnOrder(qty)?`订货：${qty}${unit||''}`:emptyQuantity;
  const cat=CATS.find(c=>c[0]===Flow.catOf(p));
- return `<button type="button" class="search-hot-card" data-act="hot-find" data-id="${E(p.id)}"><span class="hot-rank${index<3?' leading':''}">${recommended?'荐':index+1}</span><span class="hot-product">${Flow.boldName(p,E)}<small class="hot-supplier">${E(cat?.[2]||'')}${Flow.smallName(p)?' · '+E(Flow.smallName(p)):''}</small><span class="hot-stock">${E(inventory)}</span><span class="hot-quantity">${E(quantity)}</span></span></button>`;
+ return `<button type="button" class="search-hot-card" data-act="hot-find" data-id="${E(p.id)}"><span class="hot-rank${index<3?' leading':''}">${recommended?'荐':index+1}</span><span class="hot-product">${Flow.progressNameHtml(p,progressSeen(p.id),E)}<small class="hot-supplier">${E(cat?.[2]||'')}${Flow.smallName(p)?' · '+E(Flow.smallName(p)):''}</small><span class="hot-stock">${E(inventory)}</span><span class="hot-quantity">${E(quantity)}</span></span></button>`;
 }
 function orderSearchHome(){
  const products=catalog(),byId=new Map(products.map(p=>[p.id,p]));
@@ -1191,9 +1216,11 @@ function openFromRow(b){
  if(draft&&!order&&!Flow.showsOnOrder(qtyOf(id)))draft.added={...draft.added,[id]:true};
  return openOrderKey(id);
 }
-function spokenNameHtml(p){
- const name=Flow.boldName(p,E);
- return productSpeech.settings().enabled?`<button class="spoken-name" type="button" data-act="speak-product" data-id="${E(p.id)}" aria-label="播报${E(Flow.largeName(p))}">${name}</button>`:name;
+function spokenNameHtml(p,showProgress=false){
+ const done=showProgress&&progressSeen(p.id);
+ const name=showProgress?Flow.progressNameHtml(p,done,E):Flow.boldName(p,E);
+ const label='播报'+Flow.largeName(p)+(showProgress?'，'+(done?'已盘':'未盘'):'');
+ return productSpeech.settings().enabled?`<button class="spoken-name" type="button" data-act="speak-product" data-id="${E(p.id)}" aria-label="${E(label)}">${name}</button>`:name;
 }
 function performProductAction(action,event){
  // Every explicit way of selecting a product returns its accepted destination.
@@ -1306,7 +1333,7 @@ function countRows(){
   const on=keypad&&pos===i;
   const hint=p.name==='고수'?'<p class="warn">香菜：再看一次冰箱。</p>':String(p.name).startsWith('감자수제비')?'<p class="warn">土豆面片按大包记，1大包＝2小包。</p>':'';
   const fields=Flow.countFields(p);
-  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml({...p,hideUnit:true},E)}${deferredBadge(p.id)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
+  html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml({...p,hideUnit:true},E,seen(p.id))}${deferredBadge(p.id)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
  }
  if(!n) html='<p class="muted">没有匹配的商品。</p>';
  return html+endNote('list');
@@ -1409,7 +1436,7 @@ function searchHits(countView=false){
   const stock=p.hasStock?searchInput(p,'stock'):'';
   const change=bossChanges().find(c=>c.id===p.id);
   const hint=p.name==='고수'?'香菜：再看一次冰箱。':String(p.name).startsWith('감자수제비')?'土豆面片按大包记，1大包＝2小包。':'';
-  return `<div class="line search-hit ${p.hasStock?'':'nostock'} ${Flow.stripe(i)} ${change?'yellow':''} ${keypad&&editId===p.id?'on':''}" data-id="${E(p.id)}"><div class="who">${spokenNameHtml(p)}${deferredBadge(p.id)}<small>${E(cat?cat[2]:'')}${Flow.smallName(p)?' · '+E(Flow.smallName(p)):''}</small>${change?`<small>${E(changeNote(change))}</small>`:''}</div>${stock}${searchInput(p,'qty')}</div>${hint?`<p class="warn">${E(hint)}</p>`:''}`;
+  return `<div class="line search-hit ${p.hasStock?'':'nostock'} ${Flow.stripe(i)} ${change?'yellow':''} ${keypad&&editId===p.id?'on':''}" data-id="${E(p.id)}"><div class="who">${spokenNameHtml(p,true)}${deferredBadge(p.id)}<small>${E(cat?cat[2]:'')}${Flow.smallName(p)?' · '+E(Flow.smallName(p)):''}</small>${change?`<small>${E(changeNote(change))}</small>`:''}</div>${stock}${searchInput(p,'qty')}</div>${hint?`<p class="warn">${E(hint)}</p>`:''}`;
  }).join('')||'<p>没有匹配的商品。</p>';
 }
 function searchInput(p,which){
