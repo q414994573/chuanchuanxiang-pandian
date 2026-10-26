@@ -3,7 +3,7 @@
 // This controller owns only device feedback. It never reads or writes orders.
 // Start speech inside the accepted user gesture; do not await a voice download,
 // queue old taps, or let delayed platform callbacks block quantity editing.
-const START_TIMEOUT_MS=1800;
+const START_TIMEOUT_MS=6000;
 const SPEAK_TIMEOUT_MS=10000;
 const MAX_NAME_LENGTH=160;
 
@@ -75,6 +75,15 @@ function create(win,options={}){
  function stop(){
   if(flight)finish(flight,true);
  }
+ function watchCompletion(item){
+  if(flight!==item)return;
+  if(!enabled||!visible()){finish(item,true);return;}
+  if(item.started)return;
+  item.started=true;
+  clearTimer(item.startTimer);item.startTimer=null;
+  clearTimer(item.endTimer);item.endTimer=null;
+  try{item.endTimer=timer(()=>finish(item,true),SPEAK_TIMEOUT_MS);}catch(e){finish(item,true);}
+ }
  function set(on){
   enabled=available&&on===true;
   if(!enabled)stop();
@@ -102,22 +111,30 @@ function create(win,options={}){
    // choose. Re-read voices on the next tap; never replay a tap on voiceschanged.
    const item={id:++generation,utterance,started:false,startTimer:null,endTimer:null};
    flight=item;
-   utterance.onstart=()=>{
-    if(flight!==item)return;
-    if(!enabled||!visible()){finish(item,true);return;}
-    if(item.started)return;
-    item.started=true;
-    clearTimer(item.startTimer);item.startTimer=null;
-    clearTimer(item.endTimer);item.endTimer=null;
-    try{item.endTimer=timer(()=>finish(item,true),SPEAK_TIMEOUT_MS);}catch(e){finish(item,true);}
-   };
+   utterance.onstart=()=>watchCompletion(item);
    utterance.onend=()=>finish(item);
    utterance.onerror=()=>finish(item);
    notify(true);
    if(flight!==item||!enabled||!visible()){if(flight===item)finish(item,true);return false;}
    try{
-    item.startTimer=timer(()=>finish(item,true),START_TIMEOUT_MS);
+    item.startTimer=timer(()=>{
+     if(flight!==item||item.started)return;
+     // A delayed/missing start event need not mean silent playback. Honor a
+     // playing engine once, then retain a hard bound if it never finishes.
+     let speaking=false;
+     try{speaking=synth.speaking===true;}catch(e){}
+     if(flight!==item||item.started)return;
+     if(speaking)watchCompletion(item);else finish(item,true);
+    },START_TIMEOUT_MS);
     synth.speak(utterance);
+    // cancel() and speak() need not clear a platform's paused state. Recover
+    // only this fresh visible gesture, after its utterance has been queued.
+    try{
+     if(flight===item&&enabled&&visible()&&synth.paused===true){
+      const resume=synth.resume;
+      if(typeof resume==='function'&&flight===item&&enabled&&visible())resume.call(synth);
+     }
+    }catch(e){}
     return true;
    }catch(e){finish(item,true);return false;}
   }catch(e){stop();return false;}

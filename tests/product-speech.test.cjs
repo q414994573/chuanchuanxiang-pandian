@@ -7,7 +7,7 @@ const tap=()=>({isTrusted:true});
 
 function device(options={}){
  let clock=0,nextTimer=1;
- const storage=new Map(),writes=[],utterances=[],spoken=[],cancelled=[],activity=[],timers=new Map(),documentEvents=new Map(),windowEvents=new Map();
+ const storage=new Map(),writes=[],utterances=[],spoken=[],cancelled=[],resumed=[],activity=[],timers=new Map(),documentEvents=new Map(),windowEvents=new Map();
  if(options.saved!==undefined)storage.set('speech',options.saved);
  const win={document:{hidden:false,visibilityState:'visible',addEventListener(type,fn){documentEvents.set(type,fn);}},
   addEventListener(type,fn){windowEvents.set(type,fn);},
@@ -23,18 +23,23 @@ function device(options={}){
  }
  let pending=[];
  const synth={
+  paused:options.paused===true,speaking:false,
   getVoices(){if(options.voicesThrows)throw Error('voices unavailable');return options.voices??[];},
   speak(utterance){
    if(options.speakThrows)throw Error('speech unavailable');
    spoken.push(utterance);pending.push(utterance);
    options.onSpeak?.(utterance);
-   if(options.autoStart)utterance.onstart?.();
-   if(options.autoEnd){pending=pending.filter(x=>x!==utterance);utterance.onend?.();}
-   if(options.autoError){pending=pending.filter(x=>x!==utterance);utterance.onerror?.({error:'not-allowed'});}
+   if(options.autoStart&&!this.paused){this.speaking=true;utterance.onstart?.();}
+   if(options.autoEnd){pending=pending.filter(x=>x!==utterance);this.speaking=false;utterance.onend?.();}
+   if(options.autoError){pending=pending.filter(x=>x!==utterance);this.speaking=false;utterance.onerror?.({error:'not-allowed'});}
   },
-  cancel(){cancelled.push(pending.slice());const old=pending;pending=[];
+  cancel(){cancelled.push(pending.slice());const old=pending;pending=[];this.speaking=false;
    for(const utterance of old){if(options.cancelEnds)utterance.onend?.();if(options.cancelErrors)utterance.onerror?.({error:'interrupted'});}
    options.onCancel?.();if(options.cancelThrows)throw Error('cancel unavailable');
+  },
+  resume(){resumed.push(pending.slice());options.onResume?.();if(options.resumeThrows)throw Error('resume unavailable');
+   this.paused=false;
+   if(options.resumeStarts&&pending[0]){this.speaking=true;pending[0].onstart?.();}
   }
  };
  win.speechSynthesis=synth;win.SpeechSynthesisUtterance=Utterance;
@@ -50,12 +55,12 @@ function device(options={}){
   const first=[...timers.entries()].filter(([,v])=>v.at<=target).sort((a,b)=>a[1].at-b[1].at||a[0]-b[0])[0];
   if(!first)break;const [id,t]=first;timers.delete(id);clock=t.at;t.fn();
  }clock=target;}
- return {win,controller,options,storage,writes,utterances,spoken,cancelled,activity,timers,advance,
+ return {win,controller,options,storage,writes,utterances,spoken,cancelled,resumed,activity,timers,advance,
   hidden(){win.document.hidden=true;win.document.visibilityState='hidden';documentEvents.get('visibilitychange')?.();},
   visible(){win.document.hidden=false;win.document.visibilityState='visible';documentEvents.get('visibilitychange')?.();},
   pagehide(){windowEvents.get('pagehide')?.();},pending:()=>pending.slice(),
-  start(u=spoken.at(-1)){u.onstart?.();},end(u=spoken.at(-1)){pending=pending.filter(x=>x!==u);u.onend?.();},
-  error(u=spoken.at(-1),error='synthesis-failed'){pending=pending.filter(x=>x!==u);u.onerror?.({error});}};
+  start(u=spoken.at(-1)){synth.speaking=true;u.onstart?.();},end(u=spoken.at(-1)){pending=pending.filter(x=>x!==u);synth.speaking=false;u.onend?.();},
+  error(u=spoken.at(-1),error='synthesis-failed'){pending=pending.filter(x=>x!==u);synth.speaking=false;u.onerror?.({error});}};
 }
 
 test('speech defaults off, performs no writes or playback and has no active-state callback at construction',()=>{
@@ -223,6 +228,104 @@ test('started speech has a longer bounded timeout, preventing a permanent muted 
 test('duplicate start events cannot extend the speech watchdog indefinitely',()=>{
  const d=device();d.controller.set(true);d.controller.speak('水饺',tap());d.start();d.advance(500);d.start();
  assert.equal(d.timers.size,1);d.advance(Speech.SPEAK_TIMEOUT_MS-501);assert.equal(d.controller.active(),true);d.advance(1);assert.equal(d.controller.active(),false);
+});
+test('a 2.2 second platform startup is allowed without delaying the caller or replaying speech',()=>{
+ const d=device();d.options.onSpeak=u=>d.win.setTimeout(()=>d.start(u),2200);d.controller.set(true);
+ let actionRan=false;assert.equal(d.controller.speak('水饺',tap()),true);actionRan=true;
+ assert.equal(actionRan,true);assert.equal(d.spoken.length,1);assert.equal(d.win.speechSynthesis.speaking,false);
+ d.advance(1800);assert.equal(d.controller.active(),true);assert.equal(d.cancelled.length,0);
+ d.advance(400);assert.equal(d.win.speechSynthesis.speaking,true);assert.equal(d.cancelled.length,0);
+ d.end();assert.equal(d.controller.active(),false);assert.equal(d.timers.size,0);assert.equal(d.spoken.length,1);
+});
+test('missing onstart preserves a speaking engine until its normal end event',()=>{
+ const d=device();d.controller.set(true);d.controller.speak('腐竹',tap());d.win.speechSynthesis.speaking=true;
+ d.advance(Speech.START_TIMEOUT_MS);assert.equal(d.cancelled.length,0);assert.equal(d.controller.active(),true);assert.equal(d.timers.size,1);
+ d.advance(200);d.end();assert.equal(d.controller.active(),false);assert.equal(d.timers.size,0);assert.equal(d.cancelled.length,0);assert.equal(d.spoken.length,1);
+});
+test('missing start and end events with a permanently speaking engine have one bounded completion window',()=>{
+ const d=device();d.controller.set(true);d.controller.speak('腐竹',tap());d.win.speechSynthesis.speaking=true;
+ d.advance(Speech.START_TIMEOUT_MS);assert.equal(d.controller.active(),true);assert.equal(d.cancelled.length,0);
+ d.advance(Speech.SPEAK_TIMEOUT_MS-1);assert.equal(d.controller.active(),true);d.advance(1);
+ assert.equal(d.controller.active(),false);assert.equal(d.cancelled.length,1);assert.equal(d.timers.size,0);assert.equal(d.pending().length,0);
+ d.advance(60000);assert.equal(d.spoken.length,1);assert.equal(d.resumed.length,0);assert.equal(d.controller.settings().enabled,true);
+});
+test('a late onstart after the speaking-state fallback cannot extend its completion deadline',()=>{
+ const d=device();d.controller.set(true);d.controller.speak('水饺',tap());d.win.speechSynthesis.speaking=true;
+ d.advance(Speech.START_TIMEOUT_MS);d.advance(500);d.start();d.advance(Speech.SPEAK_TIMEOUT_MS-500);
+ assert.equal(d.controller.active(),false);assert.equal(d.cancelled.length,1);assert.equal(d.timers.size,0);
+});
+test('a queued stale start-timeout callback cannot cancel speech whose start event already arrived',()=>{
+ const d=device();d.controller.set(true);d.controller.speak('水饺',tap());const callback=[...d.timers.values()][0].fn;
+ d.start();d.win.speechSynthesis.speaking=false;callback();assert.equal(d.controller.active(),true);assert.equal(d.cancelled.length,0);assert.equal(d.timers.size,1);
+ d.end();assert.equal(d.controller.active(),false);
+});
+test('stale startup and completion watchdogs cannot affect the latest product',()=>{
+ const d=device();d.controller.set(true);d.controller.speak('腐竹',tap());const startTimeout=[...d.timers.values()][0].fn;
+ d.start();const endTimeout=[...d.timers.values()][0].fn;d.controller.speak('水饺',tap());
+ const cancels=d.cancelled.length,timers=d.timers.size;startTimeout();endTimeout();
+ assert.equal(d.controller.active(),true);assert.equal(d.cancelled.length,cancels);assert.equal(d.timers.size,timers);assert.equal(d.pending()[0].text,'水饺');
+});
+test('a throwing speaking-state getter cannot leave the startup watchdog unbounded',()=>{
+ const d=device();d.controller.set(true);d.controller.speak('腐竹',tap());
+ Object.defineProperty(d.win.speechSynthesis,'speaking',{get(){throw Error('state unavailable');},set(){}});
+ assert.doesNotThrow(()=>d.advance(Speech.START_TIMEOUT_MS));assert.equal(d.controller.active(),false);assert.equal(d.cancelled.length,1);assert.equal(d.timers.size,0);
+});
+test('a missed hidden-page event still stops speech at the speaking-state fallback',()=>{
+ const d=device();d.controller.set(true);d.controller.speak('腐竹',tap());d.win.speechSynthesis.speaking=true;d.win.document.hidden=true;
+ d.advance(Speech.START_TIMEOUT_MS);assert.equal(d.controller.active(),false);assert.equal(d.cancelled.length,1);assert.equal(d.timers.size,0);
+});
+test('a paused engine resumes synchronously after this gesture queues its utterance',()=>{
+ const calls=[],d=device({paused:true,resumeStarts:true,onSpeak:()=>calls.push('speak'),onResume:()=>calls.push('resume')});d.controller.set(true);
+ assert.equal(d.resumed.length,0);assert.equal(d.controller.speak('水饺',tap()),true);calls.push('quantity action');
+ assert.deepEqual(calls,['speak','resume','quantity action']);assert.equal(d.resumed.length,1);assert.equal(d.resumed[0][0],d.spoken[0]);
+ assert.equal(d.win.speechSynthesis.paused,false);assert.equal(d.controller.active(),true);
+ d.end();assert.equal(d.controller.active(),false);assert.equal(d.timers.size,0);
+});
+test('a running engine is never resumed or delayed unnecessarily',()=>{
+ const d=device({autoStart:true});d.controller.set(true);d.controller.speak('水饺',tap());assert.equal(d.resumed.length,0);assert.equal(d.spoken.length,1);d.end();
+});
+for(const ended of ['autoEnd','autoError']){
+ test('resume is skipped when the native call already completed: '+ended,()=>{
+  const d=device({paused:true,[ended]:true});d.controller.set(true);d.controller.speak('水饺',tap());
+  assert.equal(d.controller.active(),false);assert.equal(d.resumed.length,0);assert.equal(d.timers.size,0);
+ });
+}
+for(const changed of ['hidden','disabled','superseded']){
+ test('native-call state changes prevent resuming an obsolete utterance: '+changed,()=>{
+  const d=device({paused:true});let changedOnce=false;
+  d.options.onSpeak=()=>{if(changedOnce)return;changedOnce=true;
+   if(changed==='hidden')d.hidden();else if(changed==='disabled')d.controller.set(false);else d.controller.speak('鸡精',tap());
+  };
+  d.controller.set(true);d.controller.speak('水饺',tap());
+  if(changed==='superseded'){assert.equal(d.resumed.length,1);assert.equal(d.resumed[0][0].text,'鸡精');assert.equal(d.pending()[0].text,'鸡精');}
+  else{assert.equal(d.resumed.length,0);assert.equal(d.controller.active(),false);}
+ });
+}
+for(const failure of ['missing','throws','getter','paused-getter']){
+ test('optional resume failure cannot block quantity actions or leave speech active indefinitely: '+failure,()=>{
+  const d=device({paused:true,resumeThrows:failure==='throws'});
+  if(failure==='missing')delete d.win.speechSynthesis.resume;
+  if(failure==='getter')Object.defineProperty(d.win.speechSynthesis,'resume',{get(){throw Error('resume unavailable');}});
+  if(failure==='paused-getter')Object.defineProperty(d.win.speechSynthesis,'paused',{get(){throw Error('pause state unavailable');}});
+  d.controller.set(true);let actionRan=false;assert.doesNotThrow(()=>{d.controller.speak('水饺',tap());actionRan=true;});assert.equal(actionRan,true);
+  d.advance(Speech.START_TIMEOUT_MS);assert.equal(d.controller.active(),false);assert.equal(d.timers.size,0);assert.equal(d.controller.settings().enabled,true);
+ });
+}
+test('resume property access cannot resume a newer reentrant request through an older gesture',()=>{
+ const d=device({paused:true});let replaced=false,calls=0;
+ Object.defineProperty(d.win.speechSynthesis,'resume',{get(){
+  if(!replaced){replaced=true;d.controller.speak('鸡精',tap());}
+  return ()=>{calls++;d.win.speechSynthesis.paused=false;};
+ }});
+ d.controller.set(true);d.controller.speak('水饺',tap());assert.equal(calls,1);assert.equal(d.pending()[0].text,'鸡精');assert.equal(d.controller.active(),true);
+});
+test('persistent no-response engines can be retried by fresh taps without automatic replay',()=>{
+ const d=device({paused:true});d.controller.set(true);
+ for(let i=0;i<3;i++){
+  assert.equal(d.controller.speak('水饺',tap()),true);assert.equal(d.spoken.length,i+1);d.advance(Speech.START_TIMEOUT_MS);
+  assert.equal(d.controller.active(),false);assert.equal(d.pending().length,0);assert.equal(d.timers.size,0);
+ }
+ d.advance(60000);d.hidden();d.visible();assert.equal(d.spoken.length,3);assert.equal(d.cancelled.length,3);assert.equal(d.resumed.length,1);assert.equal(d.controller.settings().enabled,true);
 });
 for(const kind of ['end','error','stop','off','hidden','pagehide']){
  test(`${kind} immediately clears narration and timers, keeping only intended preference changes`,()=>{
