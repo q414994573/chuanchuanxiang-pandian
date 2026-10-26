@@ -1,0 +1,758 @@
+{
+  "version": "20261026-v51",
+  "verifiedAtUtc": "2026-10-26T06:58:28.128492+00:00",
+  "baseCommit": "ff0439e36499c7e9ba327e392f252152e304fa64",
+  "defect": {
+    "query": "大葱腐竹粉丝",
+    "originCategory": "kr",
+    "expectedIds": [
+      "kr:7",
+      "cn:33",
+      "cn:75"
+    ],
+    "oldVisibleIds": [
+      "kr:7"
+    ],
+    "cause": "The count view and cell navigation applied the selected category after global search matching. Old tests asserted this incorrect category restriction."
+  },
+  "redGreen": {
+    "before": {
+      "tests": 28,
+      "pass": 2,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "after": {
+      "tests": 28,
+      "pass": 28,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "test": "tests/count-global-search.test.cjs"
+  },
+  "node": {
+    "tests": 8877,
+    "pass": 8877,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "browserRuns": [
+    {
+      "engine": "chromium",
+      "suite": "search-progress",
+      "passed": 78,
+      "failed": 0,
+      "seconds": 43.86,
+      "browserVersion": "141.0.7390.37",
+      "sourceUnchanged": true,
+      "runnerSha256": "d750354fa112aa1fe9e59213cbf424e86584f5878fe9788bc0d2589031b6bc50",
+      "pageErrors": []
+    },
+    {
+      "engine": "chromium",
+      "suite": "speech-navigation",
+      "passed": 156,
+      "failed": 0,
+      "seconds": 206.49,
+      "browserVersion": "141.0.7390.37",
+      "sourceUnchanged": true,
+      "runnerSha256": "f53e3b3b9ddf1e511bc631848fa8ef7e024b0c981fbbb50e6ff8d598e9bc1b1b",
+      "pageErrors": []
+    },
+    {
+      "engine": "chromium",
+      "suite": "input-speech",
+      "passed": 132,
+      "failed": 0,
+      "seconds": 128.1,
+      "browserVersion": "141.0.7390.37",
+      "sourceUnchanged": true,
+      "runnerSha256": "b815466c31d707e71d9cd5b79c97a5ae5bffb6989d16f46d405474b5c8efbedb",
+      "pageErrors": []
+    },
+    {
+      "engine": "chromium",
+      "suite": "search-hub",
+      "passed": 51,
+      "failed": 0,
+      "seconds": 39.35,
+      "browserVersion": "141.0.7390.37",
+      "sourceUnchanged": true,
+      "runnerSha256": "92a7820c5e693674aa433a773326e7c2f19e475d4aa438d0ab46fe9dc78cd830",
+      "pageErrors": []
+    },
+    {
+      "engine": "chromium",
+      "suite": "mobile-workflow",
+      "passed": 24,
+      "failed": 0,
+      "seconds": 16.18,
+      "browserVersion": "141.0.7390.37",
+      "sourceUnchanged": true,
+      "runnerSha256": "8b85dbbfc0f0c02d0514c71a6404ce55bd2f38cdd2a706944c3fd06bdb0ba412",
+      "pageErrors": []
+    },
+    {
+      "engine": "chromium",
+      "suite": "mobile-layout",
+      "passed": 24,
+      "failed": 0,
+      "seconds": 12.5,
+      "browserVersion": "141.0.7390.37",
+      "sourceUnchanged": true,
+      "runnerSha256": "867a250ea4a41fc0f5f20efbce2248b29d636c30d7ee42fdf65ce91c3631dcfd",
+      "pageErrors": []
+    },
+    {
+      "engine": "chromium",
+      "suite": "feedback",
+      "passed": 10,
+      "failed": 0,
+      "seconds": 3.47,
+      "browserVersion": "141.0.7390.37",
+      "sourceUnchanged": true,
+      "runnerSha256": "bc1c2c43097ce21dbc54beec9dcd3f2be3bf218c274922df6793ced94c3e914a",
+      "pageErrors": []
+    },
+    {
+      "engine": "webkit",
+      "suite": "search-progress",
+      "passed": 78,
+      "failed": 0,
+      "seconds": 42.3,
+      "browserVersion": "26.0",
+      "sourceUnchanged": true,
+      "runnerSha256": "d750354fa112aa1fe9e59213cbf424e86584f5878fe9788bc0d2589031b6bc50",
+      "pageErrors": []
+    },
+    {
+      "engine": "webkit",
+      "suite": "speech-navigation",
+      "passed": 156,
+      "failed": 0,
+      "seconds": 190.47,
+      "browserVersion": "26.0",
+      "sourceUnchanged": true,
+      "runnerSha256": "f53e3b3b9ddf1e511bc631848fa8ef7e024b0c981fbbb50e6ff8d598e9bc1b1b",
+      "pageErrors": []
+    },
+    {
+      "engine": "webkit",
+      "suite": "input-speech",
+      "passed": 132,
+      "failed": 0,
+      "seconds": 104.9,
+      "browserVersion": "26.0",
+      "sourceUnchanged": true,
+      "runnerSha256": "b815466c31d707e71d9cd5b79c97a5ae5bffb6989d16f46d405474b5c8efbedb",
+      "pageErrors": []
+    },
+    {
+      "engine": "webkit",
+      "suite": "search-hub",
+      "passed": 51,
+      "failed": 0,
+      "seconds": 48.5,
+      "browserVersion": "26.0",
+      "sourceUnchanged": true,
+      "runnerSha256": "92a7820c5e693674aa433a773326e7c2f19e475d4aa438d0ab46fe9dc78cd830",
+      "pageErrors": []
+    },
+    {
+      "engine": "webkit",
+      "suite": "mobile-workflow",
+      "passed": 24,
+      "failed": 0,
+      "seconds": 19.52,
+      "browserVersion": "26.0",
+      "sourceUnchanged": true,
+      "runnerSha256": "8b85dbbfc0f0c02d0514c71a6404ce55bd2f38cdd2a706944c3fd06bdb0ba412",
+      "pageErrors": []
+    },
+    {
+      "engine": "webkit",
+      "suite": "mobile-layout",
+      "passed": 24,
+      "failed": 0,
+      "seconds": 15.58,
+      "browserVersion": "26.0",
+      "sourceUnchanged": true,
+      "runnerSha256": "867a250ea4a41fc0f5f20efbce2248b29d636c30d7ee42fdf65ce91c3631dcfd",
+      "pageErrors": []
+    },
+    {
+      "engine": "webkit",
+      "suite": "feedback",
+      "passed": 10,
+      "failed": 0,
+      "seconds": 4.44,
+      "browserVersion": "26.0",
+      "sourceUnchanged": true,
+      "runnerSha256": "bc1c2c43097ce21dbc54beec9dcd3f2be3bf218c274922df6793ced94c3e914a",
+      "pageErrors": []
+    },
+    {
+      "engine": "chromium",
+      "suite": "multi-search",
+      "passed": 48,
+      "failed": 0,
+      "browserVersion": "141.0.7390.37",
+      "pageErrors": [],
+      "cases": [
+        {
+          "name": "430px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "430px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "430px owner finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "430px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "430px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "430px editor finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "430px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "375px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "375px owner finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "375px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "375px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "375px editor finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "375px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        },
+        {
+          "name": "320px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "320px owner draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "320px owner draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "320px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "320px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "320px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "320px owner finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "320px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        },
+        {
+          "name": "320px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "320px editor draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "320px editor draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "320px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "320px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "320px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "320px editor finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "320px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "engine": "webkit",
+      "suite": "multi-search",
+      "passed": 48,
+      "failed": 0,
+      "browserVersion": "26.0",
+      "pageErrors": [],
+      "cases": [
+        {
+          "name": "430px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "430px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "430px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "430px owner finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "430px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "430px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "430px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "430px editor finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "430px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "375px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "375px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "375px owner finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "375px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "375px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "375px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "375px editor finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "375px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        },
+        {
+          "name": "320px owner draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "320px owner draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "320px owner draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "320px owner draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "320px owner draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "320px owner finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "320px owner finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "320px owner finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        },
+        {
+          "name": "320px editor draft order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "320px editor draft count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "320px editor draft screenshot query edits all three products with cross-category next and previous",
+          "pass": true
+        },
+        {
+          "name": "320px editor draft order quantity edits keep multi-search and move only through matching cells",
+          "pass": true
+        },
+        {
+          "name": "320px editor draft count inventory edits retain two matching products and skip other goods",
+          "pass": true
+        },
+        {
+          "name": "320px editor finalized order multi-name query variants, stable input and original scroll",
+          "pass": true
+        },
+        {
+          "name": "320px editor finalized count search shows every category and navigates the same global matches",
+          "pass": true
+        },
+        {
+          "name": "320px editor finalized finalized multi-search cannot unlock stock or order quantities",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "engine": "webkit",
+      "suite": "count-search-screen",
+      "passed": 6,
+      "failed": 0,
+      "browserVersion": "26.0",
+      "pageErrors": [],
+      "cases": [
+        {
+          "name": "430px owner screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        },
+        {
+          "name": "430px editor screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        },
+        {
+          "name": "375px owner screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        },
+        {
+          "name": "375px editor screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        },
+        {
+          "name": "320px owner screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        },
+        {
+          "name": "320px editor screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "engine": "chromium",
+      "suite": "count-search-screen",
+      "passed": 6,
+      "failed": 0,
+      "browserVersion": "141.0.7390.37",
+      "pageErrors": [],
+      "cases": [
+        {
+          "name": "430px owner screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        },
+        {
+          "name": "430px editor screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        },
+        {
+          "name": "375px owner screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        },
+        {
+          "name": "375px editor screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        },
+        {
+          "name": "320px owner screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        },
+        {
+          "name": "320px editor screenshot query exposes all three rows in a keyboard-sized viewport",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "engine": "chromium",
+      "suite": "shipped-bundle-boot",
+      "passed": 4,
+      "failed": 0,
+      "browserVersion": null,
+      "pageErrors": [],
+      "cases": [
+        {
+          "name": "shipped production bundle boots to login and preserves saved local draft",
+          "pass": true
+        },
+        {
+          "name": "missing cloud config locks production entry and preserves original local bytes",
+          "pass": true
+        },
+        {
+          "name": "128-product catalog refuses startup and preserves original local bytes",
+          "pass": true
+        },
+        {
+          "name": "malformed alias response fails safely without overwriting local draft",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "engine": "webkit",
+      "suite": "shipped-bundle-boot",
+      "passed": 4,
+      "failed": 0,
+      "browserVersion": null,
+      "pageErrors": [],
+      "cases": [
+        {
+          "name": "shipped production bundle boots to login and preserves saved local draft",
+          "pass": true
+        },
+        {
+          "name": "missing cloud config locks production entry and preserves original local bytes",
+          "pass": true
+        },
+        {
+          "name": "128-product catalog refuses startup and preserves original local bytes",
+          "pass": true
+        },
+        {
+          "name": "malformed alias response fails safely without overwriting local draft",
+          "pass": true
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "nodePassed": 8877,
+    "browserPassed": 1066,
+    "passed": 9943,
+    "failed": 0
+  },
+  "runtimeSha256": {
+    "cloud/core.cjs": "6e5f8936916aa2731f015a7740e6e52710e039189ffb87f5a33d330b27f64b8d",
+    "cloud/shared-count.js": "01615d20ef0ca719aa87425a535b929dcc440ddcdf2980d88d4a264cb84d82d4",
+    "count-core.js": "c504b9052689bc4048dfffc50a9dd376aec9ec4749a4aee0d17c216178628d3c",
+    "current-order.json": "d9cf4a283a86030e3a331cc66d4d0cb92375e95f486029a525d705a14e63a1f9",
+    "ordering/index.html": "d91b1bc294a9709aa911d7aa655a58af91bfa77267f93a8d0749248ae04491b4",
+    "redesign-preview/count-flow.cjs": "325f3d2facaf663162a7d545b7b932b06bbd591a2d0d30db514ab9fbde65babd",
+    "redesign-preview/draft-backup.cjs": "ccaa4e36594ca65e245781a77133440383cefa634577141e2d4eee8e3914b4bd",
+    "redesign-preview/entry-mode.cjs": "c73486a24305791d9d9c25f56bc610adaab59ff02a13331ed1a5023f743cfec2",
+    "redesign-preview/index.html": "f5533f7509cf48a662a6f05f0855dc9e8664e9da5511e11b69f707b195e67f3f",
+    "redesign-preview/interaction-feedback.cjs": "efea737f625d3beafa4cb9f977aa28900b86ac069e42148f4aa944f29d134dd2",
+    "redesign-preview/order-autosave.cjs": "6cc0a44c8ce51f91ef645cb86a18d0cf4a9b4d75b9f8fccc98a81a5c8e9e08f1",
+    "redesign-preview/preview.bundle.js": "b558f7d984fa36ec0d0541d3c1a866d4bef599852195275a27c86993f0d5d79b",
+    "redesign-preview/preview.css": "60729f12fd1f7640b1e969f32194187f700a994bb33dd57772617c56f351c803",
+    "redesign-preview/preview.js": "3163eceaa1e4d64078af452ec473e18ce9ac22189a3094e0e1b5a15aad8a179a",
+    "redesign-preview/product-names.cjs": "cfde741c9395eafb3bde4e91a8d66f5da77b144bd27a0ab2d62b24587b8a946a",
+    "redesign-preview/product-speech.cjs": "a28123e86907e9b9968a6abcfd078d1ae1cbdcb78eef3cc1195d8066a873c910",
+    "redesign-preview/recovery.cjs": "0f55e29dd980fb8071292877e952ab634882fe0677434bce5e64aa80f244e77a",
+    "redesign-preview/search-activity.cjs": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+    "redesign-preview/search.cjs": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+    "redesign-preview/shared-draft.cjs": "872d489a166d922e774b98d3428b0a6748088abc9d1dd57042fe168d4cdc91c7",
+    "redesign-preview/stock-unit-corrections.cjs": "373272732aed5ca78de7d38e0ce185e3d470158381150258412b1e5ede418b3b"
+  },
+  "limits": [
+    "Browser tests use isolated fixtures with owner/editor roles and intercepted network requests; no production business data was changed.",
+    "WebKit 26.0 and Chromium 141 were run, not a physical iPhone keyboard or microphone.",
+    "A reduced viewport checks visible results and retained search focus; it does not emulate the native keyboard.",
+    "The pre-build overlapping browser invocation is excluded. Only the complete frozen-source run is counted.",
+    "Passing these tests validates their assertions and does not establish that the whole application is free of defects."
+  ]
+}

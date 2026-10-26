@@ -144,7 +144,7 @@ function indexById(catalog, id) {
 function visibleCountIndexes(catalog, cat, matches, activeIndex) {
   const out = [];
   (catalog || []).forEach((p, i) => {
-    if (!p || catOf(p) !== cat) return;
+    if (!p || (cat != null && catOf(p) !== cat)) return;
     if (i !== activeIndex && !(typeof matches === 'function' && matches(p))) return;
     out.push(i);
   });

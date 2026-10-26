@@ -68,6 +68,7 @@ const settle=page=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>re
 const three=['kr:7','cn:33','cn:64'],five=[...three,'other:8','other:22'];
 const grouped={kr:['kr:7'],cn:['cn:33','cn:64'],other:['other:8'],drinks:['other:22']};
 const queries=[
+ ['大葱腐竹粉丝',['kr:7','cn:33','cn:75']],
  ['大葱腐竹虾丸',three],
  ['大葱，腐竹、虾丸',three],
  ['大葱 / 腐竹；虾丸',three],
@@ -145,28 +146,47 @@ async function next(page,shared=true){await page.locator(`[data-act="${shared?'o
      assert.ok(Math.abs(await page.evaluate(()=>scrollY)-origin)<=3,'return restores deep original list position');
      return {variants:queries.length,inputIdentityPreserved:true,compositionDispatchRetained:true,maxInputRoundTripMs:Math.max(...durations),networkReads:0};
     });
-    await runCase(prefix+' count categories and keyboard navigation share the multi-query result set',async()=>{
+    await runCase(prefix+' count search shows every category and navigates the same global matches',async()=>{
      await reset(page,role,mode,'count');const before=await page.evaluate(()=>window.__ccx.values());
-     const q='大葱腐竹虾丸竹签芬达';await fill(page,q);
-     assert.equal(await page.evaluate(()=>window.__ccx.state().viewCat),'cn','existing category retained when it has matches');
      const measured={};
      for(const cat of ['cn','kr','other','drinks']){
-      if(cat!=='cn'){await page.locator(`[data-act="jumpcat"][data-cat="${cat}"]`).click();await settle(page);}
-      assert.deepEqual(await ids(page),grouped[cat]);assert.equal(await page.locator('#find').inputValue(),q);
-      const badges=await page.locator('[data-act="jumpcat"]').evaluateAll(els=>Object.fromEntries(els.map(el=>[el.dataset.cat,el.querySelector('.found')?.textContent||''])));
-      for(const other of Object.keys(grouped))assert.equal(badges[other],other===cat?'':`搜到${grouped[other].length}`,'category hit count agrees with visible matches');
-      const cells=await page.evaluate(()=>window.__ccx.cells());
-      if(mode==='finalized')assert.deepEqual(cells,[],'finalized search stays read-only');
-      else assert.deepEqual([...new Set(cells.map(c=>c.id))],grouped[cat],'next/previous cannot navigate to a filtered-out product');
-      measured[cat]={ids:await ids(page),badges,navigationCells:cells.length};
+      await reset(page,role,mode,'count',cat);
+      for(const [q,expected] of queries){
+       await fill(page,q);assert.deepEqual(await ids(page),expected,'count query '+q+' from '+cat);
+       assert.equal(await page.locator('#find').inputValue(),q);
+       const cells=await page.evaluate(()=>window.__ccx.cells());
+       assert.deepEqual([...new Set(cells.map(c=>c.id))],mode==='finalized'?[]:expected);
+       assert.equal(await page.locator('[data-act="jumpcat"]').first().isVisible(),false);
+       assert.equal(await page.locator('.search-result-note').innerText(),'搜到 '+expected.length+' 种商品 · 全部分类');
+      }
+      measured[cat]={queryVariants:queries.length};
       assert.ok((await geometry(page)).scrollWidth<=width+1);
+      await page.locator('[data-act="cancel-find"]').click();await settle(page);
+      assert.equal((await page.evaluate(()=>window.__ccx.state())).viewCat,cat);
+      assert.equal(await page.locator('[data-act="jumpcat"]').first().isVisible(),true);
      }
-     await page.locator(`[data-act="jumpcat"][data-cat="cn"]`).click();await settle(page);
+     await fill(page,'大葱腐竹粉丝');assert.deepEqual(await ids(page),['kr:7','cn:33','cn:75']);
      await page.screenshot({path:path.join(outputDir,`${width}-${role}-${mode}-multi-count.png`)});
      assert.deepEqual(await page.evaluate(()=>window.__ccx.values()),before);assert.equal(await page.evaluate(()=>window.__ccx.reads),0);
      return {categories:measured,networkReads:0};
     });
     if(mode==='draft'){
+     await runCase(prefix+' screenshot query edits all three products with cross-category next and previous',async()=>{
+      await reset(page,role,mode,'count','kr');const q='大葱腐竹粉丝';await fill(page,q);
+      const expected=['kr:7','cn:33','cn:75'];assert.deepEqual(await ids(page),expected);
+      await page.locator('#find').evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',isComposing:true}));el.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:el.value}));});await settle(page);
+      assert.deepEqual(await ids(page),expected);
+      await page.locator('[data-act="open"][data-id="kr:7"][data-field="qty"]').click();await key(page,'2');await next(page,false);
+      let state=await page.evaluate(()=>window.__ccx.state());assert.equal(state.activeId,'cn:33');assert.equal(state.field,'stock');assert.equal(state.query,q);assert.deepEqual(await ids(page),expected);
+      await page.locator('[data-act="prev"]').click();await settle(page);assert.equal((await page.evaluate(()=>window.__ccx.state())).activeId,'kr:7');
+      await next(page,false);await key(page,'0');await next(page,false);await key(page,'3');await next(page,false);
+      state=await page.evaluate(()=>window.__ccx.state());assert.equal(state.activeId,'cn:75');assert.equal(state.field,'stock');await key(page,'4');await next(page,false);await key(page,'5');
+      await page.locator('[data-act="close"]').click();await settle(page);assert.deepEqual(await ids(page),expected);
+      state=await page.evaluate(()=>window.__ccx.state());assert.equal(state.draftValues['kr:7'].quantity,'2');assert.equal(state.draftValues['cn:33'].stock,'0');assert.equal(state.draftValues['cn:33'].quantity,'3');assert.equal(state.draftValues['cn:75'].stock,'4');assert.equal(state.draftValues['cn:75'].quantity,'5');
+      await page.locator('[data-act="cancel-find"]').click();await settle(page);assert.equal((await page.evaluate(()=>window.__ccx.state())).viewCat,'kr');
+      await page.locator('[data-tab="order"]').click();await settle(page);await fill(page,q);assert.deepEqual(await ids(page),expected);assert.equal((await page.evaluate(()=>window.__ccx.state())).draftValues['cn:75'].quantity,'5');
+      return {query:q,matchingIds:expected,crossCategoryNavigation:true,valuesAgreeWithOrder:true};
+     });
      await runCase(prefix+' order quantity edits keep multi-search and move only through matching cells',async()=>{
       await reset(page,role,mode);const q='大葱腐竹虾丸';await fill(page,q);
       const before=await page.evaluate(()=>window.__ccx.values());

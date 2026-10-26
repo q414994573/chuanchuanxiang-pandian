@@ -70,7 +70,8 @@ test('redesign preview stays off the production pages and only writes test order
  assert.match(js,/>123</);
  assert.match(js,/viewCat===cat/);
  assert.match(js,/cat!==viewCat/);
- assert.match(js,/Flow\.searchCatChoice/);
+ assert.match(js,/query\?null:viewCat/);
+ assert.match(css,/body\.count-search \.bar \.cats/);
  assert.match(js,/searchCat/);
  assert.match(js,/搜到/);
  assert.equal(js.includes('点上面切换'),false);

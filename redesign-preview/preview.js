@@ -699,7 +699,7 @@ function finishTyping(){
 }
 function countNavigationCells(){
  if(!draft||draft.status!=='draft')return [];
- return draft.catalog.flatMap((p,i)=>Flow.catOf(p)===viewCat&&matchesSearch(p)?Flow.countFields(p).map(which=>({id:p.id,i,which})):[]);
+ return draft.catalog.flatMap((p,i)=>(query||Flow.catOf(p)===viewCat)&&matchesSearch(p)?Flow.countFields(p).map(which=>({id:p.id,i,which})):[]);
 }
 function nextCell(direction=1){
  if(!draft||draft.status!=='draft')return;
@@ -1146,25 +1146,12 @@ function rememberSearchOrigin(){
  if(searchCat==null)searchCat=screen==='order'?orderCat:viewCat;
  if(searchScroll==null)searchScroll=window.scrollY;
 }
-function followSearchCat(){
- if(screen!=='count'||(!draft&&!sharedCount())||!query)return;
- const next=Flow.searchCatChoice(Flow.searchHitCounts(sharedCount()?catalog():draft.catalog,matchesSearch),viewCat);
- if(next===viewCat)return;
- if(keypad||textMode){
-  if(textMode&&readPlain()===false)return;
-  if(sharedCount()){if(commitOrderEdit()===false)return;}else if(leaveCountCell()===false)return;
-  keypad=false;textMode=false;
-  document.body.classList.remove('key-open','text-mode');
-  document.querySelector('.pad')?.remove();
- }
- viewCat=next;moduleEnd=false;
-}
 function syncCatButtons(){
  const box=document.querySelector('.bar .cats');
  if(box&&screen==='count')box.innerHTML=catButtonsHtml();
 }
 function paintRows(alignResults=false){
- if(screen==='count')followSearchCat();
+ document.body.classList.toggle('count-search',screen==='count'&&!!query);
  const box=document.getElementById('rows');
  if(box)box.innerHTML=screen==='count'?countRows():(orderSearchOpen?orderSearchRows():(query?searchHits():orderPane()));
  if(screen==='count')syncCatButtons();
@@ -1272,6 +1259,7 @@ function render(){
  orderEdited();
  document.body.classList.toggle('key-open',keypad&&!textMode);
  document.body.classList.toggle('text-mode',!!textMode);
+ document.body.classList.toggle('count-search',screen==='count'&&!!query);
  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===screen));
  const html=screen==='count'?countHtml():screen==='order'?orderHtml():moreHtml();
  const inSearch=orderSearchOpen&&html.startsWith('<section id="order-search-page"');
@@ -1324,9 +1312,10 @@ function countCell(p,i,which){
  return C.units.choices[p.id]?`<div class="search-cell">${cell}${unitPicker(p,which)}</div>`:cell;
 }
 function countRows(){
- if(sharedCount())return searchHits(true);
+ const summary=query?`<p class="search-result-note" role="status">搜到 ${catalog().filter(matchesSearch).length} 种商品 · 全部分类</p>`:'';
+ if(sharedCount())return summary+searchHits(true);
  let html='',n=0;
- const shown=Flow.visibleCountIndexes(draft.catalog,viewCat,matchesSearch,keypad?pos:-1);
+ const shown=Flow.visibleCountIndexes(draft.catalog,query?null:viewCat,matchesSearch,keypad?pos:-1);
  for(const i of shown){
   const p=draft.catalog[i];
   n++;
@@ -1336,7 +1325,7 @@ function countRows(){
   html+=`<div class="line ${fields.includes('stock')?'':'nostock'} ${Flow.stripe(n-1)} ${on?'on':''} ${seen(p.id)?'seen':''}" data-row="${i}"><button class="who" type="button" data-act="open" data-id="${E(p.id)}" data-i="${i}">${Flow.countTitleHtml({...p,hideUnit:true},E,seen(p.id))}${deferredBadge(p.id)}</button>${fields.includes('stock')?countCell(p,i,'stock'):''}${countCell(p,i,'qty')}</div>${hint}`;
  }
  if(!n) html='<p class="muted">没有匹配的商品。</p>';
- return html+endNote('list');
+ return summary+html+endNote('list');
 }
 function orderHtml(){
  const content=orderContentHtml();
@@ -1431,7 +1420,7 @@ function blockHtml(cat){
  return `<div class="card"><p class="muted order-export-note">${exportNote}</p><div class="order-actions" role="group" aria-label="本类订货文字操作"><button class="ghost" type="button" data-act="copy" data-cat="${cat}" aria-label="复制本类订货文字" ${exportDisabled?'disabled':''}>复制本类</button><button class="ghost" type="button" data-act="share" data-cat="${cat}" aria-label="分享本类订货文字" ${exportDisabled?'disabled':''}>分享本类</button><button class="ghost" type="button" data-act="preview" data-cat="${cat}" aria-label="查看本类订货文字" ${exportDisabled?'disabled':''}>查看文字</button></div>${body||`<p class="muted">${empty}</p>`}</div>`;
 }
 function searchHits(countView=false){
- return catalog().filter(p=>(!countView||Flow.catOf(p)===viewCat)&&matchesSearch(p)).map((p,i)=>{
+ return catalog().filter(p=>(!countView||query||Flow.catOf(p)===viewCat)&&matchesSearch(p)).map((p,i)=>{
   const cat=CATS.find(c=>c[0]===Flow.catOf(p));
   const stock=p.hasStock?searchInput(p,'stock'):'';
   const change=bossChanges().find(c=>c.id===p.id);
@@ -1721,7 +1710,7 @@ function closePad(){
 }
 function orderNavigationCells(){
  if(order?.orderStage==='finalized')return [];
- if(query||(screen==='count'&&sharedCount()))return catalog().filter(p=>(screen!=='count'||Flow.catOf(p)===viewCat)&&matchesSearch(p)).flatMap(p=>{
+ if(query||(screen==='count'&&sharedCount()))return catalog().filter(p=>(screen!=='count'||query||Flow.catOf(p)===viewCat)&&matchesSearch(p)).flatMap(p=>{
   const fields=canEditStock(p)&&(!order||screen==='count')?['stock','qty']:['qty'];
   return fields.map(which=>({id:p.id,which}));
  });

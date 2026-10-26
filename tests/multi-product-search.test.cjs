@@ -116,12 +116,13 @@ for(const role of ['owner','editor']){
   assert.deepEqual(JSON.parse(h.run('JSON.stringify(catalog().filter(matchesSearch).map(p=>p.id))')),five);
   assert.deepEqual(JSON.parse(h.run('JSON.stringify(Flow.searchHitCounts(catalog(),matchesSearch))')),{kr:1,cn:2,other:1,drinks:1});
   assert.deepEqual([...new Set(JSON.parse(h.run('JSON.stringify(orderNavigationCells().map(c=>c.id))')))],five);
-  for(const [cat,expected] of [['kr',['kr:7']],['cn',['cn:33','cn:64']],['other',['other:8']],['drinks',['other:22']]]){
+  for(const cat of ['kr','cn','other','drinks']){
    h.run(`screen='count';viewCat='${cat}'`);
-   assert.deepEqual([...new Set(JSON.parse(h.run('JSON.stringify(countNavigationCells().map(c=>c.id))')))],expected);
+   assert.deepEqual([...new Set(JSON.parse(h.run('JSON.stringify(countNavigationCells().map(c=>c.id))')))],five);
   }
-  h.run(`viewCat='cn';followSearchCat()`);assert.equal(h.run('viewCat'),'cn');
-  h.run(`query='大葱';followSearchCat()`);assert.equal(h.run('viewCat'),'kr');
+  h.run(`viewCat='cn';query='大葱'`);
+  assert.deepEqual([...new Set(JSON.parse(h.run('JSON.stringify(countNavigationCells().map(c=>c.id))')))],['kr:7']);
+  assert.equal(h.run('viewCat'),'cn','search must not change the category to return to');
   assert.equal(h.run('JSON.stringify([draft,order])'),before);
  });
  test(`shared ${role}: cached results invalidate on query, aliases, draft and order replacement`,()=>{
