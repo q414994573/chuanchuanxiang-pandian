@@ -1,0 +1,53 @@
+# 新增 51 项具名检查；每项仅统计最终运行一次。
+
+PASS chromium / resilience / owner reload restores zero stock, fractional quantity and red dots together
+PASS chromium / resilience / owner reload retains unfinished decimal and deferred gray dot
+PASS chromium / resilience / owner corrupt local draft is retained and write-protected: {broken-json
+PASS chromium / resilience / owner corrupt local draft is retained and write-protected: {"draft":{"id":"count-wrong-schema","items":{}}}
+PASS chromium / resilience / owner storage quota failure recovers continuation and progress after reload
+PASS chromium / resilience / owner repeated portrait landscape changes preserve active selection and edit continuation
+PASS chromium / resilience / owner out-of-order peer delivery after reload cannot regress value or progress
+PASS chromium / resilience / owner twelve search editor tab roundtrips retain edits and statuses
+PASS chromium / resilience / owner real second-tab storage event protects first-tab saved data
+PASS chromium / resilience / editor reload restores zero stock, fractional quantity and red dots together
+PASS chromium / resilience / editor reload retains unfinished decimal and deferred gray dot
+PASS chromium / resilience / editor corrupt local draft is retained and write-protected: {broken-json
+PASS chromium / resilience / editor corrupt local draft is retained and write-protected: {"draft":{"id":"count-wrong-schema","items":{}}}
+PASS chromium / resilience / editor storage quota failure recovers continuation and progress after reload
+PASS chromium / resilience / editor repeated portrait landscape changes preserve active selection and edit continuation
+PASS chromium / resilience / editor out-of-order peer delivery after reload cannot regress value or progress
+PASS chromium / resilience / editor twelve search editor tab roundtrips retain edits and statuses
+PASS chromium / resilience / editor real second-tab storage event protects first-tab saved data
+PASS chromium / shipped-boot / shipped production bundle boots to login and preserves saved local draft
+PASS chromium / shipped-boot / missing cloud config locks production entry and preserves original local bytes
+PASS chromium / shipped-boot / 128-product catalog refuses startup and preserves original local bytes
+PASS chromium / shipped-boot / malformed alias response fails safely without overwriting local draft
+PASS webkit / resilience / owner reload restores zero stock, fractional quantity and red dots together
+PASS webkit / resilience / owner reload retains unfinished decimal and deferred gray dot
+PASS webkit / resilience / owner corrupt local draft is retained and write-protected: {broken-json
+PASS webkit / resilience / owner corrupt local draft is retained and write-protected: {"draft":{"id":"count-wrong-schema","items":{}}}
+PASS webkit / resilience / owner storage quota failure recovers continuation and progress after reload
+PASS webkit / resilience / owner repeated portrait landscape changes preserve active selection and edit continuation
+PASS webkit / resilience / owner out-of-order peer delivery after reload cannot regress value or progress
+PASS webkit / resilience / owner twelve search editor tab roundtrips retain edits and statuses
+PASS webkit / resilience / owner real second-tab storage event protects first-tab saved data
+PASS webkit / resilience / editor reload restores zero stock, fractional quantity and red dots together
+PASS webkit / resilience / editor reload retains unfinished decimal and deferred gray dot
+PASS webkit / resilience / editor corrupt local draft is retained and write-protected: {broken-json
+PASS webkit / resilience / editor corrupt local draft is retained and write-protected: {"draft":{"id":"count-wrong-schema","items":{}}}
+PASS webkit / resilience / editor storage quota failure recovers continuation and progress after reload
+PASS webkit / resilience / editor repeated portrait landscape changes preserve active selection and edit continuation
+PASS webkit / resilience / editor out-of-order peer delivery after reload cannot regress value or progress
+PASS webkit / resilience / editor twelve search editor tab roundtrips retain edits and statuses
+PASS webkit / resilience / editor real second-tab storage event protects first-tab saved data
+PASS webkit / shipped-boot / shipped production bundle boots to login and preserves saved local draft
+PASS webkit / shipped-boot / missing cloud config locks production entry and preserves original local bytes
+PASS webkit / shipped-boot / 128-product catalog refuses startup and preserves original local bytes
+PASS webkit / shipped-boot / malformed alias response fails safely without overwriting local draft
+PASS Firestore emulator / SDK network disabled: server read rejects instead of reporting cached data saved
+PASS Firestore emulator / SDK stream suspended: local draft remains intact while the other member saves
+PASS Firestore emulator / SDK reconnect: merge independent offline quantity with remote stock and progress
+PASS Firestore emulator / SDK reconnect: divergent edits to one cell reject without overwriting either draft
+PASS Firestore emulator / membership revoked after opening: reads and writes denied while unsent local value survives
+PASS Firestore emulator / membership restored: retained local edit saves once without changing other values
+PASS Firestore emulator / 25 archived drafts paginate without gaps, duplicates or changed snapshot contents
