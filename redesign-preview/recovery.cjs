@@ -1,8 +1,8 @@
 'use strict';
 const Core=require('../count-core.js');
 const Cloud=require('../cloud/core.cjs');
-function validate(d,source){
- if(!Core.validate(d,source))throw Error('备份内容或129种商品目录不匹配');
+function validate(d,source){source=Core.sourceFor(d,source);
+ if(!Core.validate(d,source))throw Error('备份内容或商品目录不匹配');
  for(let i=0;i<d.catalog.length;i++)if(d.catalog[i].unit!==(source.products[i].unit||'')||(Cloud.units.choices[d.catalog[i].id]?!Cloud.units.valid(d.catalog[i].id,d.items[d.catalog[i].id].unit):d.items[d.catalog[i].id].unit!==(source.products[i].unit||'')))throw Error('备份单位与永久目录不同，请先核对');
  for(const [id,value] of Object.entries(d.stockText||{}))if(!d.items[id]||typeof value!=='string'||value.length>40)throw Error('文字库存备份格式错误');
  return d;

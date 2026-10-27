@@ -25,7 +25,7 @@ test('test page keeps the ordered lines and does not use the live count storage 
   assert.equal(saved.items['cn:5'].stock,'');
   assert.equal(saved.items['cn:4'].quantity,'1');
   assert.equal(saved.items['cn:4'].stock,'');
-  assert.equal(saved.catalog.filter(p=>saved.items[p.id].decision==='skip').length,127);
+  assert.equal(saved.catalog.filter(p=>saved.items[p.id].decision==='skip').length,135);
   assert.equal(saved.catalog.filter(p=>saved.items[p.id].stock!=='').length,0);
   assert.match(saved.id,/^count-/);
   assert.equal(mem.has('ccx-count-active'),false);

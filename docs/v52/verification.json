@@ -1,0 +1,210 @@
+{
+  "release": "20261027-v52",
+  "catalog": {
+    "total": 137,
+    "kr": 49,
+    "cn": 70,
+    "other": 13,
+    "drinks": 5,
+    "original129RecordsUnchanged": true,
+    "legacyOrdersRemain129": true
+  },
+  "node": {
+    "fullRunTests": 9369,
+    "initialPassed": 9367,
+    "initialFailed": 2,
+    "failureReason": "Old catalog and alias-count expectations (129/45/66 and 110). Updated to137/49/70 and118; both affected files rerun:4 tests passed.",
+    "unresolvedFailures": 0,
+    "additionalLegacyLabelChecks": "Dynamic totals in legacy entrypoints: count/count-ui/cloud-test-count 4 checks passed; cloud-core/live-unchanged/catalog-expansion passed."
+  },
+  "browsers": {
+    "chromium": {
+      "passed": 587,
+      "failed": [],
+      "pageErrors": [],
+      "reportCount": 13,
+      "reports": [
+        {
+          "name": "count-search-screen/count-search-screen-report.json",
+          "sha256": "2a3dbedaf2e4f8b226457b85433e150489ff8cd11f0125a8cda7882e212373fb"
+        },
+        {
+          "name": "feedback/feedback-report.json",
+          "sha256": "6299226bac96f419c57eb273a28f36d56d1b89dd164575537046445121c3fb1e"
+        },
+        {
+          "name": "input-speech/input-speech-report.json",
+          "sha256": "406c8e2581aa3ee83b7defd10f0b17970de10cafbff586b77f052699b15baf88"
+        },
+        {
+          "name": "mobile-layout/layout-report.json",
+          "sha256": "1094945dd3fe2ffd138171e3dbf3ad4b3bb7af363925b48b7e30ed8342cec79a"
+        },
+        {
+          "name": "mobile-workflow/browser-report.json",
+          "sha256": "431876387e4cefe1018e658eeac02ce8a7a55fd66043811395de38017a22a34e"
+        },
+        {
+          "name": "multi-search/multi-search-report.json",
+          "sha256": "8fce2d96f55c331a0e89a044ad952d20faa2bc4bd6fe1f715f053d6c040a77f7"
+        },
+        {
+          "name": "search-hub/search-hub-report.json",
+          "sha256": "a4bb4b48ea37e6c0196e1159e60b572e9d36ef893b39740fa315919636e6ba43"
+        },
+        {
+          "name": "search-progress/search-progress-report.json",
+          "sha256": "546202940d92aba12019abbd46dbbc9761703dc3656d9a5be194f7436727378d"
+        },
+        {
+          "name": "speech-navigation/speech-navigation-report.json",
+          "sha256": "2114b43bde15a814827655b9477f857e60dc8fde8c22f57f6ea79c5a181a96e4"
+        },
+        {
+          "name": "ccx-v52-boundaries/speech-navigation-report.json",
+          "sha256": "5fc6fc0da288c9fc40937fb3f6313e5e1a666c38cc4a1520b9ac8e8bea7b0496"
+        },
+        {
+          "name": "ccx-v52-chromium-retry/speech-navigation-report.json",
+          "sha256": "aa161ea09fc69bad8259f58cb04fade6f31afe488908419cc6a89e0bbb38c6a9"
+        },
+        {
+          "name": "ccx-new-products/catalog-expansion-report.json",
+          "sha256": "86ad0daa388139a865a3a883c79c05e9822c00262a73a050b59fc424e791093b"
+        },
+        {
+          "name": "ccx-v52-boot/deployed-boot-round2-report.json",
+          "sha256": "34ca44d24d84d8da21f0823dc73c68f56ed6772b925d794490eb94c153342185"
+        }
+      ]
+    },
+    "webkit": {
+      "passed": 587,
+      "failed": [],
+      "pageErrors": [],
+      "reportCount": 15,
+      "reports": [
+        {
+          "name": "count-search-screen/count-search-screen-report.json",
+          "sha256": "e95b54e92afc78b26f69f55bb4dd7e2affe34ac865ab964b45de03c87b20876d"
+        },
+        {
+          "name": "feedback/feedback-report.json",
+          "sha256": "d8920a05e93ed2604e559c17b5adf88773c610a0994964e1da62c8365ad79bc5"
+        },
+        {
+          "name": "input-speech/input-speech-report.json",
+          "sha256": "e90118db291a2a3efff98e93984e13c8ca8ddd84aeb8b0b22963e21aeca3d7d4"
+        },
+        {
+          "name": "mobile-layout/layout-report.json",
+          "sha256": "569308c4da0959c4f8d0fbde029aa59f94adff5e7604f0202717bb97672acc45"
+        },
+        {
+          "name": "mobile-workflow/browser-report.json",
+          "sha256": "f2f5a94d1f9f967014f948e2114f029817b04831d634b081ea5faa61d71e585b"
+        },
+        {
+          "name": "multi-search/multi-search-report.json",
+          "sha256": "bc51e3bc4d182080dc2725a14a6a04f4d3e53afe0115f6db02c0281f50b4a4ce"
+        },
+        {
+          "name": "search-hub/search-hub-report.json",
+          "sha256": "2b9bf36480b229caafa6338bbe74f6f5dd9e0820c89e8f2dbc9583f0bfaee0d5"
+        },
+        {
+          "name": "search-progress/search-progress-report.json",
+          "sha256": "faf29b3b3f3e03920333bac75241a00a06e8155962e7a1dca7b42b6f93c90dbd"
+        },
+        {
+          "name": "speech-navigation/speech-navigation-report.json",
+          "sha256": "7e10cf80f77b71b3759027e481db25e94f22fef56efc123cdfd8272dbb0a7bad"
+        },
+        {
+          "name": "ccx-v52-boundaries-webkit/speech-navigation-report.json",
+          "sha256": "fa9617130e44d8c526548909485e4819868f9c857895e630781fbe91f9d6e48d"
+        },
+        {
+          "name": "ccx-v52-webkit-retry/speech-navigation-report.json",
+          "sha256": "50ebd69d8625e869692ae246d8ec9e1c781995ce21d8e7b1695fa380be86a3d7"
+        },
+        {
+          "name": "ccx-v52-new-webkit/catalog-expansion-report.json",
+          "sha256": "62a0ab00102903a1262a977056637a3d8725d2b78bc58fdbf894ec0e9822695c"
+        },
+        {
+          "name": "ccx-v52-boot-webkit/deployed-boot-round2-report.json",
+          "sha256": "e5735b4e897d095f82e17c45a7c4409fe7093f8554393260b2319ce7c1ff3207"
+        },
+        {
+          "name": "ccx-v52-input-webkit-retry/input-speech-report.json",
+          "sha256": "1323f6e69747a46b65f89d6c055904c0024cd62cd27d16b2d416912c1f348ea5"
+        },
+        {
+          "name": "ccx-v52-feedback-webkit-final/feedback-report.json",
+          "sha256": "9e42f6f2bc55baa2057e3f0e44460faa3d485c2a2d36c701391fbdf08a3ca62b"
+        }
+      ]
+    }
+  },
+  "emulatorSuites": [
+    "firestore",
+    "shared-count",
+    "shared-live-view (all137, both roles)",
+    "shared-transitions",
+    "supplier-rehearsal",
+    "catalog-versions (129/137 × owner/editor)"
+  ],
+  "emulatorAllPassed": true,
+  "ruleSha256": "83bbcc9b3b4df789a696208877362ad1a42ab53f9c6d6b2596bfc8f8d89d0e7e",
+  "rerunNotes": [
+    "Speech boundary test target changed from old kr:58 to new kr:62; all12 affected cases per engine passed.",
+    "Isolated tap timeouts were rerun with identical assertions and passed.",
+    "WebKit missing generic font mapping produced zero-height inline boxes; configuring Noto Sans CJK SC restored geometry and all42 finalized input/speech cases passed.",
+    "WebKit AudioContext needed installed GStreamer plugins. Native AudioContext passed after runtime setup. A subsequent copy/share latency outlier was rerun without changing the250ms assertion; final10/10 passed.",
+    "The initial full browser orchestrator exits nonzero for the above failures. Final unique-case results apply targeted reruns by exact case name, without duplicate counts."
+  ],
+  "limitations": [
+    "No physical iPhone/system IME or speaker/haptic hardware verification.",
+    "Isolated browser fixtures use fictional orders; no production order values changed and no supplier messages sent."
+  ],
+  "fileSha256": {
+    "catalog-legacy.json": "d9cf4a283a86030e3a331cc66d4d0cb92375e95f486029a525d705a14e63a1f9",
+    "cloud-app.bundle.js": "33706170b65ed9c9f5b561e872d5f85b2d23683279d150f2ad4e026940f3115e",
+    "cloud/app.js": "a909fc2606fd80c9f99fcbb51f21b576966f205714bae041745fc92e0327b849",
+    "cloud/core.cjs": "78b4728eaf7ba4d9a7273c18fad80372571bbcd7f70099ea891134da68547f34",
+    "count-app.js": "b015f55fa2cd1e935e5ba785e26ff95ff35e64d64b42c1af6cedfb5165f1d172",
+    "count-core.js": "45fe8475fcb5f0513b83d79d855d2416b202c3ff3136edf1c62f0c99d5e49ef5",
+    "current-order.json": "f78ed20ac8aa0fc4ec1165c5f91c2f891c1e96315c3434e92db993ed266bda64",
+    "docs/v52/catalog-change.md": "a9b1b4054af8b14fd4b1be56c9627b2ffc7e65421f42d6cf212922cca635509f",
+    "firestore.rules": "83bbcc9b3b4df789a696208877362ad1a42ab53f9c6d6b2596bfc8f8d89d0e7e",
+    "index.html": "d602fcec837a5239186de3190745f769d514c080065ab94b762862df12af68f0",
+    "ordering/index.html": "7e7c2ea4e345d9444919025f2fcfb88c3b775248d23ca513bdfcaa87965ef88b",
+    "redesign-preview/aliases.json": "c3689a6abec027190685546bfe106ecb4158890c771e18f238df8df4aee12975",
+    "redesign-preview/index.html": "c8afdb458febf5c9a60f26fe52a244669dab02a2456a0c0234a782d9bbd0fd14",
+    "redesign-preview/preview.bundle.js": "f447dfca94d9ae959cad72d06dd1bb144131d6f8fab9521a4eb83ba3076cb93b",
+    "redesign-preview/preview.js": "7c6e6bf0aba8e6d0d593e33345aef8914b2659e280e7b170c06c5b178d3e1be2",
+    "redesign-preview/recovery.cjs": "f2156ede6c6df723042a24d2dadd63b596c7fcb32aa95bec0ebb1bbec6c28d76",
+    "scripts/generate-rules.cjs": "495410446c84d6d07dd30d0dc60b227d2b01aeff4c1bc02374a4352866f0849b",
+    "tests/catalog-expansion.browser.cjs": "740407fcd5a968bcb8d45800ad34c89e34ab146799fd591a7f66045c942e79e5",
+    "tests/catalog-expansion.test.cjs": "ab4a9c1f846be12da55b5723aaae0791fc07b66f147becbb397c19a332e9144f",
+    "tests/catalog-versions.test.mjs": "ddf0229eda1f128811ad7014f19df3e801baaa8b76d50f2659b7f2e5ad5e4636",
+    "tests/cloud-test-count.test.cjs": "f48803835550cb2f2824e86e91efd41256c9442813fa2f72679f735cfb8bb3b5",
+    "tests/count-global-search.test.cjs": "f8c951f28cb69efdda415a517722326ed06ef99ade2aa0b533eac446d1bd2fbd",
+    "tests/count-search-screen.browser.cjs": "2d4f9c891cfa732d7f6ff48ec504efe0b1940abe82103c36c0a7b8d0bc44a890",
+    "tests/count-ui.test.cjs": "1fc806ae366aa7cf927dac681871dfd4b956a694234dc17373a83c53088749c8",
+    "tests/live-unchanged.test.cjs": "244284180a81da2df199fcea293a32a79095f2ce6dd8b2a6cbe13f08e8840e22",
+    "tests/mobile-layout.browser.cjs": "d0d3a70f63ec414336c729680fc13bd6a2058216f81c0fb0624b8d87d0387a5d",
+    "tests/mobile-workflow.browser.cjs": "c9df335a1b5ede3e084c499a8a6a210810a6c2b5026de7357ab6dc1586cd3f58",
+    "tests/redesign-flow.test.cjs": "9e7fcea8538c1edb1909ce9fc893680df0f5e9fa353b4926d22fcf46ac33a757",
+    "tests/redesign-interactions.test.cjs": "be3d69fd874152126574be82865a5dd5020ed80f922b8e6096365dd5e7858f70",
+    "tests/redesign-names.test.cjs": "e34766fdf4f258a169d7f712e7c2ab9739112b450262c478021dd233842cd3fc",
+    "tests/redesign-preview.test.cjs": "9482b767bec8c3db8f27c757c2efee91b4a9a59aa3ef34aaa5a79afafa58ee6a",
+    "tests/redesign-search.test.cjs": "18c9756b9b773730567ec07e8c1fc55b45b017a8ef4a0a05f38c4f448c2547c2",
+    "tests/shipped-bundle.browser.cjs": "818b7d1d8bd2423a4f806d5812ddb15a0992b0a020a521a3d7eadd5d8d071865",
+    "tests/speech-navigation.browser.cjs": "5b0cb90e3ef5536a2590ab03e9646a9bd6f9c7d0933e8246cf5e4f19169ffc28",
+    "tests/supplier-every-product.test.cjs": "e58d71a6b8566ea864e66d68bffb381594b5f4d0b07502814a81dc798d9404e0",
+    "tests/supplier-groups.test.cjs": "450bc0383c5aae70d0c7ce01a3dda9bea2fc4758040cf3aa409be7911653ac1e",
+    "tests/supplier-rehearsal.test.mjs": "2fd34aab0ea85645e8d11d83ee122074441d800c4c0863c012c7236f89cdea37"
+  }
+}

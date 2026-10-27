@@ -6,7 +6,7 @@ const aliases=JSON.parse(fs.readFileSync(path.join(root,'redesign-preview/aliase
 const byId=new Map(aliases.items.map(item=>[item.id,item.aliases]));
 const find=q=>products.filter(p=>matches(p,q,byId.get(p.id)));
 test('shop names, hangul initials and spacing all find the same product',()=>{
- assert.equal(aliases.items.length,110);
+ assert.equal(aliases.items.length,118);
  const scallion=products.find(p=>p.name==='대파');
  assert.equal(matches(scallion,'\u3137\u314d',byId.get(scallion.id)),true);
  assert.equal(matches(scallion,String.fromCharCode(0x1103,0x1111),byId.get(scallion.id)),true);

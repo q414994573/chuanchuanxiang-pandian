@@ -38,6 +38,6 @@ for(const role of ['owner','editor']){
   assert.equal(h.run("draft.items['kr:7'].quantity"),'2');assert.ok(rowIds(h).every(id=>id.startsWith('kr:')));
  });
  test(`empty search still shows only the selected category: ${role}`,()=>{
-  const h=setup(role,'cn');h.run("query=''");const ids=rowIds(h);assert.equal(ids.length,66);assert.ok(ids.every(id=>id.startsWith('cn:')));
+  const h=setup(role,'cn');h.run("query=''");const ids=rowIds(h);assert.equal(ids.length,70);assert.ok(ids.every(id=>id.startsWith('cn:')));
  });
 }

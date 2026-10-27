@@ -19,7 +19,7 @@ const run=String.raw`
     assert.equal(await page.locator('[data-act="jumpcat"]').first().isVisible(),false);assert.equal(await page.locator('[data-act="next-gap"]').isVisible(),false);
     assert.equal(await page.locator('.search-result-note').innerText(),'搜到 3 种商品 · 全部分类');
     await page.screenshot({path:path.join(outputDir,width+'-'+role+'-count-search.png')});
-    await page.locator('[data-act="clear-find"]').click();await settle(page);assert.equal((await page.evaluate(()=>window.__ccx.state())).query,'');assert.equal(await page.locator('[data-act="jumpcat"]').first().isVisible(),true);assert.equal((await ids(page)).length,45);
+    await page.locator('[data-act="clear-find"]').click();await settle(page);assert.equal((await page.evaluate(()=>window.__ccx.state())).query,'');assert.equal(await page.locator('[data-act="jumpcat"]').first().isVisible(),true);assert.equal((await ids(page)).length,49);
     return {query:'大葱腐竹粉丝',expectedIds:['kr:7','cn:33','cn:75'],viewportHeight:530,inputRetained:true,allThreeOnScreen:true};
    });
   }finally{await context.close();}

@@ -27,9 +27,9 @@ test('production homepage enables cloud and stays separate from the test page',(
  assert.doesNotMatch(count,/复制这家订单/);
  assert.match(count,/仅云端测试页可以把其余商品标成本次不订/);
  const products=JSON.parse(read('current-order.json')).products;
- assert.equal(products.length,129);
- assert.equal(products.filter(p=>p.cat==='kr').length,45);
- assert.equal(products.filter(p=>p.cat==='cn').length,66);
+ assert.equal(products.length,137);
+ assert.equal(products.filter(p=>p.cat==='kr').length,49);
+ assert.equal(products.filter(p=>p.cat==='cn').length,70);
  assert.equal(products.filter(p=>p.cat==='other').length,18);
  const backup=read('backups/index-before-firebase-20261020.html');
  assert.equal(backup.includes('cloud-app.bundle'),false);

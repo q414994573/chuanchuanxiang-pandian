@@ -17,7 +17,7 @@ function boldText(html){
 
 test('preview retains 129 original main names, units and confirmed translations',()=>{
  const official=officialProducts();
- const loaded=JSON.parse(read('current-order.json')).products;
+ const loaded=JSON.parse(read('current-order.json')).products.filter(p=>officialProducts().some(old=>old.id===p.id));
  assert.equal(official.length,129);
  assert.deepEqual(official.map(p=>p.cat).slice(0,45),Array(45).fill('kr'));
  assert.deepEqual(official.map(p=>p.cat).slice(45,111),Array(66).fill('cn'));
