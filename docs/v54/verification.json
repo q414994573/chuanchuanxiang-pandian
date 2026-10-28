@@ -1,0 +1,921 @@
+{
+  "release": "20261028-v54",
+  "baselineCommit": "ba546851872d9e0bd5d209df73252fdbe0609e9d",
+  "findings": [
+    "Legacy local/cloud order copy paths used historical2kg name; display, search and export now use confirmed1kg without rewriting quantities or snapshots.",
+    "Legacy entrypoint dependent script cache versions now move together, preventing mixed-version loads."
+  ],
+  "logicRuns": [
+    {
+      "version": "v53",
+      "passed": 9369,
+      "failed": 0
+    },
+    {
+      "version": "v54 intermediate",
+      "passed": 9378,
+      "failed": 0
+    },
+    {
+      "version": "v54 final",
+      "passed": 9380,
+      "failed": 0
+    }
+  ],
+  "cloud": {
+    "baselineSuites": 6,
+    "repeatSuites": 2,
+    "allPassed": true,
+    "rulesChanged": false
+  },
+  "browserRounds": {
+    "baseline": {
+      "sourceHashes": {
+        "cloud/core.cjs": "78b4728eaf7ba4d9a7273c18fad80372571bbcd7f70099ea891134da68547f34",
+        "cloud/shared-count.js": "01615d20ef0ca719aa87425a535b929dcc440ddcdf2980d88d4a264cb84d82d4",
+        "count-core.js": "e9e54a4ea4101e8b53922feceb08f440e8d36f2536c21b9510b7fe08d2706534",
+        "current-order.json": "246c11f8a2451ab1fdab6aff9f1e9eaf5afca565cf809725168cba977f2c0821",
+        "ordering/index.html": "b2611f44c99fce17cf3f631418f1f2c0c5f8bfc2d5fa1814b1b0ba59dd6689d9",
+        "redesign-preview/count-flow.cjs": "325f3d2facaf663162a7d545b7b932b06bbd591a2d0d30db514ab9fbde65babd",
+        "redesign-preview/draft-backup.cjs": "ccaa4e36594ca65e245781a77133440383cefa634577141e2d4eee8e3914b4bd",
+        "redesign-preview/entry-mode.cjs": "c73486a24305791d9d9c25f56bc610adaab59ff02a13331ed1a5023f743cfec2",
+        "redesign-preview/index.html": "b86fb58c847d5674a4ee8def2e8d24e953972efcac30264ccecc98593f905c16",
+        "redesign-preview/interaction-feedback.cjs": "efea737f625d3beafa4cb9f977aa28900b86ac069e42148f4aa944f29d134dd2",
+        "redesign-preview/order-autosave.cjs": "6cc0a44c8ce51f91ef645cb86a18d0cf4a9b4d75b9f8fccc98a81a5c8e9e08f1",
+        "redesign-preview/preview.bundle.js": "09112051d5e6a57bc2fe76dd49d61c5c12cc302b2f789458dc284936c66217d0",
+        "redesign-preview/preview.css": "60729f12fd1f7640b1e969f32194187f700a994bb33dd57772617c56f351c803",
+        "redesign-preview/preview.js": "028cbc62d53dabf8324537b1f347fe7c26ba3136d0ef29b9fe4473e096211f60",
+        "redesign-preview/product-names.cjs": "1c12b463f8b810db29e30107e1a1152a19c328683c9a5db74e4231efaef3464f",
+        "redesign-preview/product-speech.cjs": "a28123e86907e9b9968a6abcfd078d1ae1cbdcb78eef3cc1195d8066a873c910",
+        "redesign-preview/recovery.cjs": "f2156ede6c6df723042a24d2dadd63b596c7fcb32aa95bec0ebb1bbec6c28d76",
+        "redesign-preview/search-activity.cjs": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+        "redesign-preview/search.cjs": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+        "redesign-preview/shared-draft.cjs": "872d489a166d922e774b98d3428b0a6748088abc9d1dd57042fe168d4cdc91c7",
+        "redesign-preview/stock-unit-corrections.cjs": "373272732aed5ca78de7d38e0ce185e3d470158381150258412b1e5ede418b3b"
+      },
+      "runs": [
+        {
+          "engine": "chromium",
+          "suite": "search-progress",
+          "exitCode": 0,
+          "seconds": 57.36,
+          "runnerSha256": "d750354fa112aa1fe9e59213cbf424e86584f5878fe9788bc0d2589031b6bc50",
+          "sourceUnchanged": true,
+          "passed": 78,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "speech-navigation",
+          "exitCode": 0,
+          "seconds": 268.06,
+          "runnerSha256": "5b0cb90e3ef5536a2590ab03e9646a9bd6f9c7d0933e8246cf5e4f19169ffc28",
+          "sourceUnchanged": true,
+          "passed": 156,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "input-speech",
+          "exitCode": 1,
+          "seconds": 172.95,
+          "runnerSha256": "b815466c31d707e71d9cd5b79c97a5ae5bffb6989d16f46d405474b5c8efbedb",
+          "sourceUnchanged": true,
+          "passed": 131,
+          "failed": 1,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "search-hub",
+          "exitCode": 0,
+          "seconds": 65.83,
+          "runnerSha256": "92a7820c5e693674aa433a773326e7c2f19e475d4aa438d0ab46fe9dc78cd830",
+          "sourceUnchanged": true,
+          "passed": 51,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "mobile-workflow",
+          "exitCode": 0,
+          "seconds": 38.56,
+          "runnerSha256": "c9df335a1b5ede3e084c499a8a6a210810a6c2b5026de7357ab6dc1586cd3f58",
+          "sourceUnchanged": true,
+          "passed": 24,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "mobile-layout",
+          "exitCode": 0,
+          "seconds": 20.71,
+          "runnerSha256": "d0d3a70f63ec414336c729680fc13bd6a2058216f81c0fb0624b8d87d0387a5d",
+          "sourceUnchanged": true,
+          "passed": 24,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "feedback",
+          "exitCode": 0,
+          "seconds": 5.02,
+          "runnerSha256": "bc1c2c43097ce21dbc54beec9dcd3f2be3bf218c274922df6793ced94c3e914a",
+          "sourceUnchanged": true,
+          "passed": 10,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "multi-search",
+          "exitCode": 0,
+          "seconds": 151.62,
+          "runnerSha256": "179c17f969ac06a2b870b012378d6431d156d12375eef14b52fe87b9e73b8859",
+          "sourceUnchanged": true,
+          "passed": 48,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "count-search-screen",
+          "exitCode": 0,
+          "seconds": 5.86,
+          "runnerSha256": "2d4f9c891cfa732d7f6ff48ec504efe0b1940abe82103c36c0a7b8d0bc44a890",
+          "sourceUnchanged": true,
+          "passed": 6,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "catalog-expansion",
+          "exitCode": 0,
+          "seconds": 26.91,
+          "runnerSha256": "740407fcd5a968bcb8d45800ad34c89e34ab146799fd591a7f66045c942e79e5",
+          "sourceUnchanged": true,
+          "passed": 54,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "shipped-bundle",
+          "exitCode": 0,
+          "seconds": 2.39,
+          "runnerSha256": "818b7d1d8bd2423a4f806d5812ddb15a0992b0a020a521a3d7eadd5d8d071865",
+          "sourceUnchanged": true,
+          "passed": 4,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": null
+        },
+        {
+          "engine": "chromium",
+          "suite": "catalog-name-correction",
+          "exitCode": 0,
+          "seconds": 10.97,
+          "runnerSha256": "5924e6db615ee498bfec1f19d50388e0ccfe834fbc16bdec6e317bb204033b20",
+          "sourceUnchanged": true,
+          "passed": 12,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "webkit",
+          "suite": "search-progress",
+          "exitCode": 0,
+          "seconds": 63.14,
+          "runnerSha256": "d750354fa112aa1fe9e59213cbf424e86584f5878fe9788bc0d2589031b6bc50",
+          "sourceUnchanged": true,
+          "passed": 78,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "speech-navigation",
+          "exitCode": 0,
+          "seconds": 296.22,
+          "runnerSha256": "5b0cb90e3ef5536a2590ab03e9646a9bd6f9c7d0933e8246cf5e4f19169ffc28",
+          "sourceUnchanged": true,
+          "passed": 156,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "input-speech",
+          "exitCode": 1,
+          "seconds": 171.1,
+          "runnerSha256": "b815466c31d707e71d9cd5b79c97a5ae5bffb6989d16f46d405474b5c8efbedb",
+          "sourceUnchanged": true,
+          "passed": 131,
+          "failed": 1,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "search-hub",
+          "exitCode": 0,
+          "seconds": 95.19,
+          "runnerSha256": "92a7820c5e693674aa433a773326e7c2f19e475d4aa438d0ab46fe9dc78cd830",
+          "sourceUnchanged": true,
+          "passed": 51,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "mobile-workflow",
+          "exitCode": 0,
+          "seconds": 30.11,
+          "runnerSha256": "c9df335a1b5ede3e084c499a8a6a210810a6c2b5026de7357ab6dc1586cd3f58",
+          "sourceUnchanged": true,
+          "passed": 24,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "mobile-layout",
+          "exitCode": 0,
+          "seconds": 23.18,
+          "runnerSha256": "d0d3a70f63ec414336c729680fc13bd6a2058216f81c0fb0624b8d87d0387a5d",
+          "sourceUnchanged": true,
+          "passed": 24,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "feedback",
+          "exitCode": 0,
+          "seconds": 7.46,
+          "runnerSha256": "bc1c2c43097ce21dbc54beec9dcd3f2be3bf218c274922df6793ced94c3e914a",
+          "sourceUnchanged": true,
+          "passed": 10,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "multi-search",
+          "exitCode": 0,
+          "seconds": 172.82,
+          "runnerSha256": "179c17f969ac06a2b870b012378d6431d156d12375eef14b52fe87b9e73b8859",
+          "sourceUnchanged": true,
+          "passed": 48,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "count-search-screen",
+          "exitCode": 0,
+          "seconds": 7.38,
+          "runnerSha256": "2d4f9c891cfa732d7f6ff48ec504efe0b1940abe82103c36c0a7b8d0bc44a890",
+          "sourceUnchanged": true,
+          "passed": 6,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "catalog-expansion",
+          "exitCode": 0,
+          "seconds": 37.4,
+          "runnerSha256": "740407fcd5a968bcb8d45800ad34c89e34ab146799fd591a7f66045c942e79e5",
+          "sourceUnchanged": true,
+          "passed": 54,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "shipped-bundle",
+          "exitCode": 0,
+          "seconds": 3.04,
+          "runnerSha256": "818b7d1d8bd2423a4f806d5812ddb15a0992b0a020a521a3d7eadd5d8d071865",
+          "sourceUnchanged": true,
+          "passed": 4,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": null
+        },
+        {
+          "engine": "webkit",
+          "suite": "catalog-name-correction",
+          "exitCode": 0,
+          "seconds": 15.29,
+          "runnerSha256": "5924e6db615ee498bfec1f19d50388e0ccfe834fbc16bdec6e317bb204033b20",
+          "sourceUnchanged": true,
+          "passed": 12,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        }
+      ],
+      "engines": {
+        "chromium": {
+          "passed": 599,
+          "unresolved": [],
+          "pageErrors": [],
+          "initialFailures": [
+            {
+              "name": "430px editor draft speech controls add zero keypad height or list obstruction",
+              "error": "locator.tap: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-act=\"feedback-toggle\"][data-kind=\"sound\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"ghost\" type=\"button\" data-kind=\"sound\" aria-pressed=\"false\" data-act=\"feedback-toggle\">声音：关</button>\u001b[22m\n\u001b[2m  - attempting tap action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing tap action\u001b[22m\n\n    at tap (/workspace/scratch/f79543528602/site-v52/tests/input-speech.browser.cjs:68:41)\n    at settings (/workspace/scratch/f79543528602/site-v52/tests/input-speech.browser.cjs:81:398)\n    at async /workspace/scratch/f79543528602/site-v52/tests/input-speech.browser.cjs:185:147\n    at async runCase (/workspace/scratch/f79543528602/site-v52/tests/input-speech.browser.cjs:85:75)\n    at async /workspace/scratch/f79543528602/site-v52/tests/input-speech.browser.cjs:184:5"
+            }
+          ],
+          "evidence": [
+            {
+              "file": "regression/chromium/catalog-expansion/catalog-expansion-report.json",
+              "sha256": "6713fdcec1b02842508e781df4c41de978e0072087c16f069d52914d90b7b449"
+            },
+            {
+              "file": "regression/chromium/catalog-name-correction/catalog-name-correction-report.json",
+              "sha256": "a3ae44a9ef054da7f8a9656dc7db5aa293d5158188d79dfefa89f2f983a6a4e5"
+            },
+            {
+              "file": "regression/chromium/count-search-screen/count-search-screen-report.json",
+              "sha256": "4a04be9c30154e949a12b2b9412815bd97aa7ace0711157a43bfa1f9277ad86e"
+            },
+            {
+              "file": "regression/chromium/feedback/feedback-report.json",
+              "sha256": "37919889efd8b5e8ea9242a529c7685718204dcef66d1f566cedebd92f3c59fa"
+            },
+            {
+              "file": "regression/chromium/input-speech/input-speech-report.json",
+              "sha256": "76a28a70bed67ecdedf784f8557617ee13344d2a32c139bb1a2492695ec9c6bb"
+            },
+            {
+              "file": "regression/chromium/mobile-layout/layout-report.json",
+              "sha256": "435728adcc1e78c7b2b6324f98be9229d24ffb27b085776f9b514692d0c6a3e5"
+            },
+            {
+              "file": "regression/chromium/mobile-workflow/browser-report.json",
+              "sha256": "df4ea7827caf41354494e7706f43df668e54e01cb5c76401ea8fad664edf142e"
+            },
+            {
+              "file": "regression/chromium/multi-search/multi-search-report.json",
+              "sha256": "390e1395d8284be29902e2e62da7a53ff44330c5b3c3301603e9400a2dc052cd"
+            },
+            {
+              "file": "regression/chromium/search-hub/search-hub-report.json",
+              "sha256": "ce0aa20cf3affad2ce8de2b0ad6a2e86e37a5cb91a954a71b45422e443648e2c"
+            },
+            {
+              "file": "regression/chromium/search-progress/search-progress-report.json",
+              "sha256": "1e611ac0e4be825a6e7a2b9d9c10f2ca7e28790b294a699970ff7cd07fc8c17e"
+            },
+            {
+              "file": "regression/chromium/shipped-bundle/deployed-boot-round2-report.json",
+              "sha256": "58ead73ed23918b0e0195f79eaf5832b8fd8457fbb79fdbe41f9c92f52dfbf89"
+            },
+            {
+              "file": "regression/chromium/speech-navigation/speech-navigation-report.json",
+              "sha256": "7b7069deffb7d73d2e314c73e0faf0dac9db1d4753f9b945788b50b8d35e4cab"
+            },
+            {
+              "file": "retry-input-chromium/input-speech-report.json",
+              "sha256": "d470117c963d60161f61e698195f23b1fc3e8afbee6d6b7dbb1cd9b89a6b07cd"
+            }
+          ]
+        },
+        "webkit": {
+          "passed": 599,
+          "unresolved": [],
+          "pageErrors": [],
+          "initialFailures": [
+            {
+              "name": "375px owner draft legacy blank stock corrects while populated stock changes unit only on explicit replacement and undo restores both",
+              "error": "locator.tap: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-act=\"undo\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-act=\"undo\">撤销</button>\u001b[22m\n\u001b[2m  - attempting tap action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  - element was detached from the DOM, retrying\u001b[22m\n\n    at tap (/workspace/scratch/f79543528602/site-v52/tests/input-speech.browser.cjs:68:41)\n    at /workspace/scratch/f79543528602/site-v52/tests/input-speech.browser.cjs:191:271\n    at async runCase (/workspace/scratch/f79543528602/site-v52/tests/input-speech.browser.cjs:85:75)\n    at async /workspace/scratch/f79543528602/site-v52/tests/input-speech.browser.cjs:188:5"
+            }
+          ],
+          "evidence": [
+            {
+              "file": "regression/webkit/catalog-expansion/catalog-expansion-report.json",
+              "sha256": "a8bb1f61e1a6c9f3e28771af06e04eadc44c67bfa40a0b7dbf1f6d9463188898"
+            },
+            {
+              "file": "regression/webkit/catalog-name-correction/catalog-name-correction-report.json",
+              "sha256": "1997c43732f068fee00d9d1a5529aa803455694e3462b4efb16ac237f20426e9"
+            },
+            {
+              "file": "regression/webkit/count-search-screen/count-search-screen-report.json",
+              "sha256": "74c50e4c1aa1b5c62c2f6a40eed400830e8b96e4fa1802a47b28e2e8d25474d8"
+            },
+            {
+              "file": "regression/webkit/feedback/feedback-report.json",
+              "sha256": "7730e75879dd20f9b615adad63706ea15fdc34557b5793b33eec0117fdd4d93b"
+            },
+            {
+              "file": "regression/webkit/input-speech/input-speech-report.json",
+              "sha256": "1ea2064869b78203b8723ea5a8ce7a9a43a6853dbf5b3c405b8b91ede2aec452"
+            },
+            {
+              "file": "regression/webkit/mobile-layout/layout-report.json",
+              "sha256": "31a1514ea34e9d7708f36c4dd6a136fb098382091c3beff139a27576c91fc43d"
+            },
+            {
+              "file": "regression/webkit/mobile-workflow/browser-report.json",
+              "sha256": "06411a5765b35988c6434252871716d685c5dea5fcdb0d7fa674346734ff4604"
+            },
+            {
+              "file": "regression/webkit/multi-search/multi-search-report.json",
+              "sha256": "cd6b68ff6be8d59556fd1ee75844815d041c89749f2957d29a3a50411f2ae850"
+            },
+            {
+              "file": "regression/webkit/search-hub/search-hub-report.json",
+              "sha256": "9486b5ed2a9671c3f639fd54b2a4e488c9e7d669e978b34feec4822ff3463b24"
+            },
+            {
+              "file": "regression/webkit/search-progress/search-progress-report.json",
+              "sha256": "94bb46e68edd144ac5c7145c86d68b87b8a41947e5271b978019a1b962a158ca"
+            },
+            {
+              "file": "regression/webkit/shipped-bundle/deployed-boot-round2-report.json",
+              "sha256": "cf662b697f72fcbfd08607ddc17808f0d0a8ae79996da169087f31e124150a06"
+            },
+            {
+              "file": "regression/webkit/speech-navigation/speech-navigation-report.json",
+              "sha256": "a1eace1d18c4b50004e22057116812ef96a495cda49d3cbd5dc955c5311ab14e"
+            },
+            {
+              "file": "retry-input-webkit/input-speech-report.json",
+              "sha256": "615fd7a11d88cae9956ed87f33786ad8587f518d2c5e33210ca73c020851e32e"
+            }
+          ]
+        }
+      },
+      "complete": true
+    },
+    "fixed": {
+      "sourceHashes": {
+        "cloud/core.cjs": "6d40167b4f1aa418175dfa1b3905263d30998a0ab2f10b064b160a04d661d94b",
+        "cloud/shared-count.js": "01615d20ef0ca719aa87425a535b929dcc440ddcdf2980d88d4a264cb84d82d4",
+        "count-core.js": "7975cd0cbe24b6130f9a28e6a03a46f31343bfe853ce7da38fd2c929b496c6f4",
+        "current-order.json": "246c11f8a2451ab1fdab6aff9f1e9eaf5afca565cf809725168cba977f2c0821",
+        "ordering/index.html": "01e7735e89f2a776b92ebc9cd8bd03650c9d410ef7d67281a1e3d70fe25a7b3d",
+        "redesign-preview/count-flow.cjs": "325f3d2facaf663162a7d545b7b932b06bbd591a2d0d30db514ab9fbde65babd",
+        "redesign-preview/draft-backup.cjs": "ccaa4e36594ca65e245781a77133440383cefa634577141e2d4eee8e3914b4bd",
+        "redesign-preview/entry-mode.cjs": "c73486a24305791d9d9c25f56bc610adaab59ff02a13331ed1a5023f743cfec2",
+        "redesign-preview/index.html": "406e2340c1454ad9ba4a98cfc82eb070ceaf50f90f8b02cab6e9319f2cace7ab",
+        "redesign-preview/interaction-feedback.cjs": "efea737f625d3beafa4cb9f977aa28900b86ac069e42148f4aa944f29d134dd2",
+        "redesign-preview/order-autosave.cjs": "6cc0a44c8ce51f91ef645cb86a18d0cf4a9b4d75b9f8fccc98a81a5c8e9e08f1",
+        "redesign-preview/preview.bundle.js": "662f6d443b2027acda3db6bab6d812e3511519b0eb959c7ac20df0484a0b77ef",
+        "redesign-preview/preview.css": "60729f12fd1f7640b1e969f32194187f700a994bb33dd57772617c56f351c803",
+        "redesign-preview/preview.js": "028cbc62d53dabf8324537b1f347fe7c26ba3136d0ef29b9fe4473e096211f60",
+        "redesign-preview/product-names.cjs": "1c12b463f8b810db29e30107e1a1152a19c328683c9a5db74e4231efaef3464f",
+        "redesign-preview/product-speech.cjs": "a28123e86907e9b9968a6abcfd078d1ae1cbdcb78eef3cc1195d8066a873c910",
+        "redesign-preview/recovery.cjs": "f2156ede6c6df723042a24d2dadd63b596c7fcb32aa95bec0ebb1bbec6c28d76",
+        "redesign-preview/search-activity.cjs": "64efd9b9b4c676324745666c98aa4813a4e61375667e026bb680eedbd6336df4",
+        "redesign-preview/search.cjs": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+        "redesign-preview/shared-draft.cjs": "872d489a166d922e774b98d3428b0a6748088abc9d1dd57042fe168d4cdc91c7",
+        "redesign-preview/stock-unit-corrections.cjs": "373272732aed5ca78de7d38e0ce185e3d470158381150258412b1e5ede418b3b",
+        "count-app.js": "626dd79dd9b148959da1ef0143bc6cdf37ae44a1d37d7b58f36ff6faa0be7601",
+        "cloud/app.js": "926a9788e0f840493d5d77d52fea7e3cd6af7916ec852e3e6944ab42d46b7c0d",
+        "cloud-app.bundle.js": "6ca7be821524f3b872b01b377d7077af26316bcbe9f87ceec09cb34746f54b5f",
+        "index.html": "5c9b0c1e477b2d8fa1a2192f533089fc7c2aef6f67c48c03134c8ed3738ed6d5",
+        "cloud-test/index.html": "b5feca70b6e0bff6c06c056a74b5fa43527997f7975a9cefcc9f8567890bbcd3"
+      },
+      "runs": [
+        {
+          "engine": "chromium",
+          "suite": "search-progress",
+          "exitCode": 0,
+          "seconds": 55.38,
+          "runnerSha256": "d750354fa112aa1fe9e59213cbf424e86584f5878fe9788bc0d2589031b6bc50",
+          "sourceUnchanged": true,
+          "passed": 78,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "speech-navigation",
+          "exitCode": 0,
+          "seconds": 255.24,
+          "runnerSha256": "5b0cb90e3ef5536a2590ab03e9646a9bd6f9c7d0933e8246cf5e4f19169ffc28",
+          "sourceUnchanged": true,
+          "passed": 156,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "input-speech",
+          "exitCode": 0,
+          "seconds": 142.1,
+          "runnerSha256": "15252d3adcf3592ee0b564c2cf32450c5e462f4ff9975bd4491654f4fa96bfe9",
+          "sourceUnchanged": true,
+          "passed": 132,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "search-hub",
+          "exitCode": 0,
+          "seconds": 68.64,
+          "runnerSha256": "92a7820c5e693674aa433a773326e7c2f19e475d4aa438d0ab46fe9dc78cd830",
+          "sourceUnchanged": true,
+          "passed": 51,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "mobile-workflow",
+          "exitCode": 0,
+          "seconds": 27.06,
+          "runnerSha256": "c9df335a1b5ede3e084c499a8a6a210810a6c2b5026de7357ab6dc1586cd3f58",
+          "sourceUnchanged": true,
+          "passed": 24,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "mobile-layout",
+          "exitCode": 0,
+          "seconds": 29.59,
+          "runnerSha256": "d0d3a70f63ec414336c729680fc13bd6a2058216f81c0fb0624b8d87d0387a5d",
+          "sourceUnchanged": true,
+          "passed": 24,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "feedback",
+          "exitCode": 0,
+          "seconds": 5.77,
+          "runnerSha256": "bc1c2c43097ce21dbc54beec9dcd3f2be3bf218c274922df6793ced94c3e914a",
+          "sourceUnchanged": true,
+          "passed": 10,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "multi-search",
+          "exitCode": 0,
+          "seconds": 145.83,
+          "runnerSha256": "179c17f969ac06a2b870b012378d6431d156d12375eef14b52fe87b9e73b8859",
+          "sourceUnchanged": true,
+          "passed": 48,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "count-search-screen",
+          "exitCode": 0,
+          "seconds": 6.58,
+          "runnerSha256": "2d4f9c891cfa732d7f6ff48ec504efe0b1940abe82103c36c0a7b8d0bc44a890",
+          "sourceUnchanged": true,
+          "passed": 6,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "catalog-expansion",
+          "exitCode": 0,
+          "seconds": 40.97,
+          "runnerSha256": "740407fcd5a968bcb8d45800ad34c89e34ab146799fd591a7f66045c942e79e5",
+          "sourceUnchanged": true,
+          "passed": 54,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "chromium",
+          "suite": "shipped-bundle",
+          "exitCode": 0,
+          "seconds": 4.34,
+          "runnerSha256": "818b7d1d8bd2423a4f806d5812ddb15a0992b0a020a521a3d7eadd5d8d071865",
+          "sourceUnchanged": true,
+          "passed": 4,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": null
+        },
+        {
+          "engine": "chromium",
+          "suite": "catalog-name-correction",
+          "exitCode": 0,
+          "seconds": 10.36,
+          "runnerSha256": "5924e6db615ee498bfec1f19d50388e0ccfe834fbc16bdec6e317bb204033b20",
+          "sourceUnchanged": true,
+          "passed": 12,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "141.0.7390.37"
+        },
+        {
+          "engine": "webkit",
+          "suite": "search-progress",
+          "exitCode": 0,
+          "seconds": 57.28,
+          "runnerSha256": "d750354fa112aa1fe9e59213cbf424e86584f5878fe9788bc0d2589031b6bc50",
+          "sourceUnchanged": true,
+          "passed": 78,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "speech-navigation",
+          "exitCode": 0,
+          "seconds": 296.12,
+          "runnerSha256": "5b0cb90e3ef5536a2590ab03e9646a9bd6f9c7d0933e8246cf5e4f19169ffc28",
+          "sourceUnchanged": true,
+          "passed": 156,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "input-speech",
+          "exitCode": 0,
+          "seconds": 142.32,
+          "runnerSha256": "15252d3adcf3592ee0b564c2cf32450c5e462f4ff9975bd4491654f4fa96bfe9",
+          "sourceUnchanged": true,
+          "passed": 132,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "search-hub",
+          "exitCode": 0,
+          "seconds": 106.27,
+          "runnerSha256": "92a7820c5e693674aa433a773326e7c2f19e475d4aa438d0ab46fe9dc78cd830",
+          "sourceUnchanged": true,
+          "passed": 51,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "mobile-workflow",
+          "exitCode": 0,
+          "seconds": 38.88,
+          "runnerSha256": "c9df335a1b5ede3e084c499a8a6a210810a6c2b5026de7357ab6dc1586cd3f58",
+          "sourceUnchanged": true,
+          "passed": 24,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "mobile-layout",
+          "exitCode": 0,
+          "seconds": 23.24,
+          "runnerSha256": "d0d3a70f63ec414336c729680fc13bd6a2058216f81c0fb0624b8d87d0387a5d",
+          "sourceUnchanged": true,
+          "passed": 24,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "feedback",
+          "exitCode": 0,
+          "seconds": 6.69,
+          "runnerSha256": "bc1c2c43097ce21dbc54beec9dcd3f2be3bf218c274922df6793ced94c3e914a",
+          "sourceUnchanged": true,
+          "passed": 10,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "multi-search",
+          "exitCode": 0,
+          "seconds": 178.97,
+          "runnerSha256": "179c17f969ac06a2b870b012378d6431d156d12375eef14b52fe87b9e73b8859",
+          "sourceUnchanged": true,
+          "passed": 48,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "count-search-screen",
+          "exitCode": 0,
+          "seconds": 8.38,
+          "runnerSha256": "2d4f9c891cfa732d7f6ff48ec504efe0b1940abe82103c36c0a7b8d0bc44a890",
+          "sourceUnchanged": true,
+          "passed": 6,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "catalog-expansion",
+          "exitCode": 0,
+          "seconds": 38.95,
+          "runnerSha256": "740407fcd5a968bcb8d45800ad34c89e34ab146799fd591a7f66045c942e79e5",
+          "sourceUnchanged": true,
+          "passed": 54,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        },
+        {
+          "engine": "webkit",
+          "suite": "shipped-bundle",
+          "exitCode": 0,
+          "seconds": 3.88,
+          "runnerSha256": "818b7d1d8bd2423a4f806d5812ddb15a0992b0a020a521a3d7eadd5d8d071865",
+          "sourceUnchanged": true,
+          "passed": 4,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": null
+        },
+        {
+          "engine": "webkit",
+          "suite": "catalog-name-correction",
+          "exitCode": 0,
+          "seconds": 14.36,
+          "runnerSha256": "5924e6db615ee498bfec1f19d50388e0ccfe834fbc16bdec6e317bb204033b20",
+          "sourceUnchanged": true,
+          "passed": 12,
+          "failed": 0,
+          "pageErrors": [],
+          "browserVersion": "26.0"
+        }
+      ],
+      "engines": {
+        "chromium": {
+          "passed": 599,
+          "unresolved": [],
+          "pageErrors": [],
+          "initialFailures": [],
+          "evidence": [
+            {
+              "file": "regression/chromium/catalog-expansion/catalog-expansion-report.json",
+              "sha256": "96c25689c8ddaad12dc207427b1b0c33fc442de3fd893bc95d396846f07bbfc6"
+            },
+            {
+              "file": "regression/chromium/catalog-name-correction/catalog-name-correction-report.json",
+              "sha256": "9af661c2dc25786057e5b82d94e95a1f0dea80644cdcfe26de8d9d40778c10ee"
+            },
+            {
+              "file": "regression/chromium/count-search-screen/count-search-screen-report.json",
+              "sha256": "aecade2552c1cfa15fc4642ecdacdfc0e90d1a37a7ea9305bf0b73c6595faf32"
+            },
+            {
+              "file": "regression/chromium/feedback/feedback-report.json",
+              "sha256": "1ae219e4c3eefce317a49a3172f3bf97f5031c445c5d78a8db5586d0daccb91a"
+            },
+            {
+              "file": "regression/chromium/input-speech/input-speech-report.json",
+              "sha256": "2990629d6aaaf7559fa4992f2f2bae0d7a69ee1c8d4faa170b4943083b15abe3"
+            },
+            {
+              "file": "regression/chromium/mobile-layout/layout-report.json",
+              "sha256": "4e0eaa0322d91ff17f830c63a50946557537d12a2a454b2722921ed012b210ad"
+            },
+            {
+              "file": "regression/chromium/mobile-workflow/browser-report.json",
+              "sha256": "221181dd1cdb9c64d254cbdd997e83e882a7699df52cb41420ceea943d6ae28a"
+            },
+            {
+              "file": "regression/chromium/multi-search/multi-search-report.json",
+              "sha256": "7f7af404fb5c45a0583d04bb1e4f1e8644467caa728cf8731aebb8b91ac1a2d9"
+            },
+            {
+              "file": "regression/chromium/search-hub/search-hub-report.json",
+              "sha256": "4ee09bc19f6e0410ce2e3d221f5a0284de22da469e8cc08049f2af0e7f94884e"
+            },
+            {
+              "file": "regression/chromium/search-progress/search-progress-report.json",
+              "sha256": "23ba564a16370aea0accd43b68443b5f52059990f4269a53a92a84352d365261"
+            },
+            {
+              "file": "regression/chromium/shipped-bundle/deployed-boot-round2-report.json",
+              "sha256": "2cb86824868f7394f801a8e38cecefb38cbc373f14c4e7dbfced7c6e2d1de322"
+            },
+            {
+              "file": "regression/chromium/speech-navigation/speech-navigation-report.json",
+              "sha256": "6cda7c7ce2cbdd74e011fc2fa4a63333860a56e3ae1b39ed18f80311524569cb"
+            }
+          ]
+        },
+        "webkit": {
+          "passed": 599,
+          "unresolved": [],
+          "pageErrors": [],
+          "initialFailures": [],
+          "evidence": [
+            {
+              "file": "regression/webkit/catalog-expansion/catalog-expansion-report.json",
+              "sha256": "25d0070b9f35b432274f029c5c1e74ef82367b490309c20bcc571ea30e0264e2"
+            },
+            {
+              "file": "regression/webkit/catalog-name-correction/catalog-name-correction-report.json",
+              "sha256": "bfe8634fbb1c91a4ab91e3aafbb075ed32e2835b64e6edf4284031d74700f431"
+            },
+            {
+              "file": "regression/webkit/count-search-screen/count-search-screen-report.json",
+              "sha256": "1bb272bb4839b08a72f61209274fbcbea078d8c46c50e69f5ff2cd48ba7b6e2d"
+            },
+            {
+              "file": "regression/webkit/feedback/feedback-report.json",
+              "sha256": "3ec0be1e96e59d37118895ce47383eae37f0fc49d26199639ad974cfe58e069a"
+            },
+            {
+              "file": "regression/webkit/input-speech/input-speech-report.json",
+              "sha256": "2342fe0953a41e15c8d6b9969c6fd8771d5dbe50fc15c822ef1260d96e1a26dc"
+            },
+            {
+              "file": "regression/webkit/mobile-layout/layout-report.json",
+              "sha256": "cf1cb245a9bf74133d008061742ea202d76f315f92881fef354a231645ad7fe0"
+            },
+            {
+              "file": "regression/webkit/mobile-workflow/browser-report.json",
+              "sha256": "d6af99d50aa810b6d52622d16979f1a6ab74269ee06c67f286cf7de179e44fa3"
+            },
+            {
+              "file": "regression/webkit/multi-search/multi-search-report.json",
+              "sha256": "5ae323f3bca9a66194f633426c85ce89fe791c7cbc707e229f64a8f6d302598e"
+            },
+            {
+              "file": "regression/webkit/search-hub/search-hub-report.json",
+              "sha256": "6c922fb570bcc56f5b320b3d7b06f97179a09f127bbf47fa5cde714b02e8be81"
+            },
+            {
+              "file": "regression/webkit/search-progress/search-progress-report.json",
+              "sha256": "2c018eb713ffdd5e23a89973ce38ee507845eef2bdfd31b23bb897a4009076f9"
+            },
+            {
+              "file": "regression/webkit/shipped-bundle/deployed-boot-round2-report.json",
+              "sha256": "98acd220c562acf511ca0fdf324dfc4660d6090daa04bb2f63031e37493fae99"
+            },
+            {
+              "file": "regression/webkit/speech-navigation/speech-navigation-report.json",
+              "sha256": "4b515128d6d879c78fa2977d373cb3473052f27c8ccc36ca95ad85ee95d12cbf"
+            }
+          ]
+        }
+      },
+      "complete": true
+    }
+  },
+  "limitations": [
+    "Physical iPhone system keyboard, speaker and haptics not tested.",
+    "Browser orders isolated; no production order writes or supplier messages.",
+    "Speech output uses instrumentation; sound feedback uses native AudioContext."
+  ]
+}

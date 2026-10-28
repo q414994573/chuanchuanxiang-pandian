@@ -49,13 +49,13 @@ function loadScript(src){return new Promise((resolve,reject)=>{const s=document.
   if(!r.ok)throw Error('商品目录读取失败');
   window.SOURCE=await r.json();
   if(!SOURCE.products||SOURCE.products.length!==129)throw Error('商品目录不是129种');
-  await loadScript('../count-core.js?v=20261020-history');
-  await loadScript('../count-app.js?v=20261020-history');
+  await loadScript('../count-core.js?v=20261028-v54');
+  await loadScript('../count-app.js?v=20261028-v54');
   document.getElementById('testSkipRest').addEventListener('click',()=>{
    try{CountBridge.prepareTestCount();document.getElementById('testSkipStatus').textContent='已保留填写了订货数量的商品，其余标成本次不订，库存仍是空的。请点「检查并生成订单」，再点「确认复核完成并锁定数量」，然后回到上面点「提交本机盘货审核」。';}
    catch(e){document.getElementById('testSkipStatus').textContent=e.message||'操作失败';}
   });
-  await loadScript('../cloud-app.bundle.js?v=20261020-history');
+  await loadScript('../cloud-app.bundle.js?v=20261028-v54');
  }catch(e){document.getElementById('cloudRoot').textContent='测试页没有载入成功：'+(e.message||e);}
 })();
 </script>

@@ -82,7 +82,7 @@ async function settings(page,speech=true,sound=true){await tab(page,'more');if((
 async function search(page,term){await tab(page,'order');await tap(page.locator('[data-act="open-order-search"]'));await page.locator('#find').fill(term);await settle(page);}
 async function finishSpeech(page,kind='end'){await page.evaluate(kind=>window.__speech.finish(kind),kind);await settle(page);}
 async function geometry(page){return page.evaluate(()=>{const rect=s=>{const r=document.querySelector(s)?.getBoundingClientRect();return r?{top:r.top,bottom:r.bottom,height:r.height,width:r.width}:null;};return {width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,pad:rect('.pad'),bar:rect('.bar'),rows:rect('#rows'),first:rect('#rows .line, #rows .order')};});}
-async function runCase(name,fn){try{report.cases.push({name,pass:true,...(await fn()||{})});}catch(e){report.cases.push({name,pass:false,error:e.stack||e.message});console.error('FAIL',name,e.message);}}
+async function runCase(name,fn){if(process.env.CCX_BROWSER_CASE_PATTERN&&!new RegExp(process.env.CCX_BROWSER_CASE_PATTERN).test(name))return;try{report.cases.push({name,pass:true,...(await fn()||{})});}catch(e){report.cases.push({name,pass:false,error:e.stack||e.message});console.error('FAIL',name,e.message);}}
 async function instrument(context){await context.addInitScript(()=>{
  const speech=window.__speech={utterances:[],cancels:0,current:null,mode:'start',
   reset(){this.utterances=[];this.cancels=0;this.current=null;this.mode='start';},
