@@ -293,7 +293,8 @@ function uid(){return 'count-'+(crypto.randomUUID?crypto.randomUUID():Date.now()
 function isOwner(){if(demoRole)return demoRole==='owner';if(member)return member.role==='owner';return true;}
 function canCount(){return peerEnabled?(sample?!!demoRole:!!member&&['owner','editor'].includes(member.role)):isOwner();}
 function aliasesOf(p){return aliasById.get(p.id)||[];}
-function catalog(){if(order)return JSON.parse(order.snapshot).catalog;if(draft)return draft.catalog;return source.products.map(p=>({id:p.id,name:p.name,alias:p.alias||'',cat:p.cat,category:p.category,hasStock:!!p.hasStock,unit:p.unit||'',referenceStock:p.stock,referenceOrder:p.order}));}
+function catalog(){return rawCatalog().map(p=>p.id==='kr:59'?{...p,name:'고추장(1kg)'}:p);}
+function rawCatalog(){if(order)return JSON.parse(order.snapshot).catalog;if(draft)return draft.catalog;return source.products.map(p=>({id:p.id,name:p.name,alias:p.alias||'',cat:p.cat,category:p.category,hasStock:!!p.hasStock,unit:p.unit||'',referenceStock:p.stock,referenceOrder:p.order}));}
 function matchesSearch(p){
  if(!query)return true;
  const key=order?order.snapshot:(draft?draft.catalog:source.products);

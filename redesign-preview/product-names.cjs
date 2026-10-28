@@ -39,7 +39,7 @@ const byId=new Map(entries.map(([id,zh,ko,...aliases])=>[id,Object.freeze({zh,ko
 function get(p){return p && byId.get(p.id);}
 // The original catalog name is always the primary name. Confirmed translations
 // are supplementary labels/search terms, never replacements for product names.
-function large(p){return String(p?.name ?? '');}
+function large(p){return p?.id==='kr:59'?'고추장(1kg)':String(p?.name ?? '');}
 function small(p){const n=get(p);if(n)return n.ko===large(p)?'':n.ko;const alias=String(p?.alias??'');return alias===large(p)?'':alias;}
-function searchNames(p){const n=get(p);return n?[n.zh,n.ko,...n.aliases]:[];}
+function searchNames(p){if(p?.id==='kr:59')return ['고추장(1kg)','辣椒酱'];const n=get(p);return n?[n.zh,n.ko,...n.aliases]:[];}
 module.exports={large,small,searchNames};

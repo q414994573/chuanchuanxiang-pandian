@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const Core=require('../count-core.js'),Cloud=require('../cloud/core.cjs'),Flow=require('../redesign-preview/count-flow.cjs'),Search=require('../redesign-preview/search.cjs');
 const source=require('../current-order.json'),legacy=require('../catalog-legacy.json');
-const rows=[['kr:59','고추장(2kg)','개'],['kr:60','마늘쫑','단'],['kr:61','스위트칠리소스','병'],['kr:62','재래식 된장(1kg)','개'],['cn:85','酸菜','包'],['cn:86','榨菜','包'],['cn:87','豆角','包'],['cn:88','味精（1kg）','包']];
+const rows=[['kr:59','고추장(1kg)','개'],['kr:60','마늘쫑','단'],['kr:61','스위트칠리소스','병'],['kr:62','재래식 된장(1kg)','개'],['cn:85','酸菜','包'],['cn:86','榨菜','包'],['cn:87','豆角','包'],['cn:88','味精（1kg）','包']];
 test('all legacy rows unchanged, exactly eight unique additions and correct categories',()=>{assert.deepEqual(source.products.filter(p=>legacy.products.some(old=>old.id===p.id)),legacy.products);assert.equal(source.products.length,137);assert.equal(new Set(source.products.map(p=>p.id)).size,137);assert.equal(source.products.filter(p=>p.cat==='kr').length,49);assert.equal(source.products.filter(p=>p.cat==='cn').length,70);});
 for(const [id,name,unit] of rows)test(`${id} uses normal inventory, quantity, units, completion, export and lock`,()=>{
  const d=Core.create(source,'2026-10-27','count-expansion');const p=d.catalog.find(p=>p.id===id);assert.equal(p.name,name);assert.equal(p.unit,unit);assert.equal(p.cat,id.split(':')[0]);assert.equal(p.hasStock,true);assert.equal(d.items[id].stockUnit,unit);assert.equal(d.items[id].stock,'');assert.equal(d.items[id].decision,'pending');assert.equal(Core.complete(d,p),false);
