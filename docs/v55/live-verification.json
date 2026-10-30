@@ -1,0 +1,68 @@
+[
+  {
+    "file": "ordering/index.html",
+    "match": true,
+    "sha256": "61b07aac2596c68ebcdcec7ba16976afa4915cd1863fc0c34e0e49c585ae5a16",
+    "expected": "61b07aac2596c68ebcdcec7ba16976afa4915cd1863fc0c34e0e49c585ae5a16"
+  },
+  {
+    "file": "redesign-preview/index.html",
+    "match": true,
+    "sha256": "ad59b67583e0b8f34bccdc4ab48003834c84a11ff3da1c2211171e6241614020",
+    "expected": "ad59b67583e0b8f34bccdc4ab48003834c84a11ff3da1c2211171e6241614020"
+  },
+  {
+    "file": "redesign-preview/preview.bundle.js",
+    "match": true,
+    "sha256": "be394428b8aeb1f9d660cfd4b6ace656d9dd7666da8a4c31ed60d741eccbd3d3",
+    "expected": "be394428b8aeb1f9d660cfd4b6ace656d9dd7666da8a4c31ed60d741eccbd3d3"
+  },
+  {
+    "file": "redesign-preview/preview.css",
+    "match": true,
+    "sha256": "60729f12fd1f7640b1e969f32194187f700a994bb33dd57772617c56f351c803",
+    "expected": "60729f12fd1f7640b1e969f32194187f700a994bb33dd57772617c56f351c803"
+  },
+  {
+    "file": "redesign-preview/aliases.json",
+    "match": true,
+    "sha256": "a51da6aff93719756a0558b3776f8a3208f4ae451e09e41a004d7088313eae06",
+    "expected": "a51da6aff93719756a0558b3776f8a3208f4ae451e09e41a004d7088313eae06"
+  },
+  {
+    "file": "count-core.js",
+    "match": true,
+    "sha256": "4f09b4241572c1b514715b3581af123e9b8f1b34edce2c212c397ea0277ad292",
+    "expected": "4f09b4241572c1b514715b3581af123e9b8f1b34edce2c212c397ea0277ad292"
+  },
+  {
+    "file": "current-order.json",
+    "match": true,
+    "sha256": "ae25323cc3e1d1aac8fef3474156b5f76b73e39cabafcccc9ab92cb1176093aa",
+    "expected": "ae25323cc3e1d1aac8fef3474156b5f76b73e39cabafcccc9ab92cb1176093aa"
+  },
+  {
+    "file": "cloud-app.bundle.js",
+    "match": true,
+    "sha256": "6ca7be821524f3b872b01b377d7077af26316bcbe9f87ceec09cb34746f54b5f",
+    "expected": "6ca7be821524f3b872b01b377d7077af26316bcbe9f87ceec09cb34746f54b5f"
+  },
+  {
+    "file": "count-app.js",
+    "match": true,
+    "sha256": "626dd79dd9b148959da1ef0143bc6cdf37ae44a1d37d7b58f36ff6faa0be7601",
+    "expected": "626dd79dd9b148959da1ef0143bc6cdf37ae44a1d37d7b58f36ff6faa0be7601"
+  },
+  {
+    "file": "index.html",
+    "match": true,
+    "sha256": "94fdd616952426eabda240d40f5617fa6659f6f426e0d90c2c367af20c682678",
+    "expected": "94fdd616952426eabda240d40f5617fa6659f6f426e0d90c2c367af20c682678"
+  },
+  {
+    "file": "cloud-test/index.html",
+    "match": true,
+    "sha256": "995f9f764ac23861eb6ebf0bd051d4e8e4e32ec60e9659be328326d5e127d3d7",
+    "expected": "995f9f764ac23861eb6ebf0bd051d4e8e4e32ec60e9659be328326d5e127d3d7"
+  }
+]

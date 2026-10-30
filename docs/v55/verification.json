@@ -2,7 +2,7 @@
   "version": "v55",
   "date": "2026-10-30",
   "baseCommit": "edc5ca8d0a3015925908fe109e0de2a42ec7f4a7",
-  "publication": "not-deployed-awaiting-firebase-access",
+  "publication": "deployed-and-live-hashes-verified",
   "sourceHashes": {
     "current-order.json": "ae25323cc3e1d1aac8fef3474156b5f76b73e39cabafcccc9ab92cb1176093aa",
     "count-core.js": "4f09b4241572c1b514715b3581af123e9b8f1b34edce2c212c397ea0277ad292",
@@ -494,5 +494,13 @@
     "No production order writes or supplier sends",
     "Initial WebKit launch failed from missing libraries; full rerun after installing official dependencies",
     "Initial quantity/alias count expectations corrected; forced-exit intermediate run and incomplete npm repeat log excluded from full-pass evidence"
-  ]
+  ],
+  "release": {
+    "applicationCommit": "48fa7569f48c0c37dab73e8f54a8845c7d4bd379",
+    "pagesRun": 41012017532,
+    "conclusion": "success",
+    "liveFilesMatched": 11,
+    "liveFilesTotal": 11,
+    "rulesReadBackExact": true
+  }
 }
