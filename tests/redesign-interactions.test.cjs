@@ -511,7 +511,7 @@ test('new count units use the confirmed 15 stock units without changing catalog/
  const expected={'kr:31':'개','cn:21':'包','kr:43':'개','cn:9':'包','cn:12':'包','cn:13':'包','cn:14':'包','cn:25':'통','cn:33':'包','cn:37':'包','cn:39':'瓶','cn:44':'包','cn:45':'包','cn:46':'包','cn:47':'包'};
  assert.equal(Object.keys(expected).length,15);
  for(const p of source.products){assert.equal(d.items[p.id].stockUnit,expected[p.id]??p.unit??'');assert.equal(d.items[p.id].unit,p.unit||'');assert.equal(d.items[p.id].stock,'');}
- assert.equal(JSON.stringify(source),before);assert.equal(d.catalog.length,137);assert.equal(d.items['cn:56'].stockUnit,'봉');
+ assert.equal(JSON.stringify(source),before);assert.equal(d.catalog.length,138);assert.equal(d.items['cn:56'].stockUnit,'봉');
 });
 function autosaveHarness(role='owner'){
  const h=harness();h.ctx.crypto={randomUUID:()=> 'autosave-test-id'};h.ctx.navigator={onLine:true};h.window.history={replaceState(){}};

@@ -18,13 +18,13 @@ test('zebra stripe follows the rows on screen and starts over at each block',()=
 
 test('next item stays inside the current supplier block',()=>{
  const catalog=products.map(p=>({id:p.id,cat:p.cat,name:p.name}));
- assert.equal(catalog.filter(p=>p.cat==='kr').length,49);
+ assert.equal(catalog.filter(p=>p.cat==='kr').length,50);
  assert.deepEqual(Flow.advance(catalog,0),{stay:false,index:1,cat:'kr',nextCat:null});
- assert.deepEqual(Flow.advance(catalog,48),{stay:true,cat:'kr',nextCat:'cn'});
- assert.deepEqual(Flow.advance(catalog,118),{stay:true,cat:'cn',nextCat:'other'});
- assert.deepEqual(Flow.advance(catalog,131),{stay:true,cat:'other',nextCat:'drinks'});
- assert.deepEqual(Flow.advance(catalog,132),{stay:false,index:133,cat:'drinks',nextCat:null});
- assert.deepEqual(Flow.advance(catalog,136),{stay:true,cat:'drinks',nextCat:null});
+ assert.deepEqual(Flow.advance(catalog,49),{stay:true,cat:'kr',nextCat:'cn'});
+ assert.deepEqual(Flow.advance(catalog,119),{stay:true,cat:'cn',nextCat:'other'});
+ assert.deepEqual(Flow.advance(catalog,132),{stay:true,cat:'other',nextCat:'drinks'});
+ assert.deepEqual(Flow.advance(catalog,133),{stay:false,index:134,cat:'drinks',nextCat:null});
+ assert.deepEqual(Flow.advance(catalog,137),{stay:true,cat:'drinks',nextCat:null});
  assert.equal(Flow.endLabel('kr'),'韩国食品盘完了 · 去中国食品');
  assert.equal(Flow.endLabel('cn'),'中国食品盘完了 · 去其他商品');
  assert.equal(Flow.endLabel('other'),'其他商品盘完了 · 去饮料');

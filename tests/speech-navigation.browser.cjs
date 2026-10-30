@@ -218,7 +218,7 @@ async function nativeCapability(browser){
     });
     await runCase(prefix+' first and last cell boundaries never narrate a nonexistent destination',async()=>{
      await ready(page,role,mode);await tab(page,'count');await tap(stockCell(page,mode,'kr:3'));await resetSpeech(page);const prev=action(page,navigationAct(mode,'count',-1));assert.equal(await prev.isDisabled(),true);await expectSilent(page,()=>prev.tap({force:true}));
-     await close(page);await tap(stockCell(page,mode,'kr:62','qty'));await resetSpeech(page);await expectSilent(page,()=>tap(action(page,navigationAct(mode,'count'))));
+     await close(page);await tap(stockCell(page,mode,'kr:63','qty'));await resetSpeech(page);await expectSilent(page,()=>tap(action(page,navigationAct(mode,'count'))));
      if(mode==='draft')assert.equal((await state(page)).moduleEnd,true);else assert.equal((await state(page)).keypad,false);
      await ready(page,role,mode);await search(page,'大葱腐竹虾丸');await tap(searchCell(page,'cn:64','qty'));await resetSpeech(page);await expectSilent(page,()=>tap(action(page,'order-next')));assert.equal((await state(page)).keypad,false);return {nonexistentDestinationSuppressed:true};
     });

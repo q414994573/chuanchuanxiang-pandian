@@ -1,14 +1,10 @@
 const fs=require('fs');
 const products=JSON.parse(fs.readFileSync('current-order.json')).products;
-const ids=products.map(p=>p.id);
-const legacy=JSON.parse(fs.readFileSync('catalog-legacy.json')).products;
-const legacyIds=legacy.map(p=>p.id);
-const legacyRuns=[];for(const p of legacy.slice().sort((a,b)=>a.id.localeCompare(b.id))){const pattern=p.hasStock?'(~|[0-9]{1,36}([.][0-9]{1,3})?|)':'~';if(legacyRuns.at(-1)?.pattern===pattern)legacyRuns.at(-1).count++;else legacyRuns.push({pattern,count:1});}
-const legacyStock=legacyRuns.map(r=>r.pattern+(r.count>1?'(,'+r.pattern+'){'+(r.count-1)+'}':'')).join(',');
-const stockIds=products.filter(p=>p.hasStock).map(p=>p.id);
+const versions=[products,JSON.parse(fs.readFileSync('catalog-v137.json')).products,JSON.parse(fs.readFileSync('catalog-legacy.json')).products];
 const stockPattern='(~|[0-9]{1,36}([.][0-9]{1,3})?|)';
-const runs=[];for(const id of ids.slice().sort()){const pattern=products.find(p=>p.id===id).hasStock?stockPattern:'~';if(runs.at(-1)?.pattern===pattern)runs.at(-1).count++;else runs.push({pattern,count:1});}
-const productionStock=runs.map(r=>r.pattern+(r.count>1?'(,'+r.pattern+'){'+(r.count-1)+'}':'')).join(',');
+function stockRegex(rows){const runs=[];for(const p of rows.slice().sort((a,b)=>a.id.localeCompare(b.id))){const pattern=p.hasStock?stockPattern:'~';if(runs.at(-1)?.pattern===pattern)runs.at(-1).count++;else runs.push({pattern,count:1});}return runs.map(r=>r.pattern+(r.count>1?'(,'+r.pattern+'){'+(r.count-1)+'}':'')).join(',');}
+const production=versions.map(rows=>`(d.units.keys().hasOnly(${JSON.stringify(rows.map(p=>p.id))}) && d.units.size() == ${rows.length} && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){${rows.length-1}}$'))`).join(' || ');
+const inventory=versions.map(rows=>`(d.units.size() == ${rows.length} && edits.matches('^${stockRegex(rows)}$'))`).join(' || ');
 fs.writeFileSync('firestore.rules',`rules_version = '2';
 service cloud.firestore {
  match /databases/{database}/documents {
@@ -18,13 +14,13 @@ service cloud.firestore {
   function linked(id) { return exists(/databases/$(database)/documents/sharedCounts/$(sharedHead(id))) && get(/databases/$(database)/documents/sharedCounts/$(sharedHead(id))).data.orderId == id; }
   function sharedFinal(id) { let h=getAfter(/databases/$(database)/documents/sharedCounts/$(sharedHead(id))).data; return h.orderId == id && h.stage == 'finalized' && h.body == request.resource.data.snapshot && h.mutationId == request.resource.data.mutationId && h.updatedAt == request.time; }
   function qty(v) { return v.matches('^(0|[1-9][0-9]{0,8}|1000000000)$'); }
-  function production(d) { return (d.units.keys().hasOnly(${JSON.stringify(ids)}) && d.units.size() == 137 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){136}$')) || (d.units.keys().hasOnly(${JSON.stringify(legacyIds)}) && d.units.size() == 129 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){128}$')); }
+  function production(d) { return ${production}; }
   function sandbox(d) { return d.units.keys().hasOnly(['test:a','test:b','test:c']) && d.units.size() == 3 && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){2}$'); }
   function unitChange() { return request.resource.data.units == resource.data.units || (groupSafeUnits()); }
   function groupSafeUnits() { return request.resource.data.units.diff(resource.data.units).affectedKeys().hasOnly(['cn:45','other:11']) && request.resource.data.units['cn:45'] in ['', '박스', '봉'] && request.resource.data.units['other:11'] in ['', '세트', '몸통만']; }
   function inventory(d,group) { let edits=d.get('stockEdits',''); let units=d.get('stockUnits',{}); return edits is string && units is map
     && units.keys().hasOnly(['cn:45']) && units.get('cn:45','') in ['', '박스','봉']
-    && (edits == '' || (group == 'orders' ? (d.units.size() == 137 ? edits.matches('^${productionStock}$') : edits.matches('^${legacyStock}$')) : edits.matches('^${[stockPattern,stockPattern,stockPattern].join(',')}$'))); }
+    && (edits == '' || (group == 'orders' ? (${inventory}) : edits.matches('^${[stockPattern,stockPattern,stockPattern].join(',')}$'))); }
   function shape(d,group) { return d.keys().hasOnly(['schema','date','snapshot','quantities','units','createdBy','createdAt','updatedBy','updatedAt','updatedByName','revision','mutationId','orderStage','stockEdits','stockUnits'])
     && inventory(d,group)
     && d.get('orderStage','pending') in ['pending','finalized']
@@ -102,7 +98,7 @@ service cloud.firestore {
       && request.resource.data.schema == 'ccx-draft-1'
       && request.resource.data.date is string && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
       && request.resource.data.localId is string && request.resource.data.localId.matches('^count-[a-zA-Z0-9-]{1,80}$')
-      && request.resource.data.pos is int && request.resource.data.pos >= 0 && request.resource.data.pos < 137
+      && request.resource.data.pos is int && request.resource.data.pos >= 0 && request.resource.data.pos < ${products.length}
       && request.resource.data.field in ['stock','qty']
       && request.resource.data.body is string && request.resource.data.body.size() > 20 && request.resource.data.body.size() < 400000
       && request.resource.data.updatedAt == request.time;

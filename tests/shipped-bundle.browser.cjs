@@ -11,7 +11,7 @@ const saved=JSON.stringify({draft,pos:0,field:'stock'});
 const scenarios=[
  {name:'shipped production bundle boots to login and preserves saved local draft',mode:'normal',match:'请登录'},
  {name:'missing cloud config locks production entry and preserves original local bytes',mode:'config404',match:'新版正式入口准备中'},
- {name:'136-product catalog refuses startup and preserves original local bytes',mode:'catalog136',match:'商品目录应为137种'},
+ {name:'136-product catalog refuses startup and preserves original local bytes',mode:'catalog136',match:'商品目录应为138种'},
  {name:'malformed alias response fails safely without overwriting local draft',mode:'aliasMalformed',match:null}
 ];
 (async()=>{

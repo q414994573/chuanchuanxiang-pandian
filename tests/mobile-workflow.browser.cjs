@@ -107,8 +107,8 @@ async function runCase(name,fn){try{const detail=await fn();report.cases.push({n
    });
    if(!baseline){
     await page.evaluate(role=>window.__ccx.setup(role),role);await settle(page);
-    await runCase(prefix+' four supplier tabs partition all 137 goods',async()=>{
-     assert.deepEqual(await page.evaluate(()=>window.__ccx.counts()),{kr:49,cn:70,other:13,drinks:5});
+    await runCase(prefix+' four supplier tabs partition all 138 goods',async()=>{
+     assert.deepEqual(await page.evaluate(()=>window.__ccx.counts()),{kr:50,cn:70,other:13,drinks:5});
      const before=await page.evaluate(()=>window.__ccx.state().order);
      for(const cat of ['cn','other','drinks','kr','drinks']){
       await page.locator(`[data-act="ordercat"][data-cat="${cat}"]`).click();await settle(page);
@@ -122,7 +122,7 @@ async function runCase(name,fn){try{const detail=await fn();report.cases.push({n
      assert.deepEqual(await page.evaluate(()=>window.__ccx.state().order),before);
      const other=await page.evaluate(()=>window.__ccx.block('other')),drinks=await page.evaluate(()=>window.__ccx.block('drinks'));
      assert.doesNotMatch(other,/칠성사이다|코카콜라|환타/);for(const name of ['칠성사이다','(zero)칠성사이다','코카콜라','(zero)코카콜라','환타'])assert.ok(drinks.includes(name));
-     assert.equal(await page.evaluate(()=>window.__ccx.reads),0);return {counts:{kr:49,cn:70,other:13,drinks:5},noQuantityChanges:true};
+     assert.equal(await page.evaluate(()=>window.__ccx.reads),0);return {counts:{kr:50,cn:70,other:13,drinks:5},noQuantityChanges:true};
     });
     await runCase(prefix+' search with preview above sticky header and small viewport',async()=>{
      await page.locator('[data-act="ordercat"][data-cat="cn"]').click();await settle(page);

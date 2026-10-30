@@ -124,7 +124,7 @@ function assertCompactOrder(g,width){
       await page.locator(`[data-act="jumpcat"][data-cat="${cat}"]`).click();await settle(page);
       const g=await bounds(page);categories[cat]=g;
       if(cat==='other')await page.screenshot({path:path.join(outputDir,`${baseline?'baseline':'fixed'}-${width}-${mode}-other.png`)});
-      assertWidth(g,width);assert.equal(g.rows.length,{kr:49,cn:70,other:13,drinks:5}[cat]);
+      assertWidth(g,width);assert.equal(g.rows.length,{kr:50,cn:70,other:13,drinks:5}[cat]);
      }
      return {categories};
     });

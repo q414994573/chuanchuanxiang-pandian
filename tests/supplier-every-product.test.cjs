@@ -14,7 +14,7 @@ for(const [index,p] of source.products.entries())test(`supplier delivery preserv
  if(p.hasStock)Core.edit(d,p.id,'stock','0');
  Core.finish(d,p.id);d.status='reviewed';d.reviewedAt=new Date().toISOString();
  const payload=JSON.parse(JSON.stringify(C.submission(d,Core,source)));
- assert.equal(Object.keys(payload.quantities).length,137);assert.equal(payload.quantities[p.id],(index+1)*1000+125);assert.equal(payload.units[p.id],unit);
+ assert.equal(Object.keys(payload.quantities).length,138);assert.equal(payload.quantities[p.id],(index+1)*1000+125);assert.equal(payload.units[p.id],unit);
  assert.equal(Object.values(payload.quantities).filter(n=>n>0).length,1);
  const h=harness(true);h.ctx.record={...payload,id:d.id,revision:1,orderStage:'finalized'};
  const delivered=[];h.ctx.navigator={clipboard:{writeText:async text=>delivered.push(text)}};
