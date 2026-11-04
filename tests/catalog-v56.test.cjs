@@ -1,0 +1,4 @@
+const {test}=require('node:test'),a=require('node:assert/strict'),C=require('../count-core'),S=require('../redesign-preview/search.cjs'),s=require('../current-order.json'),old=require('../catalog-v138.json');
+const rows=[['kr:64','무우','개','kr'],['cn:89','郫县豆瓣酱','个','cn'],['cn:90','갈비살','봉','cn'],['cn:91','甜面酱','袋','cn']];
+test('v56 old138 unchanged',()=>a.deepEqual(s.products.filter(p=>!rows.some(r=>r[0]===p.id)),old.products));
+for(const [id,name,unit,cat] of rows)test('v56 '+name,()=>{const p=s.products.find(p=>p.id===id);a.equal(p.name,name);a.equal(p.unit,unit);a.equal(p.cat,cat);const d=C.create(s,'2026-11-04','count-new');a.equal(d.items[id].quantity,'');a.equal(d.items[id].stock,'');a(S.createIndex(s.products).find(name).has(id));a(C.validate(d,s));});

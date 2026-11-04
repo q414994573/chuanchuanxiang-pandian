@@ -15,7 +15,7 @@ test('supplier split covers all 129 original IDs exactly once without rewriting 
  const groups=Object.fromEntries(Flow.CATS.map(([id])=>[id,source.products.filter(p=>Flow.catOf(p)===id)]));
  assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([id,rows])=>[id,rows.length])),{kr:50,cn:70,other:13,drinks:5});
  const combined=Object.values(groups).flat();
- assert.equal(combined.length,138);assert.equal(new Set(combined.map(p=>p.id)).size,138);
+ assert.equal(combined.length,142);assert.equal(new Set(combined.map(p=>p.id)).size,142);
  assert.deepEqual(combined.map(p=>p.id),source.products.map(p=>p.id));
  assert.deepEqual(groups.drinks.map(p=>p.id),drinkIds);
  assert.ok(groups.drinks.every(p=>p.cat==='other'&&p.category==='其他商品'));
@@ -35,20 +35,20 @@ test('only the final five soft drinks move, retaining each original Korean prima
 
 test('drink counting exposes only quantity cells and retains stable source indexes',()=>{
  const indices=Flow.visibleCountIndexes(source.products,'drinks',()=>true,-1);
- assert.deepEqual(indices,[133,134,135,136,137]);
+ assert.deepEqual(indices,[137,138,139,140,141]);
  assert.deepEqual(indices.map(i=>source.products[i].id),drinkIds);
  assert.ok(indices.every(i=>!source.products[i].hasStock));
  assert.ok(indices.every(i=>JSON.stringify(Flow.countFields(source.products[i]))==='["qty"]'));
- assert.deepEqual(Flow.visibleCountIndexes(source.products,'drinks',()=>false,135),[135]);
- assert.deepEqual(Flow.visibleCountIndexes(source.products,'other',()=>false,135),[],'active drink cannot leak into other goods');
+ assert.deepEqual(Flow.visibleCountIndexes(source.products,'drinks',()=>false,139),[139]);
+ assert.deepEqual(Flow.visibleCountIndexes(source.products,'other',()=>false,139),[],'active drink cannot leak into other goods');
 });
 
 test('supplier count navigation stops before drinks and ends after the final drink',()=>{
- assert.equal(source.products[132].id,'other:16');
- assert.deepEqual(Flow.advance(source.products,132),{stay:true,cat:'other',nextCat:'drinks'});
- assert.deepEqual(Flow.advance(source.products,133),{stay:false,index:134,cat:'drinks',nextCat:null});
- assert.deepEqual(Flow.advance(source.products,136),{stay:false,index:137,cat:'drinks',nextCat:null});
- assert.deepEqual(Flow.advance(source.products,137),{stay:true,cat:'drinks',nextCat:null});
+ assert.equal(source.products[136].id,'other:16');
+ assert.deepEqual(Flow.advance(source.products,136),{stay:true,cat:'other',nextCat:'drinks'});
+ assert.deepEqual(Flow.advance(source.products,137),{stay:false,index:138,cat:'drinks',nextCat:null});
+ assert.deepEqual(Flow.advance(source.products,140),{stay:false,index:141,cat:'drinks',nextCat:null});
+ assert.deepEqual(Flow.advance(source.products,141),{stay:true,cat:'drinks',nextCat:null});
  assert.equal(Flow.endLabel('other'),'其他商品盘完了 · 去饮料');
  assert.equal(Flow.endLabel('drinks'),'饮料盘完了 · 看今日订单');
 });
@@ -65,7 +65,7 @@ test('search counts and automatic supplier selection send soft-drink results to 
 
 test('printed catalog contains four supplier blocks with original ordering, names and order units',()=>{
  const before=JSON.stringify(source),rows=Flow.sheetRows(source.products);
- assert.equal(rows.length,138);assert.deepEqual(rows.map(r=>r.n),Array.from({length:138},(_,i)=>i+1));
+ assert.equal(rows.length,142);assert.deepEqual(rows.map(r=>r.n),Array.from({length:142},(_,i)=>i+1));
  assert.deepEqual(rows.map(r=>r.large),source.products.map(p=>p.name));
  assert.deepEqual(rows.map(r=>r.unit),source.products.map(p=>p.unit??''));
  assert.deepEqual(Object.fromEntries(Flow.CATS.map(([, , name])=>[name,rows.filter(r=>r.block===name).length])),{'韩国食品':50,'中国食品':70,'其他商品':13,'饮料':5});
@@ -108,7 +108,7 @@ test('five drink quantities still submit under original stable IDs and survive c
  drinkIds.forEach((id,i)=>{Core.edit(d,id,'quantity',String(i+1));Core.finish(d,id);});
  d.status='reviewed';
  const payload=JSON.parse(JSON.stringify(Cloud.submission(d,Core,source)));
- assert.equal(Object.keys(payload.quantities).length,138);
+ assert.equal(Object.keys(payload.quantities).length,142);
  assert.deepEqual(drinkIds.map(id=>payload.quantities[id]),[1000,2000,3000,4000,5000]);
  assert.ok(drinkIds.every(id=>payload.units[id]==='박스'));
  const snapshot=JSON.parse(payload.snapshot);
