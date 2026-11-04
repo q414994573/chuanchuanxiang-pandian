@@ -28,8 +28,8 @@ test('production homepage enables cloud and stays separate from the test page',(
  assert.match(count,/仅云端测试页可以把其余商品标成本次不订/);
  const products=JSON.parse(read('current-order.json')).products;
  assert.equal(products.length,142);
- assert.equal(products.filter(p=>p.cat==='kr').length,50);
- assert.equal(products.filter(p=>p.cat==='cn').length,70);
+ assert.equal(products.filter(p=>p.cat==='kr').length,51);
+ assert.equal(products.filter(p=>p.cat==='cn').length,73);
  assert.equal(products.filter(p=>p.cat==='other').length,18);
  const backup=read('backups/index-before-firebase-20261020.html');
  assert.equal(backup.includes('cloud-app.bundle'),false);

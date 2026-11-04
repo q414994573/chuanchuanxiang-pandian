@@ -13,7 +13,7 @@ const drinkIds=['other:18','other:19','other:20','other:21','other:22'];
 test('supplier split covers all 129 original IDs exactly once without rewriting their catalog',()=>{
  const before=JSON.stringify(source);
  const groups=Object.fromEntries(Flow.CATS.map(([id])=>[id,source.products.filter(p=>Flow.catOf(p)===id)]));
- assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([id,rows])=>[id,rows.length])),{kr:50,cn:70,other:13,drinks:5});
+ assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([id,rows])=>[id,rows.length])),{kr:51,cn:73,other:13,drinks:5});
  const combined=Object.values(groups).flat();
  assert.equal(combined.length,142);assert.equal(new Set(combined.map(p=>p.id)).size,142);
  assert.deepEqual(combined.map(p=>p.id),source.products.map(p=>p.id));
@@ -58,7 +58,7 @@ test('search counts and automatic supplier selection send soft-drink results to 
  assert.deepEqual(counts,{kr:0,cn:0,other:0,drinks:2});
  assert.equal(Flow.searchCatChoice(counts,'other'),'drinks');
  assert.equal(Flow.searchCatChoice(counts,'drinks'),'drinks');
- assert.deepEqual(Flow.searchHitCounts(source.products,()=>true),{kr:50,cn:70,other:13,drinks:5});
+ assert.deepEqual(Flow.searchHitCounts(source.products,()=>true),{kr:51,cn:73,other:13,drinks:5});
  assert.equal(Flow.searchCatChoice({kr:0,cn:0,other:0,drinks:0},'drinks'),'drinks');
  assert.equal(Flow.searchCatChoice({kr:0,cn:0,other:2,drinks:2},'kr'),'other','ties preserve supplier order');
 });
@@ -68,7 +68,7 @@ test('printed catalog contains four supplier blocks with original ordering, name
  assert.equal(rows.length,142);assert.deepEqual(rows.map(r=>r.n),Array.from({length:142},(_,i)=>i+1));
  assert.deepEqual(rows.map(r=>r.large),source.products.map(p=>p.name));
  assert.deepEqual(rows.map(r=>r.unit),source.products.map(p=>p.unit??''));
- assert.deepEqual(Object.fromEntries(Flow.CATS.map(([, , name])=>[name,rows.filter(r=>r.block===name).length])),{'韩国食品':50,'中国食品':70,'其他商品':13,'饮料':5});
+ assert.deepEqual(Object.fromEntries(Flow.CATS.map(([, , name])=>[name,rows.filter(r=>r.block===name).length])),{'韩国食品':51,'中国食品':73,'其他商品':13,'饮料':5});
  assert.equal(JSON.stringify(source),before);
 });
 
