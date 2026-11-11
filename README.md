@@ -36,7 +36,7 @@
 
 逻辑全套：`npm test`。
 
-云端模拟器：`npm run test:rules`、`npm run test:shared`、`npm run test:shared-view`、`npm run test:shared-transitions`、`npm run test:supplier-rehearsal`。三代目录兼容命令见接手说明。
+云端模拟器：`npm run test:rules`、`npm run test:shared`、`npm run test:shared-view`、`npm run test:shared-transitions`、`npm run test:supplier-rehearsal`。五代目录兼容命令见接手说明。
 
 浏览器全套：安装Playwright及对应浏览器/系统依赖后，配置 `CCX_PLAYWRIGHT_MODULE`，运行 `python3 scripts/run-browser-regression.py`。默认Chromium/WebKit，包含手机宽度、两角色、不同订单状态，输出逐套报告与源码哈希。
 
@@ -45,7 +45,7 @@
 ## 文件与入口
 
 - `current-order.json`：当前目录和有日期的历史参考数量；新建盘货实际数量为空。
-- `catalog-legacy.json`、`catalog-v137.json`：原129和137种目录兼容基准。
+- `catalog-legacy.json`、`catalog-v137.json`、`catalog-v138.json`、`catalog-v142.json`：129/137/138/142种历史目录兼容基准。
 - `count-core.js`：盘货核心与历史校验。
 - `redesign-preview/preview.js`：当前共用界面源码；正式 `/ordering/` 使用其构建产物。
 - `cloud/`：Firestore订单、事务、审计与共同盘货。
