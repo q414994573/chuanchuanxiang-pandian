@@ -1,0 +1,291 @@
+{
+  "node": {
+    "tests": 14834,
+    "pass": 14834,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "cloud": [
+    {
+      "suite": "rules",
+      "successMarker": true,
+      "passes": [
+        "PASS simulated three-product chain, reread, duplicate, audit, permissions and simultaneous conflict",
+        "PASS shared inventory, blank/zero, immutable catalog, invalid values, stale edits and finalized lock",
+        "PASS equal-member finalization, immutable final quantities, audit, stale rejection, idempotent retry and reopen",
+        "PASS submission ordering, pagination beyond 30, exact-date lookup and unauthorized list denial",
+        "PASS full catalog inventory permission validation",
+        "PASS 129-product rules, authorized edit, invalid quantity denied; no production service used",
+        "PASS dropdown units, unchanged stock, unit-only audit, stale conflict, server validation and finalized lock",
+        "PASS draft backup transaction: one winner, stale writer blocked, lost-ack retry idempotent",
+        "PASS owner-only count draft; editor and strangers cannot read it",
+        "PASS live and preview drafts isolated; owner-only permissions preserved"
+      ],
+      "logSha256": "af6600b3e5b475b03f0340023ab33a97f029877e55b07be4e77c0abc3417f044"
+    },
+    {
+      "suite": "shared",
+      "successMarker": true,
+      "passes": [
+        "PASS equal roles, singleton race, independent-cell merge, same-cell conflict, stale finalization, atomic finalize/reopen, legacy bypass denied, anonymous/disabled denied, history preserved, new blank atomic archives, archive tamper denied, stale and concurrent new blank protected"
+      ],
+      "logSha256": "dba3751dbedc7b6b74442b73f43e977485362390064e3f6192637b60abe302f9"
+    },
+    {
+      "suite": "shared-view",
+      "successMarker": true,
+      "passes": [
+        "PASS owner all 144 products: rapid entry, next cell, live watch, save returns and persisted count progress",
+        "PASS editor all 144 products: rapid entry, next cell, live watch, save returns and persisted count progress"
+      ],
+      "logSha256": "eb059a14ae20cb8a55f9655ad3227824364904a8c9d053b1ba1c3466fc04ae23"
+    },
+    {
+      "suite": "shared-transitions",
+      "successMarker": true,
+      "passes": [
+        "PASS 5 live-watch finalize/reopen/new-blank cycles with immediate result assertions and archives"
+      ],
+      "logSha256": "bd834414d13f984f934d0281526ddf0288a53a946003521a59dc89ebbd6a5145"
+    },
+    {
+      "suite": "supplier-rehearsal",
+      "successMarker": true,
+      "passes": [
+        "PASS both accounts jointly fill all 144; server-confirmed order copies four separate supplier texts on first tap, including five drinks; new stock units survive persistence",
+        "PASS refreshed remote reopen invalidates preview; cancellations, smallest decimals and alternate units survive re-finalize/export; new blank preserves finalized history"
+      ],
+      "logSha256": "5036e5d1ec71592c259af58f563f67f9c805c56b6ee9a293930513161205e07d"
+    },
+    {
+      "suite": "catalog-versions",
+      "successMarker": true,
+      "passes": [
+        "PASS 129 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
+        "PASS 129 products editor: create, all added rows save/read, zero stock, finalize lock and reopen",
+        "PASS 137 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
+        "PASS 137 products editor: create, all added rows save/read, zero stock, finalize lock and reopen",
+        "PASS 138 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
+        "PASS 138 products editor: create, all added rows save/read, zero stock, finalize lock and reopen",
+        "PASS 142 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
+        "PASS 142 products editor: create, all added rows save/read, zero stock, finalize lock and reopen",
+        "PASS 144 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
+        "PASS 144 products editor: create, all added rows save/read, zero stock, finalize lock and reopen"
+      ],
+      "logSha256": "86739472fab1ef837ea99f1d3d7081278aca4725825f22b188f01e3b15b7fc9f"
+    }
+  ],
+  "hashes": {
+    "package.json": "f6cc67e66787fdee4de8af9c97eacda1dc326227289b441f28e0ba3245612559",
+    "package-lock.json": "d7b41d9148285775545d9943329a613caede7874f060ad5786e6d295cd1e1b75",
+    "cloud-app.bundle.js": "dc9b074ddc120aef59843b0217b07fb23bd9285569d999e83ae061ace6e62c22",
+    "redesign-preview/preview.bundle.js": "8ab8f554c36fe8f6a7b92d9c9a3e4eddd913c7efafa0e1961dcd395ee041ce98",
+    "count-core.js": "6402e55b5210176aabc095de0c6cf6ecc21e7ba895d7a990b99f4c4aeed2da7f",
+    "cloud/shared-count.js": "01615d20ef0ca719aa87425a535b929dcc440ddcdf2980d88d4a264cb84d82d4",
+    "firestore.rules": "a6606a63a7702954b89c2b9e85f7aa9757819670d7015a6b170badb84a4dcf0f",
+    "current-order.json": "83fef9ad11b1042acc8be8f13929614fb8c3f6cdbeb56938b47a46892150bed8"
+  },
+  "auditKnownVulnerabilities": 0,
+  "independentRun": 43097892850,
+  "independentStatus": "queued due GitHub Actions outage",
+  "published": false,
+  "browser": [
+    {
+      "engine": "chromium",
+      "suite": "search-progress",
+      "exitCode": 0,
+      "seconds": 43.99,
+      "runnerSha256": "d750354fa112aa1fe9e59213cbf424e86584f5878fe9788bc0d2589031b6bc50",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/search-progress/search-progress-report.json",
+      "passed": 78,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "speech-navigation",
+      "exitCode": 0,
+      "seconds": 208.31,
+      "runnerSha256": "9f68c5056efd4a8b359fc79c0bbec69a3f842d9ac99fbd4599deca6201362709",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/speech-navigation/speech-navigation-report.json",
+      "passed": 156,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "input-speech",
+      "exitCode": 0,
+      "seconds": 128.02,
+      "runnerSha256": "15252d3adcf3592ee0b564c2cf32450c5e462f4ff9975bd4491654f4fa96bfe9",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/input-speech/input-speech-report.json",
+      "passed": 132,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "search-hub",
+      "exitCode": 0,
+      "seconds": 40.62,
+      "runnerSha256": "92a7820c5e693674aa433a773326e7c2f19e475d4aa438d0ab46fe9dc78cd830",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/search-hub/search-hub-report.json",
+      "passed": 51,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "mobile-workflow",
+      "exitCode": 0,
+      "seconds": 19.13,
+      "runnerSha256": "b2205e7b4cca3f5400bdca4e4e3ee5a0511e096253446d8a3cb75c4701425a09",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/mobile-workflow/browser-report.json",
+      "passed": 24,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "mobile-layout",
+      "exitCode": 0,
+      "seconds": 15.02,
+      "runnerSha256": "c8eaa8a261036c0c7ae780b8c1afbcdd813084fae5850b5a55309c80498f09a3",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/mobile-layout/layout-report.json",
+      "passed": 24,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "feedback",
+      "exitCode": 0,
+      "seconds": 4.09,
+      "runnerSha256": "bc1c2c43097ce21dbc54beec9dcd3f2be3bf218c274922df6793ced94c3e914a",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/feedback/feedback-report.json",
+      "passed": 10,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "multi-search",
+      "exitCode": 0,
+      "seconds": 96.65,
+      "runnerSha256": "179c17f969ac06a2b870b012378d6431d156d12375eef14b52fe87b9e73b8859",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/multi-search/multi-search-report.json",
+      "passed": 48,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "count-search-screen",
+      "exitCode": 0,
+      "seconds": 4.18,
+      "runnerSha256": "0a268d4d290e31d193bded3310594dbb1127a9de5f9031152c1f8b41385c8030",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/count-search-screen/count-search-screen-report.json",
+      "passed": 6,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "catalog-expansion",
+      "exitCode": 0,
+      "seconds": 37.78,
+      "runnerSha256": "e07b64a2c9717c75889a4174177626a7dd818ea6994e0bd0d8119221eda5e2de",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/catalog-expansion/catalog-expansion-report.json",
+      "passed": 96,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "shipped-bundle",
+      "exitCode": 0,
+      "seconds": 1.47,
+      "runnerSha256": "60d485426b9bc5c69061a0f9492727245d065d8e22f341ad9a49c4f208b5c112",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/shipped-bundle/deployed-boot-round2-report.json",
+      "passed": 4,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": null,
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "catalog-name-correction",
+      "exitCode": 0,
+      "seconds": 7.69,
+      "runnerSha256": "5924e6db615ee498bfec1f19d50388e0ccfe834fbc16bdec6e317bb204033b20",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/catalog-name-correction/catalog-name-correction-report.json",
+      "passed": 12,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "storage-quota",
+      "exitCode": 0,
+      "seconds": 2.47,
+      "runnerSha256": "13b61e8738cc51a42355cc25009afafcca48a607967b95890b2df42adb133797",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/storage-quota/storage-quota-report.json",
+      "passed": 6,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "storage-cleanup",
+      "exitCode": 0,
+      "seconds": 4.73,
+      "runnerSha256": "4ead14660b0d08fcbe14768d9c9ec69293fd99cae5bb24fa3b2de6a1a507bf72",
+      "sourceUnchanged": true,
+      "report": "/workspace/scratch/74dbae7d8dfb/test-results/v60-browser-final/chromium/storage-cleanup/storage-cleanup-report.json",
+      "passed": 10,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    }
+  ]
+}

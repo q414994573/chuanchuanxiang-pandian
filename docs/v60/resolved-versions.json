@@ -1,0 +1,16 @@
+{
+  "node_modules/@grpc/grpc-js": "1.14.6",
+  "node_modules/@modelcontextprotocol/sdk/node_modules/body-parser": "2.4.0",
+  "node_modules/@opentelemetry/core": "2.8.0",
+  "node_modules/body-parser": "1.20.9",
+  "node_modules/fast-uri": "3.1.9",
+  "node_modules/firebase": "13.0.0",
+  "node_modules/firebase-tools": "15.35.0",
+  "node_modules/glob": "14.0.2",
+  "node_modules/glob/node_modules/minimatch": "11.0.8",
+  "node_modules/minimatch": "3.1.5",
+  "node_modules/readdir-glob/node_modules/minimatch": "5.1.9",
+  "node_modules/superstatic/node_modules/minimatch": "6.2.3",
+  "node_modules/tar": "7.5.23",
+  "node_modules/uuid": "11.1.1"
+}
