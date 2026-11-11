@@ -91,3 +91,41 @@ test('clearing recovery space can retry failed local save without claiming cloud
 for(const flag of ['peerFlight','peerRestoreFlight','cloudWriting','cloudReading','orderFlight','orderStageWriting','keypad','textMode','editId'])test('inspection waits for pending interaction '+flag,async()=>{
  const h=app();h.run(`${flag}=true`);await assert.rejects(h.run('inspectStorage()'),/请先收起键盘/);assert.equal(h.saved.has(oldKey),true);
 });
+
+test('cleanup is idempotent and repeated execution never reports space twice',()=>{
+ const d=make(),s=storage([[KEY,raw(d)],[oldKey,raw(d)]]),p=scan(s);
+ assert.equal(Cleanup.execute(s,p).removed,1);
+ assert.equal(Cleanup.execute(s,p).bytes,0);
+ assert.equal(Cleanup.summary(scan(s)).removable,0);
+ assert.equal(s.getItem(KEY),raw(d));
+});
+test('partial deletion failure can be rescanned and safely retried',()=>{
+ const d=make(),k=KEY+':recovery:101',s=storage([[KEY,raw(d)],[oldKey,raw(d)],[k,raw(d)]]),remove=s.removeItem;
+ s.removeItem=x=>{if(x===oldKey)throw Error('denied');remove(x);};
+ const first=Cleanup.execute(s,scan(s));assert.equal(first.removed,1);assert.equal(first.failed,1);
+ s.removeItem=remove;assert.equal(Cleanup.execute(s,scan(s)).removed,1);assert.equal(s.getItem(KEY),raw(d));
+});
+test('new recovery records created after scan are never included in stale plan',()=>{
+ const d=make(),s=storage([[KEY,raw(d)],[oldKey,raw(d)]]),p=scan(s),k=KEY+':recovery:999',unique=make('count-new');
+ s.setItem(k,raw(unique));Cleanup.execute(s,p);assert.equal(s.getItem(k),raw(unique));
+});
+test('temporary offline archive check can be retried after reconnection',async()=>{
+ const d=make(),s=storage([[oldKey,raw(d)]]);
+ const offline=await Cleanup.verifyArchives(scan(s),source,async()=>{throw Error('offline')});assert.equal(Cleanup.execute(s,offline).removed,0);
+ const online=await Cleanup.verifyArchives(scan(s),source,async()=>({localId:d.id,draft:d}));assert.equal(Cleanup.execute(s,online).removed,1);
+});
+test('deterministic mixed-record stress preserves every distinct complete draft and foreign key',()=>{
+ for(let seed=1;seed<=40;seed++){
+  const drafts=Array.from({length:7},(_,i)=>{const d=make('count-'+i);d.items['kr:7'].quantity=String((seed*i)%19);return d;});
+  const entries=[['firebase:authUser:keep','token'],['unrelated','value']];
+  for(let i=0;i<100;i++)entries.push([KEY+':recovery:'+i,raw(drafts[(i*seed+i)%7])]);
+  const s=storage(entries),before=new Set(entries.slice(2).map(x=>x[1]));Cleanup.execute(s,scan(s));
+  const after=new Set([...s.map].filter(x=>x[0].startsWith(KEY)).map(x=>x[1]));assert.deepEqual(after,before);
+  assert.equal(s.getItem('firebase:authUser:keep'),'token');assert.equal(s.getItem('unrelated'),'value');assert.equal(Cleanup.execute(s,scan(s)).removed,0);
+ }
+});
+test('quota can remain exhausted after cleanup without falsely reporting local save success',async()=>{
+ const h=app();h.run("draft.items['kr:7'].quantity='9';localSaveFailed=true;cloudPending=true;cloudPhase='failed'");await h.run('inspectStorage()');
+ h.ctx.localStorage.setItem=()=>{throw Error('QuotaExceededError')};h.run('cleanStorage()');
+ assert.equal(h.run('localSaveFailed'),true);assert.equal(h.run('cloudPhase'),'failed');assert.equal(h.run("draft.items['kr:7'].quantity"),'9');
+});
