@@ -1,0 +1,86 @@
+[
+  {
+    "file": "ordering/index.html",
+    "status": 200,
+    "match": true,
+    "sha256": "e3bf79a0419e358494fb770082bf50ebe9d5e67ff4488f057c54df0483da1e2c",
+    "expected": "e3bf79a0419e358494fb770082bf50ebe9d5e67ff4488f057c54df0483da1e2c"
+  },
+  {
+    "file": "redesign-preview/index.html",
+    "status": 200,
+    "match": true,
+    "sha256": "348875c1ccd8c4584a32abd7c25eb60d7ae1531f6ed3b64e95d9ceccf6aeefc1",
+    "expected": "348875c1ccd8c4584a32abd7c25eb60d7ae1531f6ed3b64e95d9ceccf6aeefc1"
+  },
+  {
+    "file": "redesign-preview/preview.bundle.js",
+    "status": 200,
+    "match": true,
+    "sha256": "3f75bc43f15c19259c3b1bc6e23ef19a1bb98ef2ae50704eef32aeef27526e54",
+    "expected": "3f75bc43f15c19259c3b1bc6e23ef19a1bb98ef2ae50704eef32aeef27526e54"
+  },
+  {
+    "file": "redesign-preview/preview.css",
+    "status": 200,
+    "match": true,
+    "sha256": "60729f12fd1f7640b1e969f32194187f700a994bb33dd57772617c56f351c803",
+    "expected": "60729f12fd1f7640b1e969f32194187f700a994bb33dd57772617c56f351c803"
+  },
+  {
+    "file": "redesign-preview/aliases.json",
+    "status": 200,
+    "match": true,
+    "sha256": "a51da6aff93719756a0558b3776f8a3208f4ae451e09e41a004d7088313eae06",
+    "expected": "a51da6aff93719756a0558b3776f8a3208f4ae451e09e41a004d7088313eae06"
+  },
+  {
+    "file": "count-core.js",
+    "status": 200,
+    "match": true,
+    "sha256": "6402e55b5210176aabc095de0c6cf6ecc21e7ba895d7a990b99f4c4aeed2da7f",
+    "expected": "6402e55b5210176aabc095de0c6cf6ecc21e7ba895d7a990b99f4c4aeed2da7f"
+  },
+  {
+    "file": "current-order.json",
+    "status": 200,
+    "match": true,
+    "sha256": "83fef9ad11b1042acc8be8f13929614fb8c3f6cdbeb56938b47a46892150bed8",
+    "expected": "83fef9ad11b1042acc8be8f13929614fb8c3f6cdbeb56938b47a46892150bed8"
+  },
+  {
+    "file": "cloud-app.bundle.js",
+    "status": 200,
+    "match": true,
+    "sha256": "6ca7be821524f3b872b01b377d7077af26316bcbe9f87ceec09cb34746f54b5f",
+    "expected": "6ca7be821524f3b872b01b377d7077af26316bcbe9f87ceec09cb34746f54b5f"
+  },
+  {
+    "file": "count-app.js",
+    "status": 200,
+    "match": true,
+    "sha256": "626dd79dd9b148959da1ef0143bc6cdf37ae44a1d37d7b58f36ff6faa0be7601",
+    "expected": "626dd79dd9b148959da1ef0143bc6cdf37ae44a1d37d7b58f36ff6faa0be7601"
+  },
+  {
+    "file": "index.html",
+    "status": 200,
+    "match": true,
+    "sha256": "94fdd616952426eabda240d40f5617fa6659f6f426e0d90c2c367af20c682678",
+    "expected": "94fdd616952426eabda240d40f5617fa6659f6f426e0d90c2c367af20c682678"
+  },
+  {
+    "file": "cloud-test/index.html",
+    "status": 200,
+    "match": true,
+    "sha256": "995f9f764ac23861eb6ebf0bd051d4e8e4e32ec60e9659be328326d5e127d3d7",
+    "expected": "995f9f764ac23861eb6ebf0bd051d4e8e4e32ec60e9659be328326d5e127d3d7"
+  },
+  {
+    "file": "redesign-preview/storage-cleanup.cjs",
+    "status": 200,
+    "match": true,
+    "sha256": "8a3dc67619e0c430f8cd670bcadcac3031ccee68702ad779c5d22743489c9d7e",
+    "expected": "8a3dc67619e0c430f8cd670bcadcac3031ccee68702ad779c5d22743489c9d7e"
+  }
+]

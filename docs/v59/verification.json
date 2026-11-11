@@ -833,5 +833,15 @@
     "Local WebKit could not launch due missing OS libraries; both engines freshly passed in independent CI",
     "First local browser attempt had missing executables; only subsequent actual results counted",
     "No blanket claim that every device or network condition is bug-free"
-  ]
+  ],
+  "publication": {
+    "codePublishCommit": "ea2e2e013b1f4d4d7af5599b7a06b7b0f0ba6d45",
+    "pagesRun": 43032320505,
+    "pagesConclusion": "success",
+    "verifiedAtUtc": "2026-11-11T13:48:43.040152+00:00",
+    "liveFilesMatched": 12,
+    "liveFilesChecked": 12,
+    "liveEvidence": "live-verification.json",
+    "note": "Follow-up evidence commit changes documentation only. No production orders or physical phone storage were changed."
+  }
 }
