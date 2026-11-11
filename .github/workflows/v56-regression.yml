@@ -25,6 +25,10 @@ jobs:
           node-version: '24'
       - run: npm ci
       - run: npm install --no-save playwright@1.56.1
+      - name: Use responsive Ubuntu package mirrors
+        run: |
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|http://security.ubuntu.com/ubuntu|https://security.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt /etc/apt/apt-mirrors-security.txt
+          printf 'Acquire::Retries "1";\nAcquire::http::Timeout "20";\nAcquire::https::Timeout "20";\n' | sudo tee /etc/apt/apt.conf.d/99-ccx-timeouts
       - run: timeout 300 npx playwright install --with-deps chromium webkit
       - run: CCX_PLAYWRIGHT_MODULE="$GITHUB_WORKSPACE/node_modules/playwright" python3 scripts/run-browser-regression.py
       - uses: actions/upload-artifact@v4
