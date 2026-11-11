@@ -35,20 +35,20 @@ test('only the final five soft drinks move, retaining each original Korean prima
 
 test('drink counting exposes only quantity cells and retains stable source indexes',()=>{
  const indices=Flow.visibleCountIndexes(source.products,'drinks',()=>true,-1);
- assert.deepEqual(indices,[137,138,139,140,141]);
+ assert.deepEqual(indices,[139,140,141,142,143]);
  assert.deepEqual(indices.map(i=>source.products[i].id),drinkIds);
  assert.ok(indices.every(i=>!source.products[i].hasStock));
  assert.ok(indices.every(i=>JSON.stringify(Flow.countFields(source.products[i]))==='["qty"]'));
- assert.deepEqual(Flow.visibleCountIndexes(source.products,'drinks',()=>false,139),[139]);
- assert.deepEqual(Flow.visibleCountIndexes(source.products,'other',()=>false,139),[],'active drink cannot leak into other goods');
+ assert.deepEqual(Flow.visibleCountIndexes(source.products,'drinks',()=>false,141),[141]);
+ assert.deepEqual(Flow.visibleCountIndexes(source.products,'other',()=>false,141),[],'active drink cannot leak into other goods');
 });
 
 test('supplier count navigation stops before drinks and ends after the final drink',()=>{
- assert.equal(source.products[136].id,'other:16');
- assert.deepEqual(Flow.advance(source.products,136),{stay:true,cat:'other',nextCat:'drinks'});
- assert.deepEqual(Flow.advance(source.products,137),{stay:false,index:138,cat:'drinks',nextCat:null});
- assert.deepEqual(Flow.advance(source.products,140),{stay:false,index:141,cat:'drinks',nextCat:null});
- assert.deepEqual(Flow.advance(source.products,141),{stay:true,cat:'drinks',nextCat:null});
+ assert.equal(source.products[138].id,'other:16');
+ assert.deepEqual(Flow.advance(source.products,138),{stay:true,cat:'other',nextCat:'drinks'});
+ assert.deepEqual(Flow.advance(source.products,139),{stay:false,index:140,cat:'drinks',nextCat:null});
+ assert.deepEqual(Flow.advance(source.products,142),{stay:false,index:143,cat:'drinks',nextCat:null});
+ assert.deepEqual(Flow.advance(source.products,143),{stay:true,cat:'drinks',nextCat:null});
  assert.equal(Flow.endLabel('other'),'其他商品盘完了 · 去饮料');
  assert.equal(Flow.endLabel('drinks'),'饮料盘完了 · 看今日订单');
 });
