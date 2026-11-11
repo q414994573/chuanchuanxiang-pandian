@@ -56,7 +56,17 @@ let orderStageWriting=false,orderTimer=null,orderFlight=null,orderBase=null,orde
 let orderObserved='',orderLocalRaw=null,orderLocalKey=null,orderLocalFailed=false,orderMutation=null;
 let peerEnabled=false,peerApi=null,peerBase=null,peerLatest=null,peerStop=null,peerViewing=true,peerFlight=null,peerConflict='',peerSavedBase=null,peerRestoreFlight=null;
 function peerDirty(){return !!peerBase&&draft?.id===peerBase.localId&&Shared.signature(draft)!==Shared.signature(peerBase.draft);}
-function peerKeepLocal(){if(draft)localStorage.setItem(KEY+':before-shared:'+Date.now(),JSON.stringify({draft,pos,field,peerBase}));}
+function peerKeepLocal(confirmed=null){
+ if(!draft)return;
+ // Only a fresh server read may make this extra copy redundant. newBlank
+ // archives that exact head atomically; stale peerBase is not proof of backup.
+ if(confirmed?.localId===draft.id&&Shared.signature(confirmed.draft)===Shared.signature(draft)&&JSON.stringify(confirmed.draft.catalog)===JSON.stringify(draft.catalog))return;
+ try{
+  localStorage.setItem(KEY+':before-shared:'+Date.now(),JSON.stringify({draft,pos,field,peerBase}));
+ }catch(e){
+  throw Error('本机存储空间不足或不可用，无法保留当前盘货备份；本次操作已暂停。请保留页面并下载备份，不要清除浏览器数据');
+ }
+}
 function peerLocalToken(){return JSON.stringify([Shared.signature(draft),editId,editRaw,Auto.values(order||{})]);}
 function peerReceive(record,force=false){
  if(record&&peerLatest&&record.revision<peerLatest.revision)return;
@@ -1760,14 +1770,17 @@ async function peerNewBlank(){
  if(!base)throw Error('尚未找到当前盘货，请先打开当前盘货');
  const message=base.stage==='draft'?'当前盘货还未定稿。新建后，这份草稿将保留在“历史资料 → 保留的未定稿盘货”，不会当作正式订单。':'当前已定稿订单会保留在历史订单中。';
  if(!confirm(base.date+' · 第 '+base.revision+' 版\n'+message+'\n你和老板娘将共同进入一份新的空白表；对方若有未上传内容，会先提示保留并核对。确定新建吗？'))return;
- peerKeepLocal();const next=Core().create(source,today(),uid());next.seen={};next.ackWrong={};
+ peerKeepLocal(base);const next=Core().create(source,today(),uid());next.seen={};next.ackWrong={};
  const flight={epoch};peerRestoreFlight=flight;
  try{
   const result=await peerApi.newBlank(next,base);if(epoch!==sessionEpoch)return;
   if(!peerLatest||result.revision>=peerLatest.revision)peerLatest=result;
   if(token!==peerLocalToken()){peerBase=null;cloudConflict=true;cloudPending=true;peerConflict='新建期间有新输入，已保留，请下载备份并核对';peerKeepLocal();saveLocalEnvelope();throw Error(peerConflict);}
   peerRestoreFlight=null;peerViewing=true;peerBase=null;order=null;peerSavedBase=null;peerArchivePage=null;peerArchiveDetail=null;keypad=false;textMode=false;editId=null;editRaw=null;
-  peerReceive(peerLatest);screen='count';query='';pos=0;field='stock';historyReplace(new URL(fixedEntryUrl()));render();toast('已打开新的共同盘货，原记录已保留');
+  peerReceive(peerLatest);
+  if(localSaveFailed)throw Error('云端已新建空白盘货，原记录已保留，但本机保存失败。请保留页面并下载备份，不要反复新建');
+  if(cloudConflict||draft?.id!==peerLatest?.localId)throw Error('云端已新建，但本机未能打开当前盘货；请保留页面并核对同步提示，不要反复新建');
+  screen='count';query='';pos=0;field='stock';historyReplace(new URL(fixedEntryUrl()));render();toast('已打开新的共同盘货，原记录已保留');
  }finally{if(peerRestoreFlight===flight)peerRestoreFlight=null;}
 }
 async function loadPeerArchives(more=false){
