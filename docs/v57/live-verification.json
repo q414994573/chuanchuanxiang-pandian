@@ -1,0 +1,74 @@
+[
+  {
+    "file": "ordering/index.html",
+    "match": true,
+    "sha256": "8e9b25171c772748119908bb65aab18023cf6fb12839a15d8b5fdef7153704c8",
+    "expected": "8e9b25171c772748119908bb65aab18023cf6fb12839a15d8b5fdef7153704c8"
+  },
+  {
+    "file": "redesign-preview/index.html",
+    "match": true,
+    "sha256": "e45f26b1dae46fb266d04a4a194d6f1459b73c9197bc8881996ef3b1ed2419ac",
+    "expected": "e45f26b1dae46fb266d04a4a194d6f1459b73c9197bc8881996ef3b1ed2419ac"
+  },
+  {
+    "file": "redesign-preview/preview.bundle.js",
+    "match": true,
+    "sha256": "c102b565e7eebfa5d829d0556971c514202bf7715ebe5b515ae6ff77b674fd49",
+    "expected": "c102b565e7eebfa5d829d0556971c514202bf7715ebe5b515ae6ff77b674fd49"
+  },
+  {
+    "file": "redesign-preview/preview.css",
+    "match": true,
+    "sha256": "60729f12fd1f7640b1e969f32194187f700a994bb33dd57772617c56f351c803",
+    "expected": "60729f12fd1f7640b1e969f32194187f700a994bb33dd57772617c56f351c803"
+  },
+  {
+    "file": "redesign-preview/aliases.json",
+    "match": true,
+    "sha256": "a51da6aff93719756a0558b3776f8a3208f4ae451e09e41a004d7088313eae06",
+    "expected": "a51da6aff93719756a0558b3776f8a3208f4ae451e09e41a004d7088313eae06"
+  },
+  {
+    "file": "count-core.js",
+    "match": true,
+    "sha256": "6402e55b5210176aabc095de0c6cf6ecc21e7ba895d7a990b99f4c4aeed2da7f",
+    "expected": "6402e55b5210176aabc095de0c6cf6ecc21e7ba895d7a990b99f4c4aeed2da7f"
+  },
+  {
+    "file": "current-order.json",
+    "match": true,
+    "sha256": "83fef9ad11b1042acc8be8f13929614fb8c3f6cdbeb56938b47a46892150bed8",
+    "expected": "83fef9ad11b1042acc8be8f13929614fb8c3f6cdbeb56938b47a46892150bed8"
+  },
+  {
+    "file": "cloud-app.bundle.js",
+    "match": true,
+    "sha256": "6ca7be821524f3b872b01b377d7077af26316bcbe9f87ceec09cb34746f54b5f",
+    "expected": "6ca7be821524f3b872b01b377d7077af26316bcbe9f87ceec09cb34746f54b5f"
+  },
+  {
+    "file": "count-app.js",
+    "match": true,
+    "sha256": "626dd79dd9b148959da1ef0143bc6cdf37ae44a1d37d7b58f36ff6faa0be7601",
+    "expected": "626dd79dd9b148959da1ef0143bc6cdf37ae44a1d37d7b58f36ff6faa0be7601"
+  },
+  {
+    "file": "index.html",
+    "match": true,
+    "sha256": "94fdd616952426eabda240d40f5617fa6659f6f426e0d90c2c367af20c682678",
+    "expected": "94fdd616952426eabda240d40f5617fa6659f6f426e0d90c2c367af20c682678"
+  },
+  {
+    "file": "cloud-test/index.html",
+    "match": true,
+    "sha256": "995f9f764ac23861eb6ebf0bd051d4e8e4e32ec60e9659be328326d5e127d3d7",
+    "expected": "995f9f764ac23861eb6ebf0bd051d4e8e4e32ec60e9659be328326d5e127d3d7"
+  },
+  {
+    "file": "catalog-v142.json",
+    "match": true,
+    "sha256": "0b35153b75ffbccfd098fb93f46e6f37d1d591846c7a65b98b3f1196b752dc4b",
+    "expected": "0b35153b75ffbccfd098fb93f46e6f37d1d591846c7a65b98b3f1196b752dc4b"
+  }
+]
