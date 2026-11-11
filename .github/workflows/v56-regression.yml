@@ -1,7 +1,7 @@
 name: v56 full regression
 on:
   push:
-    branches: [work/v56-four-products, work/v57-two-products, work/v58-storage-quota, work/storage-cleanup-v59]
+    branches: [work/v56-four-products, work/v57-two-products, work/v58-storage-quota, work/storage-cleanup-v59, work/security-dependencies-v60]
 permissions:
   contents: read
 jobs:
@@ -14,6 +14,7 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci
+      - run: npm audit --audit-level=low
       - run: node --test --test-timeout=120000 tests/*.test.cjs
   browser:
     runs-on: ubuntu-latest
