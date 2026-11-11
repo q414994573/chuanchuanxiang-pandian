@@ -55,6 +55,44 @@ const moreSections={};
 let orderStageWriting=false,orderTimer=null,orderFlight=null,orderBase=null,orderAutoBlocked=false,orderRetry=5000;
 let orderObserved='',orderLocalRaw=null,orderLocalKey=null,orderLocalFailed=false,orderMutation=null;
 let peerEnabled=false,peerApi=null,peerBase=null,peerLatest=null,peerStop=null,peerViewing=true,peerFlight=null,peerConflict='',peerSavedBase=null,peerRestoreFlight=null;
+let storagePlan=null,storageContext='',storageNotice='';
+function storageToken(){return JSON.stringify([sessionEpoch,localSerial,lastLocalRaw,peerLocalToken(),orderLocalKey,orderLocalRaw]);}
+function storageIdle(){
+ if(sample)throw Error('样例模式不清理本机记录');
+ if(peerFlight||peerRestoreFlight||cloudWriting||cloudReading||orderFlight||orderStageWriting||keypad||textMode||editId)throw Error('请先收起键盘，等待正在进行的保存完成，再检查本机空间');
+}
+function storageSize(n){return n>=1048576?(n/1048576).toFixed(2)+' MiB':(n/1024).toFixed(1)+' KiB';}
+function storageHtml(){
+ const info=storagePlan?Entry.storageCleanup.summary(storagePlan):null;
+ const details=info?`<p>找到旧副本 ${info.total} 份，约 ${storageSize(info.bytes)}。</p><p>可清理 ${info.removable} 份，约 ${storageSize(info.freeable)}：重复 ${info.duplicates} 份，云端完整存档 ${info.archived} 份。保留 ${info.retained} 份未确认可清理的记录。</p>${info.cloudUnavailable?'<p>部分云端存档未能核对，对应记录已保留；联网后可重新检查。</p>':''}`:'';
+ return toolSection('storage','本机空间清理',`<p>仅清理重复副本或已核对有完整云端存档的旧副本。当前盘货、未确认安全的记录、登录和设置保留。云端历史订单不删除。</p><p class="muted">容量按本机文字长度估算，不是手机剩余空间或浏览器总额度。</p>${details}<p role="status">${E(storageNotice)}</p><button type="button" class="ghost" data-act="storage-inspect">检查可清理空间</button>${info?.removable?'<button type="button" class="ghost" data-act="storage-clean">清理已核对的旧副本</button>':''}`);
+}
+async function inspectStorage(){
+ storageIdle();storagePlan=null;storageNotice='正在核对旧副本…';
+ moreSections.storage=true;render();
+ const token=storageToken();
+ const plan=Entry.storageCleanup.inspect(localStorage,{key:KEY,source,legacy:PRODUCTION,activeIds:[draft?.id,peerLatest?.localId,order?.id]});
+ await Entry.storageCleanup.verifyArchives(plan,source,peerEnabled&&peerApi&&member?async id=>peerApi.archive(C.cloudOrderId(id,MODE.test)):null);
+ if(token!==storageToken())throw Error('检查期间当前盘货发生变化，未删除任何记录，请重新检查');
+ storagePlan=plan;storageContext=token;
+ storageNotice=plan.candidates.length?'检查完成，可以清理下方已核对的副本。':'检查完成，暂未找到可以安全清理的副本。';
+ moreSections.storage=true;render();
+}
+function cleanStorage(){
+ storageIdle();
+ if(!storagePlan||storageContext!==storageToken())throw Error('当前盘货已变化，请重新检查可清理空间');
+ const info=Entry.storageCleanup.summary(storagePlan);if(!info.removable)return;
+ if(!confirm(`清理这部设备上已核对的 ${info.removable} 份旧副本，预计释放 ${storageSize(info.freeable)}？当前盘货、保留的完整副本和云端记录不变。`))return;
+ // Recheck after the dialog as well: another tab may have written meanwhile.
+ if(storageContext!==storageToken())throw Error('当前盘货已变化，请重新检查可清理空间');
+ const result=Entry.storageCleanup.execute(localStorage,storagePlan);
+ storagePlan=null;storageContext='';
+ storageNotice=`已清理 ${result.removed} 份旧副本，约释放 ${storageSize(result.bytes)}。`+(result.changed?`另有 ${result.changed} 份已变化，未删除。`:'')+(result.failed?`另有 ${result.failed} 份清理失败，已保留，请重新检查。`:'');
+ // Freeing space alone must not label pending edits as cloud-saved. Retry only
+ // the current local envelope, keeping the existing conflict/merge protections.
+ if(result.removed&&localSaveFailed&&!localBlocked&&!localConflict){try{saveLocalEnvelope();scheduleCloud();}catch(e){storageNotice+=' 当前盘货仍未保存成功，请保留页面并下载备份。';}}
+ moreSections.storage=true;render();toast(storageNotice);
+}
 function peerDirty(){return !!peerBase&&draft?.id===peerBase.localId&&Shared.signature(draft)!==Shared.signature(peerBase.draft);}
 function peerKeepLocal(confirmed=null){
  if(!draft)return;
@@ -1484,7 +1522,7 @@ function moreHtml(){
  const backupDraft=canCount()&&draft?`<p>这部手机上的盘货：${E(draft.date)}${completed?'（已复核的本机记录）':(peerEnabled?'（未定稿）':'（尚未提交）')}</p>${toolButton('保存这份盘货备份','backup-export','下载这部手机上的盘货记录，包括库存和订货数量。请将文件保存到手机；请同时核对云端同步状态。')}`:'';
  const backupOrder=order?`<p>当前打开的订单：${E(order.date)} · 第 ${order.revision} 版</p>${toolButton('保存这份订单备份','order-backup','下载当前打开的订单，包括尚未保存的修改。下载备份不会把修改上传云端。')}`:'';
  const restore=canCount()?`<label>选择之前保存的备份文件<input type="file" id="restoreFile" accept=".json,application/json"></label>${toolButton('从备份文件恢复','restore-file','将文件恢复成一份单独的盘货，需重新核对后提交。先保留当前盘货副本，不覆盖已有云端订单。')}`:'';
- const backups=!sample?toolSection('backup','数据备份与恢复',backupDraft+backupOrder+restore+(!draft&&!order?'<p>打开盘货或订单后，可以保存备份。</p>':'')):'';
+ const backups=!sample?toolSection('backup','数据备份与恢复',backupDraft+backupOrder+restore+(!draft&&!order?'<p>打开盘货或订单后，可以保存备份。</p>':''))+storageHtml():'';
  const historyTools=toolSection('history','历史资料',`<p>这里只查看以前确认的记录，不代表当前库存。新版云端订单请用上方“查订单”。</p>${toolButton('查看基准存档','pane','查看最初确认的历史订单快照，仅供查证，不会替换当前盘货。','data-pane="archive"')}${toolButton('查看旧历史档案','pane','查看原来保留的历史记录，不会改变当前订单。','data-pane="history"')}${peerEnabled&&canCount()?peerArchivesHtml():''}${['archive','history'].includes(morePane)?morePaneHtml():''}${legacy}`);
  const account=member?toolSection('account','账号设置',accountTools):'';
  const home=toolSection('home','添加到手机桌面','<p>iPhone：用 Safari 打开，选择分享 → 添加到主屏幕。安卓：在浏览器菜单中选择添加到主屏幕或安装应用。名称是“천천향 盘货”。如果在聊天软件里打开，请先转到手机浏览器。</p>');
@@ -1861,6 +1899,8 @@ document.body.addEventListener('click',async e=>{
   interactionFeedback.play(e);
   if(act==='feedback-test')return;
   if(act==='backup-export'){backupRecovery();return;}
+  if(act==='storage-inspect'){busy=true;await inspectStorage();return;}
+  if(act==='storage-clean'){cleanStorage();return;}
   if(act==='legacy-import'){busy=true;await importLegacy();return;}
   if(act==='order-backup'){downloadOrderBackup();return;}
   if(act==='restore-file'){busy=true;await restoreBackupFile(document.getElementById('restoreFile')?.files?.[0]);return;}

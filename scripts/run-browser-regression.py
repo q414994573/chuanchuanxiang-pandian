@@ -12,7 +12,7 @@ root = Path(os.environ.get('CCX_BROWSER_OUTPUT_ROOT', repo / 'test-output/browse
 root.mkdir(parents=True, exist_ok=True)
 suites = ['search-progress', 'speech-navigation', 'input-speech', 'search-hub',
           'mobile-workflow', 'mobile-layout', 'feedback', 'multi-search',
-          'count-search-screen', 'catalog-expansion', 'shipped-bundle', 'catalog-name-correction', 'storage-quota']
+          'count-search-screen', 'catalog-expansion', 'shipped-bundle', 'catalog-name-correction', 'storage-quota', 'storage-cleanup']
 engines = os.environ.get('CCX_BROWSER_ENGINES', 'chromium,webkit').split(',')
 if not engines or any(e not in ('chromium', 'webkit') for e in engines):
     raise SystemExit('Only chromium and webkit are supported')

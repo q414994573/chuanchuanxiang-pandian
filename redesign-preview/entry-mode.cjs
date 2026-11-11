@@ -11,4 +11,4 @@ function legacyDrafts(storage,source){
  }
  return rows.sort((a,b)=>String(b.draft.savedAt||'').localeCompare(String(a.draft.savedAt||'')));
 }
-module.exports={settings,orders,legacyDrafts};
+module.exports={settings,orders,legacyDrafts,storageCleanup:require('./storage-cleanup.cjs')};
