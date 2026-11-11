@@ -2,7 +2,7 @@
 const {test}=require('node:test'), assert=require('node:assert/strict');
 const Core=require('../count-core.js');
 const latest=require('../current-order.json');
-for(const source of [require('../catalog-legacy.json'),require('../catalog-v137.json'),require('../catalog-v138.json'),latest]){
+for(const source of [require('../catalog-legacy.json'),require('../catalog-v137.json'),require('../catalog-v138.json'),require('../catalog-v142.json'),latest]){
  const base=Core.create(source,'2026-11-04','count-recheck');
  for(const [i,p] of base.catalog.entries()){
   for(const kind of ['duplicate-id','missing-item','swap-position'])test(`all-generation corruption ${source.products.length} ${p.id} ${kind}`,()=>{

@@ -1,7 +1,7 @@
 name: v56 full regression
 on:
   push:
-    branches: [work/v56-four-products]
+    branches: [work/v56-four-products, work/v57-two-products]
 permissions:
   contents: read
 jobs:

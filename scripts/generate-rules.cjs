@@ -1,6 +1,6 @@
 const fs=require('fs');
 const products=JSON.parse(fs.readFileSync('current-order.json')).products;
-const versions=[products,JSON.parse(fs.readFileSync('catalog-v138.json')).products,JSON.parse(fs.readFileSync('catalog-v137.json')).products,JSON.parse(fs.readFileSync('catalog-legacy.json')).products];
+const versions=[products,JSON.parse(fs.readFileSync('catalog-v142.json')).products,JSON.parse(fs.readFileSync('catalog-v138.json')).products,JSON.parse(fs.readFileSync('catalog-v137.json')).products,JSON.parse(fs.readFileSync('catalog-legacy.json')).products];
 const stockPattern='(~|[0-9]{1,36}([.][0-9]{1,3})?|)';
 function stockRegex(rows){const runs=[];for(const p of rows.slice().sort((a,b)=>a.id.localeCompare(b.id))){const pattern=p.hasStock?stockPattern:'~';if(runs.at(-1)?.pattern===pattern)runs.at(-1).count++;else runs.push({pattern,count:1});}return runs.map(r=>r.pattern+(r.count>1?'(,'+r.pattern+'){'+(r.count-1)+'}':'')).join(',');}
 const production=versions.map(rows=>`(d.units.size() == ${rows.length} && d.units.keys().hasOnly(${JSON.stringify(rows.map(p=>p.id))}) && d.quantities.matches('^(0|[1-9][0-9]{0,8}|1000000000)(,(0|[1-9][0-9]{0,8}|1000000000)){${rows.length-1}}$'))`).join(' || ');

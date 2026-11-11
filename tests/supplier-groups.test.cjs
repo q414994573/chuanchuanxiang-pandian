@@ -13,9 +13,9 @@ const drinkIds=['other:18','other:19','other:20','other:21','other:22'];
 test('supplier split covers all 129 original IDs exactly once without rewriting their catalog',()=>{
  const before=JSON.stringify(source);
  const groups=Object.fromEntries(Flow.CATS.map(([id])=>[id,source.products.filter(p=>Flow.catOf(p)===id)]));
- assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([id,rows])=>[id,rows.length])),{kr:51,cn:73,other:13,drinks:5});
+ assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([id,rows])=>[id,rows.length])),{kr:51,cn:75,other:13,drinks:5});
  const combined=Object.values(groups).flat();
- assert.equal(combined.length,142);assert.equal(new Set(combined.map(p=>p.id)).size,142);
+ assert.equal(combined.length,144);assert.equal(new Set(combined.map(p=>p.id)).size,144);
  assert.deepEqual(combined.map(p=>p.id),source.products.map(p=>p.id));
  assert.deepEqual(groups.drinks.map(p=>p.id),drinkIds);
  assert.ok(groups.drinks.every(p=>p.cat==='other'&&p.category==='其他商品'));
@@ -58,17 +58,17 @@ test('search counts and automatic supplier selection send soft-drink results to 
  assert.deepEqual(counts,{kr:0,cn:0,other:0,drinks:2});
  assert.equal(Flow.searchCatChoice(counts,'other'),'drinks');
  assert.equal(Flow.searchCatChoice(counts,'drinks'),'drinks');
- assert.deepEqual(Flow.searchHitCounts(source.products,()=>true),{kr:51,cn:73,other:13,drinks:5});
+ assert.deepEqual(Flow.searchHitCounts(source.products,()=>true),{kr:51,cn:75,other:13,drinks:5});
  assert.equal(Flow.searchCatChoice({kr:0,cn:0,other:0,drinks:0},'drinks'),'drinks');
  assert.equal(Flow.searchCatChoice({kr:0,cn:0,other:2,drinks:2},'kr'),'other','ties preserve supplier order');
 });
 
 test('printed catalog contains four supplier blocks with original ordering, names and order units',()=>{
  const before=JSON.stringify(source),rows=Flow.sheetRows(source.products);
- assert.equal(rows.length,142);assert.deepEqual(rows.map(r=>r.n),Array.from({length:142},(_,i)=>i+1));
+ assert.equal(rows.length,144);assert.deepEqual(rows.map(r=>r.n),Array.from({length:144},(_,i)=>i+1));
  assert.deepEqual(rows.map(r=>r.large),source.products.map(p=>p.name));
  assert.deepEqual(rows.map(r=>r.unit),source.products.map(p=>p.unit??''));
- assert.deepEqual(Object.fromEntries(Flow.CATS.map(([, , name])=>[name,rows.filter(r=>r.block===name).length])),{'韩国食品':51,'中国食品':73,'其他商品':13,'饮料':5});
+ assert.deepEqual(Object.fromEntries(Flow.CATS.map(([, , name])=>[name,rows.filter(r=>r.block===name).length])),{'韩国食品':51,'中国食品':75,'其他商品':13,'饮料':5});
  assert.equal(JSON.stringify(source),before);
 });
 
@@ -108,7 +108,7 @@ test('five drink quantities still submit under original stable IDs and survive c
  drinkIds.forEach((id,i)=>{Core.edit(d,id,'quantity',String(i+1));Core.finish(d,id);});
  d.status='reviewed';
  const payload=JSON.parse(JSON.stringify(Cloud.submission(d,Core,source)));
- assert.equal(Object.keys(payload.quantities).length,142);
+ assert.equal(Object.keys(payload.quantities).length,144);
  assert.deepEqual(drinkIds.map(id=>payload.quantities[id]),[1000,2000,3000,4000,5000]);
  assert.ok(drinkIds.every(id=>payload.units[id]==='박스'));
  const snapshot=JSON.parse(payload.snapshot);

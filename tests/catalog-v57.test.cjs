@@ -1,0 +1,3 @@
+const {test}=require('node:test'),a=require('node:assert/strict'),s=require('../current-order.json'),old=require('../catalog-v142.json'),S=require('../redesign-preview/search.cjs');
+test('v57 keeps old142 byte values and order',()=>a.deepEqual(s.products.filter(p=>!['cn:92','cn:93'].includes(p.id)),old.products));
+for(const [id,anchor,name,cn] of [['cn:92','cn:45','곤약말이','魔芋结'],['cn:93','cn:55','날치알복주머니','飞鱼籽福袋']])test('v57 exact position name unit and bilingual search '+id,()=>{const i=s.products.findIndex(p=>p.id===id),p=s.products[i];a.equal(s.products[i-1].id,anchor);a.equal(p.name,name+'（'+cn+'）');a.equal(p.unit,'봉');a.equal(p.cat,'cn');a.equal(p.stock,null);a.equal(p.order,null);for(const q of [name,cn])a(S.createIndex(s.products).find(q).has(id));});
