@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-11-11T11:51:11.987917+00:00",
+  "pagesRun": 43015185227,
+  "files": [
+    {
+      "file": "ordering/index.html",
+      "match": true,
+      "sha256": "cbcd5626c5ca0c16c00dadaea69815f0b0a9c80537a677e3c390a9a55e7e9af4",
+      "expected": "cbcd5626c5ca0c16c00dadaea69815f0b0a9c80537a677e3c390a9a55e7e9af4"
+    },
+    {
+      "file": "redesign-preview/index.html",
+      "match": true,
+      "sha256": "bd52a4704b6291a890b2030bb85f9a5034c1252a167654c091f3559fc3ac4274",
+      "expected": "bd52a4704b6291a890b2030bb85f9a5034c1252a167654c091f3559fc3ac4274"
+    },
+    {
+      "file": "redesign-preview/preview.bundle.js",
+      "match": true,
+      "sha256": "ae199904404c22d9f21678a17eb8fdccea261cc1687645552069dcf6c8f7738d",
+      "expected": "ae199904404c22d9f21678a17eb8fdccea261cc1687645552069dcf6c8f7738d"
+    },
+    {
+      "file": "count-core.js",
+      "match": true,
+      "sha256": "6402e55b5210176aabc095de0c6cf6ecc21e7ba895d7a990b99f4c4aeed2da7f",
+      "expected": "6402e55b5210176aabc095de0c6cf6ecc21e7ba895d7a990b99f4c4aeed2da7f"
+    },
+    {
+      "file": "current-order.json",
+      "match": true,
+      "sha256": "83fef9ad11b1042acc8be8f13929614fb8c3f6cdbeb56938b47a46892150bed8",
+      "expected": "83fef9ad11b1042acc8be8f13929614fb8c3f6cdbeb56938b47a46892150bed8"
+    }
+  ]
+}
