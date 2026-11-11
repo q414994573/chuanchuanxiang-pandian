@@ -25,7 +25,7 @@ jobs:
           node-version: '24'
       - run: npm ci
       - run: npm install --no-save playwright@1.56.1
-      - run: npx playwright install --with-deps chromium webkit
+      - run: timeout 300 npx playwright install --with-deps chromium webkit
       - run: CCX_PLAYWRIGHT_MODULE="$GITHUB_WORKSPACE/node_modules/playwright" python3 scripts/run-browser-regression.py
       - uses: actions/upload-artifact@v4
         if: always()
