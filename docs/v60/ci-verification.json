@@ -435,5 +435,12 @@
       "PASS 144 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
       "PASS 144 products editor: create, all added rows save/read, zero stock, finalize lock and reopen"
     ]
+  },
+  "publication": {
+    "commit": "fea489f5a76cd0a6ddf98a628e116f619f969bf7",
+    "pagesRun": 43125330399,
+    "pagesConclusion": "success",
+    "liveFilesMatched": 12,
+    "liveFilesChecked": 12
   }
 }
