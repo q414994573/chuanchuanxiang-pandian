@@ -440,8 +440,14 @@
     "expectedNegativeExpressionWarningLines": 8
   },
   "publication": {
-    "published": false,
-    "reason": "Firebase publishing access unavailable; main not changed."
+    "published": true,
+    "commit": "3db9d454ac520b5352ed38cfbb867b9f81299409",
+    "pagesRun": 43669832195,
+    "pagesConclusion": "success",
+    "liveFilesMatched": 12,
+    "liveFilesTotal": 12,
+    "rulesSha256": "9d61e20801d0d22c3f565055afe01cf4cb4223457231566bcd83b840eaa461f9",
+    "rulesReadBackAfterReload": true
   },
   "browserFinal": {
     "totalDistinctCases": 1338,
