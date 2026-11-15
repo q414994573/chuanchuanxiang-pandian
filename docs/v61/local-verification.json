@@ -1,0 +1,37 @@
+{
+  "candidateCommit": "b4095b403524b59be77c806fa051701c12515875",
+  "published": false,
+  "node": {
+    "tests": 15559,
+    "passed": 15559,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 117105.742285,
+    "dependencyNote": "Local Node run used existing installed dependencies. The independent CI npm ci run verifies the updated lockfile dependencies."
+  },
+  "localCatalogCloud": {
+    "passLines": [
+      "PASS 129 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
+      "PASS 129 products editor: create, all added rows save/read, zero stock, finalize lock and reopen",
+      "PASS 137 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
+      "PASS 137 products editor: create, all added rows save/read, zero stock, finalize lock and reopen",
+      "PASS 138 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
+      "PASS 138 products editor: create, all added rows save/read, zero stock, finalize lock and reopen",
+      "PASS 142 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
+      "PASS 142 products editor: create, all added rows save/read, zero stock, finalize lock and reopen",
+      "PASS 144 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
+      "PASS 144 products editor: create, all added rows save/read, zero stock, finalize lock and reopen",
+      "PASS 146 products owner: create, all added rows save/read, zero stock, finalize lock and reopen",
+      "PASS 146 products editor: create, all added rows save/read, zero stock, finalize lock and reopen"
+    ],
+    "exitCode": 0
+  },
+  "sourceHashes": {
+    "count-core.js": "f876ce50c55be083bf19017dbaca2f579818db1ded3a5ab133ed515de45c593e",
+    "current-order.json": "53aef9ff75fd9636c771f01b8e3cc0c825983b46227248ebc0248c0d31a15e6b",
+    "redesign-preview/preview.js": "193bbab0d4cbb0b842f1a0f5fbf64cfd94a7c2d8f40709df28b44cafb8622d9c",
+    "redesign-preview/preview.bundle.js": "aec082931206c9e8d5193eec4a56d74e152605a09e54409835d115967a7ea270",
+    "firestore.rules": "9d61e20801d0d22c3f565055afe01cf4cb4223457231566bcd83b840eaa461f9",
+    "package-lock.json": "a06bca7d61a2d82d2c9de948602f48bb1bc95c0be70954cf14f0c68e95901a2b"
+  }
+}

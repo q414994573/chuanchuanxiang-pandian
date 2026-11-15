@@ -1,0 +1,32 @@
+name: v61 shipped bundle recheck
+on:
+  push:
+    branches: [work/v61-boot-recheck]
+permissions:
+  contents: read
+jobs:
+  boot:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm install --no-save playwright@1.56.1
+      - name: Check unchanged application sources
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          node -e 'const fs=require("fs"),c=require("crypto"),a=require("assert/strict"),proof=JSON.parse(fs.readFileSync("docs/v61/local-verification.json")); for(const [p,h] of Object.entries(proof.sourceHashes))a.equal(c.createHash("sha256").update(fs.readFileSync(p)).digest("hex"),h,p); console.log("PASS same application sources as full regression");'
+      - name: Chromium shipped bundle
+        run: CCX_PLAYWRIGHT_MODULE="$GITHUB_WORKSPACE/node_modules/playwright" CCX_BROWSER_ENGINE=chromium CCX_BROWSER_OUTPUT="$GITHUB_WORKSPACE/test-output/boot-recheck/chromium" node tests/shipped-bundle.browser.cjs
+      - name: WebKit shipped bundle
+        if: always()
+        run: CCX_PLAYWRIGHT_MODULE="$GITHUB_WORKSPACE/node_modules/playwright" CCX_BROWSER_ENGINE=webkit CCX_BROWSER_OUTPUT="$GITHUB_WORKSPACE/test-output/boot-recheck/webkit" node tests/shipped-bundle.browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: boot-recheck
+          path: test-output/boot-recheck
