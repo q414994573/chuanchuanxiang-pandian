@@ -36,8 +36,10 @@
   art.addEventListener('error', dismiss, {once:true});
   if (art.complete) { if (art.naturalWidth) loaded(); else dismiss(); }
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) dismiss();
-  // CSS fades out at 2.4s and hides at 3s even if this script is unavailable.
-  welcome.addEventListener('animationend', dismiss, {once:true});
+  // Child animation events must never dismiss the parent before the 3s deadline.
+  welcome.addEventListener('animationend', event => {
+    if (event.target === welcome && event.animationName === 'ccx-welcome-exit') dismiss();
+  });
   setTimeout(dismiss, 3050);
   document.addEventListener('visibilitychange', () => { if (document.hidden) dismiss(); });
   window.addEventListener('pageshow', event => { if (event.persisted) dismiss(); });

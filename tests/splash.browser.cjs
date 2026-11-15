@@ -13,10 +13,10 @@ const html=fs.readFileSync(path.join(root,'ordering/index.html'),'utf8');
    const url=new URL(route.request().url());
    if(url.pathname==='/ordering/')return route.fulfill({contentType:'text/html',body:html});
    if(url.pathname==='/ordering/splash.js')return route.fulfill({contentType:'text/javascript',body:mode==='missing-script'?'':fs.readFileSync(path.join(root,'ordering/splash.js'),'utf8')});
-   if(url.pathname.endsWith('welcome-v63.png')){
+   if(url.pathname.endsWith('emblem-v65.png')){
     if(mode==='failed-image')return route.abort();
     if(mode==='slow-image'){await new Promise(r=>setTimeout(r,1700));}
-    return route.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(root,'ordering/assets/welcome-v63.png'))});
+    return route.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(root,'ordering/assets/emblem-v65.png'))});
    }
    if(url.pathname.endsWith('preview.bundle.js'))return route.fulfill({contentType:'text/javascript',body:`localStorage.setItem('splash-test-order','unchanged');setTimeout(()=>{document.getElementById('app').innerHTML='<button style="position:fixed;inset:0" id="fixture-action">测试盘货按钮</button>';document.getElementById('fixture-action').onclick=()=>window.clicked=(window.clicked||0)+1;},${mode==='slow-app'?1800:100});`});
    return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'text/javascript',body:''});
@@ -27,9 +27,15 @@ const html=fs.readFileSync(path.join(root,'ordering/index.html'),'utf8');
     await page.waitForFunction(()=>document.querySelector('#ccx-welcome')?.classList.contains('art-ready'));
     const box=await page.locator('#ccx-welcome').boundingBox();assert.equal(box.width,width);assert.equal(box.height,844);
     assert.equal(await page.locator('#ccx-welcome').getAttribute('role'),'button');
-    assert.equal(await page.locator('.welcome-fallback').evaluate(e=>getComputedStyle(e).visibility),'hidden');
+    assert.equal(await page.locator('.welcome-title').innerText(),'川川香');
+    assert.ok(!(await page.locator('#ccx-welcome').innerText()).includes('订货总控台'));
+    assert.equal(await page.locator('.welcome-emblem').evaluate(e=>getComputedStyle(e).animationDuration),'1s');
     await page.waitForTimeout(650);
-    if(width===390)await page.screenshot({path:path.join(output,'welcome.png')});
+    if(width===390){
+     await page.screenshot({path:path.join(output,'welcome.png')});
+     await page.evaluate(()=>{const child=document.querySelector('.welcome-emblem');child.dispatchEvent(new AnimationEvent('animationend',{bubbles:true,animationName:'ccx-emblem-in'}));});
+     assert.equal(await page.locator('#ccx-welcome').count(),1,'child animation end must not dismiss opening');
+    }
    }
    if(mode==='return')await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));
    if(['mouse-skip','touch-skip','held-expiry','keyboard-skip'].includes(mode)){
