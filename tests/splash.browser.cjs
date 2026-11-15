@@ -27,6 +27,8 @@ const html=fs.readFileSync(path.join(root,'ordering/index.html'),'utf8');
     await page.waitForFunction(()=>document.querySelector('#ccx-welcome')?.classList.contains('art-ready'));
     const box=await page.locator('#ccx-welcome').boundingBox();assert.equal(box.width,width);assert.equal(box.height,844);
     assert.equal(await page.locator('#ccx-welcome').getAttribute('aria-hidden'),'true');
+    assert.equal(await page.locator('.welcome-fallback').evaluate(e=>getComputedStyle(e).visibility),'hidden');
+    await page.waitForTimeout(180);
     if(width===390)await page.screenshot({path:path.join(output,'welcome.png')});
    }
    if(mode==='return')await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));
