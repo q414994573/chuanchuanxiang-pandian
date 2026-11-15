@@ -1,0 +1,124 @@
+{
+  "engine": "chromium",
+  "cases": [
+    {
+      "name": "shipped production bundle boots to login and preserves saved local draft",
+      "pass": true,
+      "blockedOrigins": [],
+      "requests": [
+        {
+          "path": "/ordering/",
+          "method": "GET"
+        },
+        {
+          "path": "/redesign-preview/preview.css",
+          "method": "GET"
+        },
+        {
+          "path": "/count-core.js",
+          "method": "GET"
+        },
+        {
+          "path": "/redesign-preview/preview.bundle.js",
+          "method": "GET"
+        },
+        {
+          "path": "/ordering/firebase-config.json",
+          "method": "GET"
+        },
+        {
+          "path": "/current-order.json",
+          "method": "GET"
+        },
+        {
+          "path": "/redesign-preview/aliases.json",
+          "method": "GET"
+        },
+        {
+          "path": "/order-archives/index.json",
+          "method": "GET"
+        },
+        {
+          "path": "/order-archives/2026-10-18.json",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "name": "missing cloud config locks production entry and preserves original local bytes",
+      "pass": true,
+      "blockedOrigins": [],
+      "requests": [
+        {
+          "path": "/ordering/",
+          "method": "GET"
+        },
+        {
+          "path": "/redesign-preview/preview.css",
+          "method": "GET"
+        },
+        {
+          "path": "/count-core.js",
+          "method": "GET"
+        },
+        {
+          "path": "/redesign-preview/preview.bundle.js",
+          "method": "GET"
+        },
+        {
+          "path": "/ordering/firebase-config.json",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "name": "136-product catalog refuses startup and preserves original local bytes",
+      "pass": false,
+      "error": "page.waitForFunction: Timeout 10000ms exceeded.\n    at /__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/tests/shipped-bundle.browser.cjs:37:33"
+    },
+    {
+      "name": "malformed alias response fails safely without overwriting local draft",
+      "pass": true,
+      "blockedOrigins": [],
+      "requests": [
+        {
+          "path": "/ordering/",
+          "method": "GET"
+        },
+        {
+          "path": "/redesign-preview/preview.css",
+          "method": "GET"
+        },
+        {
+          "path": "/count-core.js",
+          "method": "GET"
+        },
+        {
+          "path": "/redesign-preview/preview.bundle.js",
+          "method": "GET"
+        },
+        {
+          "path": "/ordering/firebase-config.json",
+          "method": "GET"
+        },
+        {
+          "path": "/current-order.json",
+          "method": "GET"
+        },
+        {
+          "path": "/redesign-preview/aliases.json",
+          "method": "GET"
+        }
+      ]
+    }
+  ],
+  "sourceInputs": {
+    "ordering/index.html": "6ddfe28c4d97c19880d8b0167455832f29ac6277a6ddbaa739f18fa1a23b12cb",
+    "redesign-preview/preview.bundle.js": "aec082931206c9e8d5193eec4a56d74e152605a09e54409835d115967a7ea270",
+    "count-core.js": "f876ce50c55be083bf19017dbaca2f579818db1ded3a5ab133ed515de45c593e",
+    "current-order.json": "53aef9ff75fd9636c771f01b8e3cc0c825983b46227248ebc0248c0d31a15e6b"
+  },
+  "passed": 3,
+  "failed": 1,
+  "pageErrors": []
+}
