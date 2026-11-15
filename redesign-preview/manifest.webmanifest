@@ -7,6 +7,17 @@
   "background_color": "#f3f0ee",
   "theme_color": "#bb1827",
   "icons": [
-    {"src": "logo.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any"}
+    {
+      "src": "../ordering/assets/icons/icon-192-v67.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../ordering/assets/icons/icon-512-v67.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }
