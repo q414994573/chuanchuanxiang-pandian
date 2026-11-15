@@ -30,6 +30,7 @@ const html=fs.readFileSync(path.join(root,'ordering/index.html'),'utf8');
     assert.equal(await page.locator('.welcome-title').innerText(),'川川香');
     assert.ok(!(await page.locator('#ccx-welcome').innerText()).includes('订货总控台'));
     assert.equal(await page.locator('.welcome-emblem').evaluate(e=>getComputedStyle(e).animationDuration),'1s');
+    assert.equal(await page.locator('.welcome-brand').evaluate(e=>getComputedStyle(e).mixBlendMode),'screen','blend at transformed parent avoids black backplate');
     await page.waitForTimeout(650);
     if(width===390){
      await page.screenshot({path:path.join(output,'welcome.png')});
