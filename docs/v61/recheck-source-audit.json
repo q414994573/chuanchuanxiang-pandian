@@ -1,0 +1,10 @@
+{
+  "baseline": "7b04376317eacf79d960ca613234db7ad7273a83",
+  "checks": {
+    "count-core.js": true,
+    "redesign-preview/preview.js": true,
+    "firestore.rules": true
+  },
+  "checkedUtc": "2026-11-15T03:06:12.363669+00:00",
+  "note": "count-core.js changes only add catalog146 support; preview.js changes only boot catalog count/message; Firestore lines outside production/inventory catalog shapes and draft position bound are identical. Existing permissions unchanged."
+}
