@@ -1,0 +1,34 @@
+{
+  "current-order.json": {
+    "unchanged": true,
+    "sha256": "314e01968e843af01bc56e59ad82f86686882374f15f1d9f697a55c610b45a99"
+  },
+  "count-core.js": {
+    "unchanged": true,
+    "sha256": "eef9f0a60c3c2684fc460cb7847fb7b3ccf971b362b5298b97942fb842d738e9"
+  },
+  "firestore.rules": {
+    "unchanged": true,
+    "sha256": "a69f4a8addb01ae2a5bb9d3c5c58e46d8fcb78ad81a3cd11a98b7b1df3abacbc"
+  },
+  "redesign-preview/preview.js": {
+    "unchanged": true,
+    "sha256": "4ea263893192296077753d38e48536ed9b93f6e8fb8d71d43b1d0ca712768afe"
+  },
+  "redesign-preview/preview.bundle.js": {
+    "unchanged": true,
+    "sha256": "35f2ada9803443246b843615b5363b04dc57faf6ff5f7d51a44ce09dc10e77af"
+  },
+  "redesign-preview/preview.css": {
+    "unchanged": true,
+    "sha256": "60729f12fd1f7640b1e969f32194187f700a994bb33dd57772617c56f351c803"
+  },
+  "ordering/manifest.webmanifest": {
+    "unchanged": true,
+    "sha256": "258638b9e5642561147737b842325f56e45236465a684b2ea7048a596e65ee19"
+  },
+  "redesign-preview/logo.jpg": {
+    "unchanged": true,
+    "sha256": "08521f3840e0934de819f54989589e08aae26798785a6ce6d7b230add169ebf9"
+  }
+}
