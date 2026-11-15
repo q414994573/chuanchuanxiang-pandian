@@ -1,0 +1,26 @@
+{
+  "baseline": "7b04376317eacf79d960ca613234db7ad7273a83",
+  "coreFunctions": {
+    "displayName": "c0a19ff1353fea0ef5b521e302e878fe078a7022e1235b2fb96245212d420d55",
+    "clone": "44a77764c801b57585d4fa52ef19356ba14dda43091f4fbc946a1626188e261b",
+    "number": "f051e695a1533947b64dbaca4a301eba54293af9a4c3020a3af88a70db9dc61c",
+    "special": "079932a3ff867bec502cf63a10b125318a5c44d382e70eb76b14fb267888c48e",
+    "create": "866fee6254bce53b143bfcd63764ab8a457ddcfa89b6e73308c3dc9a7e42f99e",
+    "warnings": "97dfe33df2e49490159d7a8d33eeb891610aad3610510566f66e2ad135492168",
+    "problems": "846862e584b735f20e705921781e75850614c60453929453d3d1a0f13c3ad4ec",
+    "complete": "50db74447dda6b81f5e1c879d05c1bc478052aac75a3dd260748f7816e560269",
+    "edit": "27e8b702fd26a799ca1f14c2cbc9c97f18371e71029b4716f2aecdd17ea2083d",
+    "finish": "46615c2943dfd94f07a717c1a8fdea5c629b7d74799092774f15e1a583eda3b6",
+    "orders": "cbe1dd6ae7e03ce366c7d2f7645bb9d9eb9082d4ba8cb003d9ab88904aa18637",
+    "orderText": "a7f0b913fe07ed7d9f5007b2337168300a240b71c59c1b986dccca6d3954772a"
+  },
+  "unchangedFiles": {
+    "cloud/core.cjs": "6d40167b4f1aa418175dfa1b3905263d30998a0ab2f10b064b160a04d661d94b",
+    "cloud/app.js": "926a9788e0f840493d5d77d52fea7e3cd6af7916ec852e3e6944ab42d46b7c0d",
+    "cloud-app.bundle.js": "dc9b074ddc120aef59843b0217b07fb23bd9285569d999e83ae061ace6e62c22",
+    "redesign-preview/count-flow.cjs": "325f3d2facaf663162a7d545b7b932b06bbd591a2d0d30db514ab9fbde65babd",
+    "redesign-preview/search.cjs": "30f7b3fd6a9797f00778a8a0a35ae748dd8ccabf687fd3cc97a429b1950a7989",
+    "count-app.js": "626dd79dd9b148959da1ef0143bc6cdf37ae44a1d37d7b58f36ff6faa0be7601",
+    "redesign-preview/aliases.json": "a51da6aff93719756a0558b3776f8a3208f4ae451e09e41a004d7088313eae06"
+  }
+}
