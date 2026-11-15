@@ -3,7 +3,7 @@
 const fs=require('node:fs'),path=require('node:path');
 let fixture=fs.readFileSync(path.join(__dirname,'mobile-layout.browser.cjs'),'utf8').split('const report={baseline,')[0];
 fixture=fixture.replace(' state(){return',' tab(value){screen=value;render();},\n state(){return');
-for(const file of ['ordering/index.html','redesign-preview/index.html']){const html=fs.readFileSync(path.join(__dirname,'..',file),'utf8');require('node:assert/strict').match(html,/<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">/);}
+for(const file of ['ordering/index.html','redesign-preview/index.html']){const html=fs.readFileSync(path.join(__dirname,'..',file),'utf8');require('node:assert/strict').doesNotMatch(html,/apple-mobile-web-app-status-bar-style/);}
 const run=String.raw`
 (async()=>{
  const browser=await playwright[process.env.CCX_BROWSER_ENGINE||'chromium'].launch();let passed=0;
@@ -12,6 +12,12 @@ const run=String.raw`
  await page.route('**/*',r=>r.request().url()==='https://fixture.invalid/redesign-preview/'?r.fulfill({contentType:'text/html',body:html}):r.request().url().includes('overlay-relief-v70.png')?r.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(repo,'ordering/assets/overlay-relief-v70.png'))}):r.abort());
  await page.goto('https://fixture.invalid/redesign-preview/');
  await page.evaluate(m=>window.__ccx.setup('owner',m),mode);
+ const colors=()=>page.evaluate(()=>[getComputedStyle(document.documentElement).backgroundColor,getComputedStyle(document.body).backgroundColor]);
+ const normalColors=await colors();assert.equal(normalColors[0],'rgb(187, 24, 39)');
+ await page.evaluate(()=>{const e=document.createElement('div');e.id='ccx-welcome';document.body.append(e);});
+ assert.deepEqual(await colors(),['rgb(168, 0, 28)','rgb(168, 0, 28)']);
+ await page.evaluate(()=>document.getElementById('ccx-welcome').remove());assert.deepEqual(await colors(),normalColors);
+
  await page.evaluate(()=>document.documentElement.style.setProperty('--safe-top','59px'));
  const safe=await page.evaluate(()=>({padding:getComputedStyle(document.querySelector('.banner')).paddingTop,bar:document.querySelector('.bar')&&getComputedStyle(document.querySelector('.bar')).top}));
  assert.equal(safe.padding,'66px');if(safe.bar)assert.equal(safe.bar,'117px');

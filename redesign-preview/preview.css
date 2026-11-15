@@ -250,3 +250,7 @@ body.key-open::before,body.text-mode::before,body.order-search::before{display:n
 
 /* Keep the standalone status area red, including the separate search screen. */
 .search-hub-bar{background:linear-gradient(to bottom,var(--red) 0,var(--red) var(--safe-top),#fff var(--safe-top),#fff 100%)}
+
+/* Native status-bar color sampling must see red, not the gray canvas. */
+html{background:#bb1827}
+html:has(#ccx-welcome),body:has(>#ccx-welcome){background:#a8001c}
