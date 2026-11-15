@@ -1,0 +1,30 @@
+name: v68 footer visual verification
+on:
+  push:
+    branches: [work/v68-footer]
+permissions:
+  contents: read
+jobs:
+  footer:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm install --no-save playwright@1.56.1
+      - run: node tests/footer-relief.browser.cjs
+        env:
+          CCX_BROWSER_ENGINE: ${{ matrix.engine }}
+          CCX_BROWSER_OUTPUT: test-output/footer
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: footer-${{ matrix.engine }}
+          path: test-output/footer
