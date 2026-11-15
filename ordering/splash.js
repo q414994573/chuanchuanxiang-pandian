@@ -36,11 +36,11 @@
   art.addEventListener('error', dismiss, {once:true});
   if (art.complete) { if (art.naturalWidth) loaded(); else dismiss(); }
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) dismiss();
-  // Child animation events must never dismiss the parent before the 3s deadline.
+  // Child animation events must never dismiss the parent before the 5s deadline.
   welcome.addEventListener('animationend', event => {
     if (event.target === welcome && event.animationName === 'ccx-welcome-exit') dismiss();
   });
-  setTimeout(dismiss, 3050);
+  setTimeout(dismiss, 5050);
   document.addEventListener('visibilitychange', () => { if (document.hidden) dismiss(); });
   window.addEventListener('pageshow', event => { if (event.persisted) dismiss(); });
 })();

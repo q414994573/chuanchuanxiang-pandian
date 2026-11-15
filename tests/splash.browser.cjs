@@ -28,10 +28,11 @@ const html=fs.readFileSync(path.join(root,'ordering/index.html'),'utf8');
     const box=await page.locator('#ccx-welcome').boundingBox();assert.equal(box.width,width);assert.equal(box.height,844);
     assert.equal(await page.locator('#ccx-welcome').getAttribute('role'),'button');
     assert.equal(await page.locator('.welcome-title').innerText(),'川川香');
-    assert.ok(!(await page.locator('#ccx-welcome').innerText()).includes('订货总控台'));
-    assert.equal(await page.locator('.welcome-emblem').evaluate(e=>getComputedStyle(e).animationDuration),'1s');
+    assert.equal((await page.locator('#ccx-welcome').innerText()).replace(/\s/g,''),'川川香轻点跳过');
+    assert.deepEqual(await page.locator('#ccx-welcome').evaluate(e=>{const s=getComputedStyle(e);return [s.animationDuration,s.animationDelay];}),['2s','3s']);
+    assert.equal(await page.locator('.welcome-emblem').evaluate(e=>getComputedStyle(e).animationDuration),'2s');
     assert.equal(await page.locator('.welcome-brand').evaluate(e=>getComputedStyle(e).mixBlendMode),'screen','blend at transformed parent avoids black backplate');
-    await page.waitForTimeout(650);
+    await page.waitForTimeout(2200);
     if(width===390){
      await page.screenshot({path:path.join(output,'welcome.png')});
      await page.evaluate(()=>{const child=document.querySelector('.welcome-emblem');child.dispatchEvent(new AnimationEvent('animationend',{bubbles:true,animationName:'ccx-emblem-in'}));});
@@ -44,16 +45,17 @@ const html=fs.readFileSync(path.join(root,'ordering/index.html'),'utf8');
     if(mode==='touch-skip')await page.touchscreen.tap(150,400);
     if(mode==='mouse-skip')await page.mouse.click(150,400);
     if(mode==='keyboard-skip'){await page.locator('#ccx-welcome').focus();await page.keyboard.press('Enter');}
-    if(mode==='held-expiry'){await page.mouse.move(150,400);await page.mouse.down();await page.waitForTimeout(3200);await page.mouse.up();}
+    if(mode==='held-expiry'){await page.mouse.move(150,400);await page.mouse.down();await page.waitForTimeout(5200);await page.mouse.up();}
     await page.waitForTimeout(100);
     assert.equal(await page.evaluate(()=>window.clicked||0),0,'skip gesture must not reach underlying action');
     assert.equal(await page.locator('#ccx-welcome').count(),0,'skip removes opening immediately');
    }else{
     if(mode==='ready'){
-     await page.waitForTimeout(1100);
-     assert.equal(await page.locator('#ccx-welcome').evaluate(e=>getComputedStyle(e).visibility),'visible','opening remains before 2.4 seconds');
+     await page.waitForTimeout(1700);
+     const opacity=await page.locator('#ccx-welcome').evaluate(e=>Number(getComputedStyle(e).opacity));
+     assert.ok(opacity>0 && opacity<1,'opening is still fading near four seconds');
     }
-    await page.waitForTimeout(3250);
+    await page.waitForTimeout(mode==='ready'?1400:5250);
    }
    const gone=await page.evaluate(()=>{const e=document.getElementById('ccx-welcome');return !e||getComputedStyle(e).visibility==='hidden'||getComputedStyle(e).display==='none';});
    assert.ok(gone,'opening cannot remain over application');
