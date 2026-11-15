@@ -7,7 +7,7 @@ test('other products have an order cell and no stock cell',()=>{
  assert.deepEqual(Flow.countFields({hasStock:true}),['stock','qty']);
  assert.deepEqual(Flow.countFields({hasStock:false}),['qty']);
  assert.equal(products.filter(p=>p.cat==='other'&&p.hasStock).length,0);
- assert.equal(products.filter(p=>p.cat==='other').length,19);
+ assert.equal(products.filter(p=>p.cat==='other').length,20);
 });
 
 test('zebra stripe follows the rows on screen and starts over at each block',()=>{
@@ -22,9 +22,9 @@ test('next item stays inside the current supplier block',()=>{
  assert.deepEqual(Flow.advance(catalog,0),{stay:false,index:1,cat:'kr',nextCat:null});
  assert.deepEqual(Flow.advance(catalog,50),{stay:true,cat:'kr',nextCat:'cn'});
  assert.deepEqual(Flow.advance(catalog,126),{stay:true,cat:'cn',nextCat:'other'});
- assert.deepEqual(Flow.advance(catalog,140),{stay:true,cat:'other',nextCat:'drinks'});
- assert.deepEqual(Flow.advance(catalog,141),{stay:false,index:142,cat:'drinks',nextCat:null});
- assert.deepEqual(Flow.advance(catalog,145),{stay:true,cat:'drinks',nextCat:null});
+ assert.deepEqual(Flow.advance(catalog,141),{stay:true,cat:'other',nextCat:'drinks'});
+ assert.deepEqual(Flow.advance(catalog,142),{stay:false,index:143,cat:'drinks',nextCat:null});
+ assert.deepEqual(Flow.advance(catalog,146),{stay:true,cat:'drinks',nextCat:null});
  assert.equal(Flow.endLabel('kr'),'韩国食品盘完了 · 去中国食品');
  assert.equal(Flow.endLabel('cn'),'中国食品盘完了 · 去其他商品');
  assert.equal(Flow.endLabel('other'),'其他商品盘完了 · 去饮料');

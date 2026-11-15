@@ -24,7 +24,7 @@ for(const k of ['firebase:authUser:project','another-site-key','ccx-redesign-dra
 for(const value of ['broken','null','{}',JSON.stringify({draft:make(),order:{id:'unsaved'}}),JSON.stringify({draft:make(),unknown:'unuploaded'}),JSON.stringify({draft:{id:'count-invalid'}})])test('invalid or additional payload is retained '+value.slice(0,30),async()=>{
  const s=storage([[oldKey,value]]);let reads=0;const p=await Cleanup.verifyArchives(scan(s),source,async()=>{reads++;return null;});Cleanup.execute(s,p);assert.equal(s.getItem(oldKey),value);assert.equal(reads,0);
 });
-for(const src of [require('../catalog-legacy.json'),require('../catalog-v137.json'),require('../catalog-v138.json'),require('../catalog-v142.json'),require('../catalog-v144.json'),source])test('complete immutable cloud archive permits cleanup for catalog '+src.products.length,async()=>{
+for(const src of [require('../catalog-legacy.json'),require('../catalog-v137.json'),require('../catalog-v138.json'),require('../catalog-v142.json'),require('../catalog-v144.json'),require('../catalog-v146.json'),source])test('complete immutable cloud archive permits cleanup for catalog '+src.products.length,async()=>{
  const d=make('count-old',src),s=storage([[oldKey,raw(d)]]);let reads=0;const p=await Cleanup.verifyArchives(scan(s),source,async id=>{reads++;assert.equal(id,d.id);return {localId:id,draft:Core.clone(d)};});
  assert.equal(reads,1);assert.equal(Cleanup.summary(p).archived,1);assert.equal(Cleanup.execute(s,p).removed,1);
 });

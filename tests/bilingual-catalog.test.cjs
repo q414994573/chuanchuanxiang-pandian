@@ -1,3 +1,4 @@
+const updates=require('./v62-translations.json');
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const Core=require('../count-core.js'),source=require('../current-order.json');
 const Flow=require('../redesign-preview/count-flow.cjs'),S=require('../redesign-preview/search.cjs');
@@ -74,7 +75,7 @@ test('all 129 original catalog names remain primary, with 32 translations and no
  for(const p of source.products){
   assert.equal(Flow.largeName(p),p.name,`original name changed: ${p.id}`);
   const translation=confirmed.find(r=>r[0]===p.id)?.[2];
-  assert.equal(Flow.smallName(p),translation||(p.alias===p.name?'':p.alias||''));
+  assert.equal(Flow.smallName(p),updates[p.id]||translation||(p.alias===p.name?'':p.alias||''));
  }
  const egg=source.products.find(p=>p.id==='cn:84');assert.equal(Flow.largeName(egg),'咸鸭蛋');
  assert.ok(!S.matches(egg,'짠 오리알',aliases.get(egg.id)));

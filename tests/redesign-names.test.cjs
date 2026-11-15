@@ -1,3 +1,4 @@
+const updates=require('./v62-translations.json');
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),path=require('path');
 const Flow=require('../redesign-preview/count-flow.cjs');
 const root=path.join(__dirname,'..');
@@ -31,7 +32,7 @@ test('preview retains 129 original main names, units and confirmed translations'
  assert.equal(rows.filter(r=>r.block==='其他商品').length,13);
  assert.equal(rows.filter(r=>r.block==='饮料').length,5);
  assert.deepEqual(rows.map(r=>r.large),official.map(p=>p.name));
- assert.deepEqual(rows.map(r=>r.small),official.map(p=>confirmed.get(p.id)?.ko||(p.alias===p.name?'':p.alias||'')));
+ assert.deepEqual(rows.map(r=>r.small),official.map(p=>updates[p.id]||confirmed.get(p.id)?.ko||(p.alias===p.name?'':p.alias||'')));
  assert.deepEqual(rows.map(r=>r.unit),official.map(p=>p.unit??''));
  assert.equal(new Set(rows.map(r=>r.large)).size,129);
  assert.equal(new Set(loaded.map(p=>p.id)).size,129);
@@ -51,9 +52,9 @@ test('preview retains 129 original main names, units and confirmed translations'
  assert.equal(byId.get('cn:9').large,'鸡精');
  assert.equal(byId.get('cn:9').small,'치킨스톡');
  assert.equal(byId.get('cn:54').large,'갑오징어피쉬볼(大)');
- assert.equal(byId.get('cn:54').small,'');
+ assert.equal(byId.get('cn:54').small,updates['cn:54']);
  assert.equal(byId.get('other:8').large,'대나무 꼬치 (길이18cm·지름2.5mm)');
- assert.equal(byId.get('other:8').small,'');
+ assert.equal(byId.get('other:8').small,updates['other:8']);
  assert.equal(byId.get('cn:45').unit,'');
  assert.equal(byId.get('other:11').unit,'');
  assert.equal(Flow.smallName({name:'双效泡打粉',alias:'泡打粉'}),'泡打粉');

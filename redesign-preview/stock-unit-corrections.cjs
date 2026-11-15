@@ -3,6 +3,7 @@
 // These are inventory-label corrections, not order-unit choices or conversion
 // ratios. Saved/finalized snapshots remain authoritative for their old values.
 const corrections=Object.freeze({
+ 'cn:42':Object.freeze({from:'포대',to:'단'}),
  'kr:31':Object.freeze({from:'박스',to:'개'}),
  'cn:21':Object.freeze({from:'箱',to:'包'})
 });

@@ -35,11 +35,27 @@ const entries = [
  ['cn:81','冰红茶','빙홍차'],
  ['other:7','去油污洗洁剂','피비']
 ];
+const supplements=Object.freeze({
+ 'kr:64':'白萝卜',
+ 'cn:8':'고운 고춧가루',
+ 'cn:42':'米线',
+ 'cn:54':'甲乌贼鱼丸（大号）',
+ 'cn:84':'소금에 절인 오리알',
+ 'cn:89':'피셴 두반장',
+ 'cn:90':'牛肋条肉',
+ 'cn:91':'톈몐장',
+ 'cn:92':'魔芋结',
+ 'cn:93':'飞鱼籽福袋',
+ 'cn:94':'훈툰',
+ 'other:8':'竹签（长18cm·直径2.5mm）',
+ 'other:23':'连卷袋（17cm×25cm）',
+ 'other:24':'连卷袋（35cm×45cm）'
+});
 const byId=new Map(entries.map(([id,zh,ko,...aliases])=>[id,Object.freeze({zh,ko,aliases:Object.freeze(aliases)})]));
 function get(p){return p && byId.get(p.id);}
 // The original catalog name is always the primary name. Confirmed translations
 // are supplementary labels/search terms, never replacements for product names.
 function large(p){return p?.id==='kr:59'?'고추장(1kg)':String(p?.name ?? '');}
-function small(p){const n=get(p);if(n)return n.ko===large(p)?'':n.ko;const alias=String(p?.alias??'');return alias===large(p)?'':alias;}
-function searchNames(p){if(p?.id==='kr:59')return ['고추장(1kg)','辣椒酱'];const n=get(p);return n?[n.zh,n.ko,...n.aliases]:[];}
+function small(p){if(p&&Object.hasOwn(supplements,p.id))return supplements[p.id];const n=get(p);if(n)return n.ko===large(p)?'':n.ko;const alias=String(p?.alias??'');return alias===large(p)?'':alias;}
+function searchNames(p){const extra=p&&supplements[p.id];if(extra){const n=get(p);return [extra,...(n?[n.zh,n.ko,...n.aliases]:[])];}if(p?.id==='kr:59')return ['고추장(1kg)','辣椒酱'];const n=get(p);return n?[n.zh,n.ko,...n.aliases]:[];}
 module.exports={large,small,searchNames};

@@ -506,12 +506,12 @@ test('inventory save failures, conflicts, in-flight edits and blank vs zero rema
  const log=h.run(`C.historyHtml(catalog(),[{...order,stockEdits:{'kr:38':''},revision:3},{...order,stockEdits:{'kr:38':'0'},revision:2}],false)`);assert.match(log,/库存 0봉 → 未填写/);
 });
 
-test('new count units use the confirmed 15 stock units without changing catalog/order units or historical source',()=>{
+test('new count units use the confirmed 16 stock units without changing catalog/order units or historical source',()=>{
  const before=JSON.stringify(source),d=Core.create(source,'2026-10-22','count-units');
- const expected={'kr:31':'개','cn:21':'包','kr:43':'개','cn:9':'包','cn:12':'包','cn:13':'包','cn:14':'包','cn:25':'통','cn:33':'包','cn:37':'包','cn:39':'瓶','cn:44':'包','cn:45':'包','cn:46':'包','cn:47':'包'};
- assert.equal(Object.keys(expected).length,15);
+ const expected={'kr:31':'개','cn:21':'包','kr:43':'개','cn:9':'包','cn:12':'包','cn:13':'包','cn:14':'包','cn:25':'통','cn:33':'包','cn:37':'包','cn:39':'瓶','cn:42':'단','cn:44':'包','cn:45':'包','cn:46':'包','cn:47':'包'};
+ assert.equal(Object.keys(expected).length,16);
  for(const p of source.products){assert.equal(d.items[p.id].stockUnit,expected[p.id]??p.unit??'');assert.equal(d.items[p.id].unit,p.unit||'');assert.equal(d.items[p.id].stock,'');}
- assert.equal(JSON.stringify(source),before);assert.equal(d.catalog.length,146);assert.equal(d.items['cn:56'].stockUnit,'봉');
+ assert.equal(JSON.stringify(source),before);assert.equal(d.catalog.length,147);assert.equal(d.items['cn:56'].stockUnit,'봉');
 });
 function autosaveHarness(role='owner'){
  const h=harness();h.ctx.crypto={randomUUID:()=> 'autosave-test-id'};h.ctx.navigator={onLine:true};h.window.history={replaceState(){}};
@@ -593,7 +593,7 @@ test('next count clears an old order URL and refuses an unfinished shared edit',
  assert.equal(path,'/ordering/?v=26');assert.equal(h.run('draft.id'),'count-next-clean');assert.equal(h.run('order'),null);
  h.run(`editId='kr:7';editField='qty';editRaw='2.'`);assert.throws(()=>h.run('startFreshCount()'),/完成当前数字/);
 });
-test('both account screens show the same 15 stock units after submit and reread; historical units remain intact',()=>{
+test('both account screens show the same 16 stock units after submit and reread; historical units remain intact',()=>{
  for(const role of ['owner','editor']){
   const h=autosaveHarness(role);h.run(`screen='count';`);
   for(const [id,unit] of Object.entries(Core.stockDefaults)){

@@ -1,6 +1,6 @@
 'use strict';
 const {test}=require('node:test'),a=require('node:assert/strict');
-const C=require('../count-core'),S=require('../redesign-preview/search.cjs'),F=require('../redesign-preview/count-flow.cjs'),Cloud=require('../cloud/core.cjs'),s=require('../current-order.json'),old=require('../catalog-v144.json');
+const C=require('../count-core'),S=require('../redesign-preview/search.cjs'),F=require('../redesign-preview/count-flow.cjs'),Cloud=require('../cloud/core.cjs'),s=require('../catalog-v146.json'),old=require('../catalog-v144.json');
 const additions=[['cn:94','馄饨','箱','cn',true],['other:23','롤백(17cm×25cm)','박스','other',false]];
 test('v61 retains every previous144 value and relative position',()=>{a.equal(s.products.length,146);a.deepEqual(s.products.filter(p=>!additions.some(x=>x[0]===p.id)),old.products);});
 for(const [id,name,unit,cat,hasStock] of additions)test('v61 '+id+' exact fields, category end, search, completion and submission',()=>{

@@ -4,7 +4,7 @@ const prelude=fs.readFileSync(path.join(__dirname,'multi-search.browser.cjs'),'u
 const run=String.raw`
 (async()=>{
  const browser=await playwright[report.engine].launch({headless:true});report.browserVersion=browser.version();
- const added=fixture.products.filter(p=>['cn:94','other:23','cn:92','cn:93','kr:64','cn:89','cn:90','cn:91','kr:63','kr:59','kr:60','kr:61','kr:62','cn:85','cn:86','cn:87','cn:88'].includes(p.id));
+ const added=fixture.products.filter(p=>['other:24','cn:94','other:23','cn:92','cn:93','kr:64','cn:89','cn:90','cn:91','kr:63','kr:59','kr:60','kr:61','kr:62','cn:85','cn:86','cn:87','cn:88'].includes(p.id));
  try{for(const width of [430,375,320])for(const role of ['owner','editor']){
  const context=await browser.newContext({viewport:{width,height:700},isMobile:true,hasTouch:true});const page=await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',e=>report.errors.push(e.message));
  await page.route('**/*',r=>r.request().url()==='https://ccx.invalid/ordering/'?r.fulfill({contentType:'text/html',body:html}):r.abort());await page.goto('https://ccx.invalid/ordering/');

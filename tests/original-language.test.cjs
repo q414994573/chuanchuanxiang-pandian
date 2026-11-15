@@ -1,3 +1,4 @@
+const updates=require('./v62-translations.json');
 'use strict';
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
@@ -22,7 +23,7 @@ for(const p of source.products){
    assert.ok(Search.matches(p,translation,aliases.get(p.id)));
   }else{
    const originalAlias=p.alias===p.name?'':p.alias||'';
-   assert.equal(Flow.smallName(p),originalAlias);
+   assert.equal(Flow.smallName(p),updates[p.id]||originalAlias);
   }
  });
 }
@@ -32,7 +33,7 @@ test('v40 originals include Chinese, Korean and original PB; translation is neve
  for(const [id,name,translated] of [
   ['cn:9','鸡精','치킨스톡'],['cn:12','人造肉','두부피'],
   ['cn:75','粉丝','실당면'],['other:7','pb','피비'],
-  ['kr:3','양상추','生菜'],['cn:84','咸鸭蛋','']
+  ['kr:3','양상추','生菜'],['cn:84','咸鸭蛋',updates['cn:84']]
  ]){
   assert.equal(Flow.largeName(map.get(id)),name);
   assert.equal(Flow.smallName(map.get(id)),translated);

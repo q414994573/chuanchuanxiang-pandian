@@ -1,6 +1,6 @@
 'use strict';
 const {test}=require('node:test'),a=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const C=require('../count-core'),current=require('../current-order.json'),old=require('../catalog-v144.json'),baseline=require('./v61-baseline-contract.json');
+const C=require('../count-core'),current=require('../catalog-v146.json'),old=require('../catalog-v144.json'),baseline=require('./v61-baseline-contract.json');
 const hash=v=>crypto.createHash('sha256').update(v).digest('hex');
 test('preservation: archived144 is byte-identical to independently pinned v60 production catalog',()=>a.equal(hash(fs.readFileSync(path.join(__dirname,'../catalog-v144.json'))),'83fef9ad11b1042acc8be8f13929614fb8c3f6cdbeb56938b47a46892150bed8'));
 for(const [name,expected] of Object.entries(baseline.coreFunctions))test('preservation: v60 business function unchanged '+name,()=>a.equal(hash(C[name].toString()),expected));
