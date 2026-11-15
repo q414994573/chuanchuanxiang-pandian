@@ -4,18 +4,18 @@ const prelude=fs.readFileSync(path.join(__dirname,'multi-search.browser.cjs'),'u
 const run=String.raw`
 (async()=>{
  const browser=await playwright[report.engine].launch({headless:true});report.browserVersion=browser.version();
- const added=fixture.products.filter(p=>['cn:92','cn:93','kr:64','cn:89','cn:90','cn:91','kr:63','kr:59','kr:60','kr:61','kr:62','cn:85','cn:86','cn:87','cn:88'].includes(p.id));
+ const added=fixture.products.filter(p=>['cn:94','other:23','cn:92','cn:93','kr:64','cn:89','cn:90','cn:91','kr:63','kr:59','kr:60','kr:61','kr:62','cn:85','cn:86','cn:87','cn:88'].includes(p.id));
  try{for(const width of [430,375,320])for(const role of ['owner','editor']){
  const context=await browser.newContext({viewport:{width,height:700},isMobile:true,hasTouch:true});const page=await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',e=>report.errors.push(e.message));
  await page.route('**/*',r=>r.request().url()==='https://ccx.invalid/ordering/'?r.fulfill({contentType:'text/html',body:html}):r.abort());await page.goto('https://ccx.invalid/ordering/');
  for(const p of added)await runCase(width+' '+role+' '+p.id+' search, display, units and stock entry',async()=>{
  await reset(page,role,'draft','count','kr');await fill(page,p.name);assert.ok((await ids(page)).includes(p.id));
  const row=page.locator('#rows .line').filter({has:page.locator('[data-id="'+p.id+'"]')});assert.ok((await row.innerText()).includes(p.name));
- await page.locator('[data-act="open"][data-id="'+p.id+'"][data-field="stock"]').click();await key(page,'7');
- const values=await page.evaluate(()=>window.__ccx.values());assert.equal(values.items[p.id].stock,'7');assert.equal(values.items[p.id].unit,p.unit);
+ await page.locator('[data-act="open"][data-id="'+p.id+'"][data-field="'+(p.hasStock?'stock':'qty')+'"]').click();await key(page,'7');
+ const values=await page.evaluate(()=>window.__ccx.values());assert.equal(values.items[p.id][p.hasStock?'stock':'quantity'],'7');assert.equal(values.items[p.id].unit,p.unit);
  });
- await reset(page,role,'draft','count','kr');await fill(page,'魔芋结 飞鱼籽福袋 무우郫县豆瓣酱갈비살甜面酱 칼국수면 辣椒酱蒜苔甜辣酱大酱酸菜榨菜豆角味精');
- await runCase(width+' '+role+' all thirteen across categories',async()=>{const found=await ids(page);for(const p of added)assert.ok(found.includes(p.id),p.id);await page.screenshot({path:path.join(outputDir,width+'-'+role+'-eight-products.png'),fullPage:true});});
+ await reset(page,role,'draft','count','kr');await fill(page,'馄饨 롤백 魔芋结 飞鱼籽福袋 무우郫县豆瓣酱갈비살甜面酱 칼국수면 辣椒酱蒜苔甜辣酱大酱酸菜榨菜豆角味精');
+ await runCase(width+' '+role+' all seventeen additions across categories',async()=>{const found=await ids(page);for(const p of added)assert.ok(found.includes(p.id),p.id);await page.screenshot({path:path.join(outputDir,width+'-'+role+'-eight-products.png'),fullPage:true});});
  await context.close();
  }}finally{await browser.close();}
  report.passed=report.cases.filter(c=>c.pass).length;report.failed=report.cases.length-report.passed;fs.writeFileSync(path.join(outputDir,'catalog-expansion-report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({engine:report.engine,passed:report.passed,failed:report.failed,errors:report.errors}));if(report.failed||report.errors.length)process.exitCode=1;

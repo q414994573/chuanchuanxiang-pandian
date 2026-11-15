@@ -36,10 +36,10 @@ test('redesign preview stays off the production pages and only writes test order
  assert.equal(cfg.enabled,true);
  assert.equal(cfg.firebase.projectId,'chuanchuanxiang-order');
  const products=JSON.parse(read('current-order.json')).products;
- assert.equal(products.length,144);
+ assert.equal(products.length,146);
  assert.equal(products.filter(p=>p.cat==='kr').length,51);
- assert.equal(products.filter(p=>p.cat==='cn').length,75);
- assert.equal(products.filter(p=>p.cat==='other').length,18);
+ assert.equal(products.filter(p=>p.cat==='cn').length,76);
+ assert.equal(products.filter(p=>p.cat==='other').length,19);
  assert.match(js,/Flow\.stripe\(n-1\)/);
  assert.match(js,/Flow\.stripe\(i\)/);
  assert.match(css,/--band:#d4ccc4/);

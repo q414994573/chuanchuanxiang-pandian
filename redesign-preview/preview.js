@@ -2092,7 +2092,7 @@ async function boot(){
  source=await orderRes.json();
  const aliasFile=await aliasRes.json();
  aliasById=new Map(aliasFile.items.map(item=>[item.id,item.aliases]));
- if(!source.products||source.products.length!==144)throw Error('商品目录应为144种，请刷新更新');
+ if(!source.products||source.products.length!==146)throw Error('商品目录应为146种，请刷新更新');
  peerEnabled=cfg.sharedCounts===true;loadLocal();loadArchives();
  const params=new URLSearchParams(location.search);
  const sampleKind=params.get('sample');
