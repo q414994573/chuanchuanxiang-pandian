@@ -1,0 +1,38 @@
+name: v63 splash verification
+on:
+  push:
+    branches: [work/v63-splash]
+permissions:
+  contents: read
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: node --test --test-timeout=120000 tests/*.test.cjs
+  splash:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
+    strategy:
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm install --no-save playwright@1.56.1
+      - run: node tests/splash.browser.cjs
+        env:
+          CCX_BROWSER_ENGINE: ${{ matrix.engine }}
+          CCX_BROWSER_OUTPUT: test-output/splash
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: splash-${{ matrix.engine }}
+          path: test-output/splash
