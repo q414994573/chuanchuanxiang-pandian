@@ -12,29 +12,31 @@
 <link rel="apple-touch-icon" href="../redesign-preview/logo.jpg">
 <link rel="stylesheet" href="../redesign-preview/preview.css?v=20261111-v57">
 <style>
-/* Decorative only: CSS also dismisses it if the animation script fails. */
-#ccx-welcome{position:fixed;inset:0;z-index:10000;pointer-events:none;overflow:hidden;background:#aa001b;animation:ccx-welcome-exit 180ms ease-out 1050ms forwards}
-#ccx-welcome .welcome-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;box-sizing:border-box;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);opacity:0;transition:opacity 140ms ease-out}
+/* CSS deadline remains active if the startup script fails. */
+#ccx-welcome{position:fixed;inset:0;z-index:10000;pointer-events:auto;touch-action:manipulation;overflow:hidden;background:#aa001b;animation:ccx-welcome-exit 600ms ease-out 2400ms forwards}
+#ccx-welcome .welcome-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;box-sizing:border-box;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);opacity:0;transition:opacity 600ms ease-out}
 #ccx-welcome.art-ready .welcome-art{opacity:1}
 #ccx-welcome .welcome-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:white;font-family:system-ui,sans-serif;transition:opacity 140ms ease-out}
 #ccx-welcome.art-ready .welcome-fallback{opacity:0;visibility:hidden;transition:none}
 #ccx-welcome .welcome-fallback strong{font-size:clamp(32px,10vw,52px);letter-spacing:.1em}
 #ccx-welcome .welcome-fallback span{font-size:20px;letter-spacing:.25em}
-#ccx-welcome.leaving{animation:none;opacity:0;visibility:hidden;transition:opacity 180ms ease-out,visibility 0s linear 180ms}
+#ccx-welcome .welcome-skip{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 12px);left:0;width:100%;text-align:center;color:#fff9;font:13px system-ui,sans-serif;pointer-events:none}
+#ccx-welcome.leaving{display:none}
 @keyframes ccx-welcome-exit{to{opacity:0;visibility:hidden}}
 @media(prefers-reduced-motion:reduce){#ccx-welcome{display:none}}
 </style>
 </head>
 <body>
-<div id="ccx-welcome" aria-hidden="true">
- <div class="welcome-fallback"><strong>川川香</strong><span>订货总控台</span></div>
+<div id="ccx-welcome" role="button" tabindex="0" aria-label="跳过开场，进入订货网页">
+ <div class="welcome-fallback" aria-hidden="true"><strong>川川香</strong><span>订货总控台</span></div>
  <img class="welcome-art" src="./assets/welcome-v63.png" alt="" decoding="async" fetchpriority="low">
+ <span class="welcome-skip" aria-hidden="true">轻点跳过</span>
 </div>
 <div class="banner">川川香 · 订货总控台<small>共同盘货、实时同步、双方定稿</small></div>
 <div id="app"><p>正在核对入口状态…</p></div>
 <nav class="tabs"><button type="button" data-act="tab" data-tab="count">盘货</button><button type="button" data-act="tab" data-tab="order">订单</button><button type="button" data-act="tab" data-tab="more">更多</button></nav>
 <div id="toast" role="status"></div>
-<script src="./splash.js?v=20261116-v63" defer></script>
+<script src="./splash.js?v=20261116-v64" defer></script>
 <script src="../count-core.js?v=20261111-v57"></script>
 <script src="../redesign-preview/preview.bundle.js?v=20261115-v62"></script>
 </body>

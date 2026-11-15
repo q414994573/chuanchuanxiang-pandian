@@ -6,7 +6,7 @@ const report={engine:process.env.CCX_BROWSER_ENGINE||'chromium',cases:[],errors:
 const html=fs.readFileSync(path.join(root,'ordering/index.html'),'utf8');
 (async()=>{
  const browser=await playwright[report.engine].launch({headless:true});report.browserVersion=browser.version();
- try{for(const width of [320,390,430])for(const mode of ['ready','slow-app','failed-image','slow-image','missing-script','reduced-motion','return']){
+ try{for(const width of [320,390,430])for(const mode of ['ready','slow-app','failed-image','slow-image','missing-script','reduced-motion','return','mouse-skip','touch-skip','held-expiry','keyboard-skip']){
   const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,reducedMotion:mode==='reduced-motion'?'reduce':'no-preference'}),page=await context.newPage();
   page.on('pageerror',e=>report.errors.push(e.message));
   await page.route('**/*',async route=>{
@@ -18,7 +18,7 @@ const html=fs.readFileSync(path.join(root,'ordering/index.html'),'utf8');
     if(mode==='slow-image'){await new Promise(r=>setTimeout(r,1700));}
     return route.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(root,'ordering/assets/welcome-v63.png'))});
    }
-   if(url.pathname.endsWith('preview.bundle.js'))return route.fulfill({contentType:'text/javascript',body:`localStorage.setItem('splash-test-order','unchanged');setTimeout(()=>{document.getElementById('app').innerHTML='<button id="fixture-action">测试盘货按钮</button>';document.getElementById('fixture-action').onclick=()=>window.clicked=true;},${mode==='slow-app'?1800:100});`});
+   if(url.pathname.endsWith('preview.bundle.js'))return route.fulfill({contentType:'text/javascript',body:`localStorage.setItem('splash-test-order','unchanged');setTimeout(()=>{document.getElementById('app').innerHTML='<button style="position:fixed;inset:0" id="fixture-action">测试盘货按钮</button>';document.getElementById('fixture-action').onclick=()=>window.clicked=(window.clicked||0)+1;},${mode==='slow-app'?1800:100});`});
    return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'text/javascript',body:''});
   });
   try{
@@ -26,13 +26,28 @@ const html=fs.readFileSync(path.join(root,'ordering/index.html'),'utf8');
    if(mode==='ready'){
     await page.waitForFunction(()=>document.querySelector('#ccx-welcome')?.classList.contains('art-ready'));
     const box=await page.locator('#ccx-welcome').boundingBox();assert.equal(box.width,width);assert.equal(box.height,844);
-    assert.equal(await page.locator('#ccx-welcome').getAttribute('aria-hidden'),'true');
+    assert.equal(await page.locator('#ccx-welcome').getAttribute('role'),'button');
     assert.equal(await page.locator('.welcome-fallback').evaluate(e=>getComputedStyle(e).visibility),'hidden');
-    await page.waitForTimeout(180);
+    await page.waitForTimeout(650);
     if(width===390)await page.screenshot({path:path.join(output,'welcome.png')});
    }
    if(mode==='return')await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));
-   await page.waitForTimeout(1450);
+   if(['mouse-skip','touch-skip','held-expiry','keyboard-skip'].includes(mode)){
+    await page.locator('#fixture-action').waitFor({state:'attached'});
+    if(mode==='touch-skip')await page.touchscreen.tap(150,400);
+    if(mode==='mouse-skip')await page.mouse.click(150,400);
+    if(mode==='keyboard-skip'){await page.locator('#ccx-welcome').focus();await page.keyboard.press('Enter');}
+    if(mode==='held-expiry'){await page.mouse.move(150,400);await page.mouse.down();await page.waitForTimeout(3200);await page.mouse.up();}
+    await page.waitForTimeout(100);
+    assert.equal(await page.evaluate(()=>window.clicked||0),0,'skip gesture must not reach underlying action');
+    assert.equal(await page.locator('#ccx-welcome').count(),0,'skip removes opening immediately');
+   }else{
+    if(mode==='ready'){
+     await page.waitForTimeout(1100);
+     assert.equal(await page.locator('#ccx-welcome').evaluate(e=>getComputedStyle(e).visibility),'visible','opening remains before 2.4 seconds');
+    }
+    await page.waitForTimeout(3250);
+   }
    const gone=await page.evaluate(()=>{const e=document.getElementById('ccx-welcome');return !e||getComputedStyle(e).visibility==='hidden'||getComputedStyle(e).display==='none';});
    assert.ok(gone,'opening cannot remain over application');
    await page.locator('#fixture-action').click({timeout:3000});assert.ok(await page.evaluate(()=>window.clicked));
