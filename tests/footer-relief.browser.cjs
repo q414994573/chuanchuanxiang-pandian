@@ -8,8 +8,8 @@ const run=String.raw`
  const browser=await playwright[process.env.CCX_BROWSER_ENGINE||'chromium'].launch();let passed=0;
  try{for(const width of [320,390,430])for(const mode of ['draft','finalized']){
  const page=await browser.newPage({viewport:{width,height:844},isMobile:true,hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.route('**/*',r=>r.request().url().includes('footer-relief-v68.png')?r.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(repo,'ordering/assets/footer-relief-v68.png'))}):r.abort());
- await page.setContent(html.replace('<head>','<head><base href="https://fixture.invalid/redesign-preview/">'));
+ await page.route('**/*',r=>r.request().url()==='https://fixture.invalid/redesign-preview/'?r.fulfill({contentType:'text/html',body:html}):r.request().url().includes('footer-relief-v68.png')?r.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(repo,'ordering/assets/footer-relief-v68.png'))}):r.abort());
+ await page.goto('https://fixture.invalid/redesign-preview/');
  await page.evaluate(m=>window.__ccx.setup('owner',m),mode);
  const before=await page.evaluate(()=>JSON.stringify(window.__ccx.state().draftValues));
  for(const tab of ['count','order','more']){
