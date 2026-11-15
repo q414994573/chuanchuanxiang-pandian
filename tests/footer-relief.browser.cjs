@@ -15,10 +15,19 @@ const run=String.raw`
  for(const tab of ['count','order','more']){
  await page.evaluate(t=>window.__ccx.tab(t),tab);
  await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
- const result=await page.evaluate(()=>{const app=document.getElementById('app'),s=getComputedStyle(app,'::after'),rect=app.getBoundingClientRect(),tabs=document.querySelector('.tabs').getBoundingClientRect();return {display:s.display,pointer:s.pointerEvents,width:parseFloat(s.width),height:parseFloat(s.height),bottom:rect.bottom-parseFloat(getComputedStyle(app).paddingBottom),tabs:tabs.top,overflow:document.documentElement.scrollWidth>innerWidth};});
- assert.equal(result.display,'block');assert.equal(result.pointer,'none');assert.ok(result.width>=130&&result.width<=170);assert.equal(result.overflow,false);assert.ok(result.bottom<result.tabs,'mark ends above fixed navigation');
- if(width===390&&mode==='finalized'){await page.waitForTimeout(150);await page.screenshot({path:path.join(outputDir,'footer-'+tab+'.png')});}
- for(const cls of ['key-open','text-mode','order-search']){assert.equal(await page.evaluate(c=>{document.body.classList.add(c);const d=getComputedStyle(document.getElementById('app'),'::after').display;document.body.classList.remove(c);return d;},cls),'none');}
+ const geometry=()=>page.evaluate(()=>{const s=getComputedStyle(document.body,'::before');return {display:s.display,pointer:s.pointerEvents,width:parseFloat(s.width),left:parseFloat(s.left),top:parseFloat(s.top),position:s.position,transform:s.transform,z:s.zIndex,appZ:getComputedStyle(document.getElementById('app')).zIndex,old:getComputedStyle(document.getElementById('app'),'::after').content,overflow:document.documentElement.scrollWidth>innerWidth};});
+ const result=await geometry();
+ assert.equal(result.display,'block');assert.equal(result.pointer,'none');assert.equal(result.position,'fixed');assert.equal(result.left,width/2);assert.equal(result.top,422);assert.equal(result.z,'0');assert.equal(result.appZ,'1');assert.equal(result.old,'none');assert.equal(result.overflow,false);
+ await page.evaluate(()=>window.scrollTo(0,0));assert.deepEqual(await geometry(),result,'scroll must not move background mark');
+ await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
+ if(width===390&&mode==='finalized'){
+  await page.waitForTimeout(150);await page.screenshot({path:path.join(outputDir,'center-'+tab+'.png')});
+  // Reveal the background alone for visual review without changing stored data.
+  await page.evaluate(()=>document.getElementById('app').style.visibility='hidden');
+  await page.screenshot({path:path.join(outputDir,'background-'+tab+'.png')});
+  await page.evaluate(()=>document.getElementById('app').style.visibility='');
+ }
+ for(const cls of ['key-open','text-mode','order-search']){assert.equal(await page.evaluate(c=>{document.body.classList.add(c);const d=getComputedStyle(document.body,'::before').display;document.body.classList.remove(c);return d;},cls),'none');}
  assert.equal(await page.evaluate(()=>JSON.stringify(window.__ccx.state().draftValues)),before,'decoration must preserve inventory values');passed++;
  }
  await page.locator('[data-tab="count"]').click();assert.equal(await page.evaluate(()=>window.__ccx.state().screen),'count');assert.deepEqual(errors,[]);await page.close();
