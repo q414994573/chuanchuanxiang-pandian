@@ -1,10 +1,10 @@
-:root{--red:#bb1827;--ink:#1c1917;--muted:#534e48;--bg:#f3f0ee;--paper:#fff;--line:#e4ddd8;--tabs:58px;--banner:58px;--band:#d4ccc4}
+:root{--red:#bb1827;--ink:#1c1917;--muted:#534e48;--bg:#f3f0ee;--paper:#fff;--line:#e4ddd8;--tabs:58px;--safe-top:env(safe-area-inset-top,0px);--banner:calc(58px + var(--safe-top));--band:#d4ccc4}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 -apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Apple SD Gothic Neo",sans-serif}
 button,input{font:inherit}
 button{cursor:pointer}
 img{max-width:100%}
-.banner{position:sticky;top:0;z-index:40;background:var(--red);color:#fff;text-align:center;padding:7px 12px 8px;font-size:16px;font-weight:800}
+.banner{position:sticky;top:0;z-index:40;background:var(--red);color:#fff;text-align:center;padding:calc(7px + var(--safe-top)) 12px 8px;font-size:16px;font-weight:800}
 .banner small{display:block;margin-top:2px;font-size:12px;font-weight:500}
 #app{padding:8px 12px calc(var(--tabs) + 120px + env(safe-area-inset-bottom))}
 body.key-open #app{padding-bottom:calc(var(--tabs) + 430px + env(safe-area-inset-bottom))}
@@ -247,3 +247,6 @@ body{isolation:isolate}
 body::before{content:"";display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;width:clamp(130px,38vw,170px);aspect-ratio:1;background:url('../ordering/assets/overlay-relief-v70.png') center/contain no-repeat;opacity:.25;pointer-events:none;user-select:none}
 #app{position:relative;z-index:1}
 body.key-open::before,body.text-mode::before,body.order-search::before{display:none}
+
+/* Keep the standalone status area red, including the separate search screen. */
+.search-hub-bar{background:linear-gradient(to bottom,var(--red) 0,var(--red) var(--safe-top),#fff var(--safe-top),#fff 100%)}
