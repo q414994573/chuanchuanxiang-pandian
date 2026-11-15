@@ -468,7 +468,12 @@
   ],
   "rulesSHA256": "a69f4a8addb01ae2a5bb9d3c5c58e46d8fcb78ad81a3cd11a98b7b1df3abacbc",
   "publication": {
-    "published": false,
-    "reason": "Automatic approval review rejected production Firebase Publish; explicit user approval required. Editor content verified against tested SHA256. Main remains v61."
+    "published": true,
+    "userApproved": true,
+    "rulesPublishedKst": "2026-11-15T23:14:00+09:00",
+    "rulesReadbackMatches": true,
+    "pagesRunId": 43723385906,
+    "pagesConclusion": "success",
+    "codeCommit": "bea40aa0ac49121a2543cd72eb34534c3ae13ca5"
   }
 }
