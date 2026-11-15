@@ -31,6 +31,10 @@ jobs:
         env:
           CCX_BROWSER_ENGINE: ${{ matrix.engine }}
           CCX_BROWSER_OUTPUT: test-output/splash
+      - run: node tests/footer-relief.browser.cjs
+        env:
+          CCX_BROWSER_ENGINE: ${{ matrix.engine }}
+          CCX_BROWSER_OUTPUT: test-output/splash
       - uses: actions/upload-artifact@v4
         if: always()
         with:
