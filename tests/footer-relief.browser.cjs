@@ -2,11 +2,11 @@
 // Reuse the existing isolated actual-app fixture; no live Firebase requests.
 const fs=require('node:fs'),path=require('node:path');
 let fixture=fs.readFileSync(path.join(__dirname,'mobile-layout.browser.cjs'),'utf8').split('const report={baseline,')[0];
-fixture=fixture.replace(' state(){return',' tab(value){screen=value;render();},\n state(){return');
+fixture=fixture.replace(' state(){return',' emptyOrder(){order=null;draft.status='draft';for(const r of Object.values(draft.items)){r.quantity='';r.decision='none';}screen='order';render();}, tab(value){screen=value;render();},\n state(){return');
 for(const file of ['ordering/index.html','redesign-preview/index.html']){const html=fs.readFileSync(path.join(__dirname,'..',file),'utf8');require('node:assert/strict').doesNotMatch(html,/apple-mobile-web-app-status-bar-style/);}
 const run=String.raw`
 (async()=>{
- const browser=await playwright[process.env.CCX_BROWSER_ENGINE||'chromium'].launch();let passed=0;
+ const browser=await playwright[process.env.CCX_BROWSER_ENGINE||'chromium'].launch();let passed=0,backgroundCases=0;
  try{for(const width of [320,390,430])for(const mode of ['draft','finalized']){
  const page=await browser.newPage({viewport:{width,height:844},isMobile:true,hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',r=>r.request().url()==='https://fixture.invalid/redesign-preview/'?r.fulfill({contentType:'text/html',body:html}):r.request().url().includes('overlay-relief-v70.png')?r.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(repo,'ordering/assets/overlay-relief-v70.png'))}):r.abort());
@@ -43,8 +43,27 @@ const run=String.raw`
  for(const cls of ['key-open','text-mode','order-search']){assert.equal(await page.evaluate(c=>{document.body.classList.add(c);const d=getComputedStyle(document.body,'::before').display;document.body.classList.remove(c);return d;},cls),'none');}
  assert.equal(await page.evaluate(()=>JSON.stringify(window.__ccx.state().draftValues)),before,'decoration must preserve inventory values');passed++;
  }
- await page.locator('[data-tab="count"]').click();assert.equal(await page.evaluate(()=>window.__ccx.state().screen),'count');assert.deepEqual(errors,[]);await page.close();
+ await page.locator('[data-tab="count"]').click();assert.equal(await page.evaluate(()=>window.__ccx.state().screen),'count');assert.deepEqual(errors,[]);
+ for(const height of [844,956]){
+  await page.setViewportSize({width,height});
+  await page.evaluate(m=>window.__ccx.setup('owner',m),mode);
+  await page.locator('[data-tab="count"]').click();
+  await page.locator('[data-act="jumpcat"][data-cat="drinks"]').click();
+  for(const scene of ['drinks','empty-order']){
+   if(scene==='empty-order')await page.evaluate(()=>window.__ccx.emptyOrder());
+   await page.evaluate(()=>window.scrollTo(0,0));
+   const coverage=await page.evaluate(()=>({height:document.body.getBoundingClientRect().height,viewport:innerHeight,color:getComputedStyle(document.body).backgroundColor}));
+   assert.ok(coverage.height>=coverage.viewport-1,scene+' background must cover viewport');assert.equal(coverage.color,'rgb(243, 240, 238)');
+   if(width===390&&mode==='draft'&&height===956)await page.screenshot({path:path.join(outputDir,'short-'+scene+'.png')});
+   if(scene==='empty-order'&&height===956){
+    const old=await page.evaluate(()=>{document.body.style.minHeight='0';const h=document.body.getBoundingClientRect().height;document.body.style.removeProperty('min-height');return h;});
+    assert.ok(old<height,'negative control reproduces red canvas exposure without minimum height');
+   }
+   backgroundCases++;
+  }
+ }
+ await page.close();
  }}finally{await browser.close();}
- console.log(JSON.stringify({footerCases:passed,failed:0}));
+ console.log(JSON.stringify({footerCases:passed,backgroundCases,failed:0}));
 })().catch(e=>{console.error(e);process.exitCode=1;});`;
 new Function('require','__dirname',fixture+run)(require,__dirname);
