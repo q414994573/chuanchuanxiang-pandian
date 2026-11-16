@@ -1,0 +1,90 @@
+{
+  "testedCommit": "b615c57ac808777678d1cd34ee4ad4519e1d9d56",
+  "runId": 43782579719,
+  "runUrl": "https://github.com/q414994573/chuanchuanxiang-pandian/actions/runs/43782579719",
+  "node": {
+    "passed": 16700,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "browser": {
+    "suitesPerEngine": 17,
+    "runs": 34,
+    "passed": 5148,
+    "failed": 0,
+    "pageErrors": 0,
+    "sourceUnchanged": true
+  },
+  "cloud": {
+    "passedSuites": [
+      "rules",
+      "shared",
+      "shared-view",
+      "shared-transitions",
+      "supplier-rehearsal",
+      "catalog-versions"
+    ],
+    "environment": "isolated local Firestore emulators, demo projects"
+  },
+  "audit": {
+    "vulnerabilities": 0
+  },
+  "logSha256": {
+    "v76-final-browser/chromium/multi-search/runner.log": "6c07ff25dec67497844e63f178821254b3b929fc5264a39642b7576ae9322845",
+    "v76-final-browser/chromium/count-search-screen/runner.log": "1b0847cdd8bf96734cec854dc86fed3e3ac5d515f992627a3403e2137aacac2a",
+    "v76-final-browser/chromium/shipped-bundle/runner.log": "f39d121747bdcfa16ec675dedb73821c031d9dcd8e6219782556ca0c3bbaf279",
+    "v76-final-browser/chromium/mobile-workflow/runner.log": "d374450c2667ad7ba59e6c1bf2b9f77e3d0e5500985ccd211ce7eb8314eedf4e",
+    "v76-final-browser/chromium/feedback/runner.log": "4634528789850b74755cf6169951d52aeb4c7cf64187a482381e069f36e60e21",
+    "v76-final-browser/chromium/input-speech/runner.log": "f7953c5a9b6971666f38e58e99a71a9001655f6d262a63f709c78f4792116b90",
+    "v76-final-browser/chromium/splash/runner.log": "d266fc7e0c2ec490354a243021764b49c38784b7e4e7afc14d949a3c82e5d330",
+    "v76-final-browser/chromium/storage-cleanup/runner.log": "6cb8848b79635cc85c659d088a76165d5f26f8213f7efa1524d628df3217d15f",
+    "v76-final-browser/chromium/catalog-expansion/runner.log": "cc3819202ebb8d47f3766a58bcd547e3a75c574da9f343127911a69cea0425dd",
+    "v76-final-browser/chromium/search-progress/runner.log": "eabf06a20a16c2dd8493de9466d2fb85938f31ea03e2510f1cefa48b0b29f082",
+    "v76-final-browser/chromium/bilingual-consistency/runner.log": "08fcd0599443c56491c75cda4a247045b27ae5424e932324034fb9ed25f179c7",
+    "v76-final-browser/chromium/search-hub/runner.log": "2beebe6d5ff0bc63c2b7b95144ead10a15e8dfa864d6228ae1e631d231e4b5fd",
+    "v76-final-browser/chromium/storage-quota/runner.log": "1b0847cdd8bf96734cec854dc86fed3e3ac5d515f992627a3403e2137aacac2a",
+    "v76-final-browser/chromium/mobile-layout/runner.log": "a1b5b5a55f7de1a7601145cbeedeb7761c6dff5e4738171d37a4a8e3a145b7b6",
+    "v76-final-browser/chromium/catalog-name-correction/runner.log": "50a93a8249fb2fc1a5b97e89159513b8082444b6c2f9caaaecce97e85943ccea",
+    "v76-final-browser/chromium/speech-navigation/runner.log": "5987ab50233d6626abbdb4534e9d06495aec3a9726278c6dce910dc5ebe02036",
+    "v76-final-browser/chromium/footer-relief/runner.log": "b8f35e1a96f018ec66b25f9247a80c16b1cfb506ab3deb66004431e763e551cf",
+    "v76-final-browser/webkit/multi-search/runner.log": "368d17663fed65d51aad44a58323e1bbe8b34b2024787219d841352d1328890f",
+    "v76-final-browser/webkit/count-search-screen/runner.log": "27ef716093cfad576e70aebaf5ac957886cc81da0979be2d6ee643d1f988dff7",
+    "v76-final-browser/webkit/shipped-bundle/runner.log": "1f35daba1c9a6c3d2c50d1628e51183e58ed3155bd0d7feed1eec6197e69b60a",
+    "v76-final-browser/webkit/mobile-workflow/runner.log": "06be9a44e52818ef6dab7f210bd2f2ee482d02904b018ae99036874b21540717",
+    "v76-final-browser/webkit/feedback/runner.log": "b780f3f23c2de4813ecab486bd184962b3c40bc6f7e5822e95f33267e38bea6f",
+    "v76-final-browser/webkit/input-speech/runner.log": "6015f56f511f3ff23294fc416667da7419a93d37c94e1ff6153a2aeda55acd9e",
+    "v76-final-browser/webkit/splash/runner.log": "18c4ab347a78551ba8711bdb4366eba3149c0ebde0109c67937a94e088481fcc",
+    "v76-final-browser/webkit/storage-cleanup/runner.log": "100676b2e689c5d4a91359cd725241416a1ee42cf6d04b9c7b921f908dc23eb7",
+    "v76-final-browser/webkit/catalog-expansion/runner.log": "2fd111c6ead6ac3fbfe00643607eff5c5c1c812ec674a36fbfbcebd6c8c7d928",
+    "v76-final-browser/webkit/search-progress/runner.log": "9d7dc28ee285070f45b428948d9ab05b32550c4745049de08e2d359cde16b06d",
+    "v76-final-browser/webkit/bilingual-consistency/runner.log": "698d82ebb141f532bd930aaad58083df55596024e7465d4a8d831907c807abf7",
+    "v76-final-browser/webkit/search-hub/runner.log": "e9e216ad9b79e4b159deb2dc530b8aae3a9ed01aa8e84aca6f1d8579d9f84922",
+    "v76-final-browser/webkit/storage-quota/runner.log": "27ef716093cfad576e70aebaf5ac957886cc81da0979be2d6ee643d1f988dff7",
+    "v76-final-browser/webkit/mobile-layout/runner.log": "2a549f2e66c28ec8da08458ae2428be1fbc413bd5e4dd9d2dab345507aa8eb71",
+    "v76-final-browser/webkit/catalog-name-correction/runner.log": "c669937bbc84ad31f98f54ef07805f895be96cd06ad047563cb66d32aff9e4c0",
+    "v76-final-browser/webkit/speech-navigation/runner.log": "c76709f0d3f09864264f981308a61554f2eca2abade88bcacb1de4d2c83f37a6",
+    "v76-final-browser/webkit/footer-relief/runner.log": "24392f181865a069a3ba6d1fb4250343ecac00eb4473123c7d34e336584e284a",
+    "v76-final-node/audit.log": "6d8c5c8f3d7684adb070417bd608d01ae90aa3dc26a65af03ffda4955f38d9a3",
+    "v76-final-node/node.log": "9b4f32fe62213259d0002ece900d4a314e1b59c7d25f75dcb29f52630d713458",
+    "v76-final-cloud/firestore-debug.log": "013d432591d47ab997c979db775cb4fbebe926f303161f1611bdc7abd11a1166",
+    "v76-final-cloud/test-output/cloud/catalog-versions.log": "597b2bc669874d37cba8c4b6d9f0e0888937f4796f082a6132ac0a9865ed5245",
+    "v76-final-cloud/test-output/cloud/supplier-rehearsal.log": "0bb2069844d68bb35104ded7d0eba2c254a63bfe8a04b1a67a619e24fee2b4ef",
+    "v76-final-cloud/test-output/cloud/shared.log": "90d3e43b459e28f41d44c84ed59df7af6bc82ff052e31c71968df587ffac7d66",
+    "v76-final-cloud/test-output/cloud/shared-view.log": "3f59b7368b276ae69177a3c5ffa51e0397c57e19e14ce7a59cb177ad61c2046a",
+    "v76-final-cloud/test-output/cloud/rules.log": "14add93f7982cebbec3a8f754a3145aa14cb5db2dc5cde7b6f88c2c076033876",
+    "v76-final-cloud/test-output/cloud/shared-transitions.log": "7b165c819638543e21625ad7b9724bf95f04f0b84fdf6aa843e0efce4c8324f0"
+  },
+  "visualReview": [
+    "chromium short-empty-order, short-drinks, welcome",
+    "webkit short-empty-order, short-drinks, welcome"
+  ],
+  "limitations": [
+    "Simulated mobile browsers, not physical iPhone/Samsung system status bars",
+    "Audio/vibration/clipboard delivery not physical-device verification",
+    "Counts include parameterized combinations, not distinct features",
+    "Expected denied malformed writes include expression-limit log messages"
+  ],
+  "productionApplicationChanged": false,
+  "realOrderDataTouched": false
+}

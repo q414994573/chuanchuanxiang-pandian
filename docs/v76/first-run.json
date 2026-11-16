@@ -1,0 +1,517 @@
+{
+  "runs": [
+    {
+      "engine": "chromium",
+      "suite": "bilingual-consistency",
+      "exitCode": 0,
+      "seconds": 10.08,
+      "runnerSha256": "d74bf852ee16552f1465ac5f59c6d79f683a645dfa0d0847cd991399348f8da8",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/bilingual-consistency/bilingual-consistency-report.json",
+      "passed": 1824,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "catalog-expansion",
+      "exitCode": 0,
+      "seconds": 41.89,
+      "runnerSha256": "0eadb2a5bc77d16f1e21af2b2794e4e2fd898410f0265321c83a1f7c082afbd4",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/catalog-expansion/catalog-expansion-report.json",
+      "passed": 114,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "catalog-name-correction",
+      "exitCode": 0,
+      "seconds": 7.9,
+      "runnerSha256": "5924e6db615ee498bfec1f19d50388e0ccfe834fbc16bdec6e317bb204033b20",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/catalog-name-correction/catalog-name-correction-report.json",
+      "passed": 12,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "count-search-screen",
+      "exitCode": 1,
+      "seconds": 4.14,
+      "runnerSha256": "0a268d4d290e31d193bded3310594dbb1127a9de5f9031152c1f8b41385c8030",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/count-search-screen/count-search-screen-report.json",
+      "passed": 6,
+      "failed": 0,
+      "pageErrors": [
+        "Unexpected request https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "141.0.7390.37",
+      "ok": false
+    },
+    {
+      "engine": "chromium",
+      "suite": "feedback",
+      "exitCode": 1,
+      "seconds": 3.68,
+      "runnerSha256": "bc1c2c43097ce21dbc54beec9dcd3f2be3bf218c274922df6793ced94c3e914a",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/feedback/feedback-report.json",
+      "passed": 10,
+      "failed": 0,
+      "pageErrors": [
+        "Blocked network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "141.0.7390.37",
+      "ok": false
+    },
+    {
+      "engine": "chromium",
+      "suite": "footer-relief",
+      "exitCode": 0,
+      "seconds": 6.66,
+      "runnerSha256": "37f8e1641aea8d59ecad5ff9e4b2617c06f51d476ff0ff46f86b43e9aa944028",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/footer-relief/footer-report.json",
+      "passed": 42,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": null,
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "input-speech",
+      "exitCode": 1,
+      "seconds": 122.65,
+      "runnerSha256": "15252d3adcf3592ee0b564c2cf32450c5e462f4ff9975bd4491654f4fa96bfe9",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/input-speech/input-speech-report.json",
+      "passed": 132,
+      "failed": 0,
+      "pageErrors": [
+        "Unexpected network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "141.0.7390.37",
+      "ok": false
+    },
+    {
+      "engine": "chromium",
+      "suite": "mobile-layout",
+      "exitCode": 1,
+      "seconds": 13.81,
+      "runnerSha256": "e06feee385bc3d59fb694c6a75d566f76bb470d46b438195074f17bb80b4f801",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/mobile-layout/layout-report.json",
+      "passed": 24,
+      "failed": 0,
+      "pageErrors": [
+        "Blocked network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "141.0.7390.37",
+      "ok": false
+    },
+    {
+      "engine": "chromium",
+      "suite": "mobile-workflow",
+      "exitCode": 1,
+      "seconds": 17.68,
+      "runnerSha256": "08d2b9e5eb3f05d28870c8628734984c8c7176c979beaec128030449b9a233a2",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/mobile-workflow/browser-report.json",
+      "passed": 24,
+      "failed": 0,
+      "pageErrors": [
+        "Blocked network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "141.0.7390.37",
+      "ok": false
+    },
+    {
+      "engine": "chromium",
+      "suite": "multi-search",
+      "exitCode": 1,
+      "seconds": 91.31,
+      "runnerSha256": "179c17f969ac06a2b870b012378d6431d156d12375eef14b52fe87b9e73b8859",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/multi-search/multi-search-report.json",
+      "passed": 48,
+      "failed": 0,
+      "pageErrors": [
+        "Blocked network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "141.0.7390.37",
+      "ok": false
+    },
+    {
+      "engine": "chromium",
+      "suite": "search-hub",
+      "exitCode": 1,
+      "seconds": 39.88,
+      "runnerSha256": "92a7820c5e693674aa433a773326e7c2f19e475d4aa438d0ab46fe9dc78cd830",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/search-hub/search-hub-report.json",
+      "passed": 51,
+      "failed": 0,
+      "pageErrors": [
+        "Blocked network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "141.0.7390.37",
+      "ok": false
+    },
+    {
+      "engine": "chromium",
+      "suite": "search-progress",
+      "exitCode": 1,
+      "seconds": 38.79,
+      "runnerSha256": "d750354fa112aa1fe9e59213cbf424e86584f5878fe9788bc0d2589031b6bc50",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/search-progress/search-progress-report.json",
+      "passed": 78,
+      "failed": 0,
+      "pageErrors": [
+        "Unexpected network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "141.0.7390.37",
+      "ok": false
+    },
+    {
+      "engine": "chromium",
+      "suite": "shipped-bundle",
+      "exitCode": 0,
+      "seconds": 1.53,
+      "runnerSha256": "895207ed265f9e4a3d5b0a97726e5627094ac1b4400670b22e299279ef95931c",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/shipped-bundle/deployed-boot-round2-report.json",
+      "passed": 4,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": null,
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "speech-navigation",
+      "exitCode": 1,
+      "seconds": 201.76,
+      "runnerSha256": "9f68c5056efd4a8b359fc79c0bbec69a3f842d9ac99fbd4599deca6201362709",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/speech-navigation/speech-navigation-report.json",
+      "passed": 156,
+      "failed": 0,
+      "pageErrors": [
+        "Unexpected network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "141.0.7390.37",
+      "ok": false
+    },
+    {
+      "engine": "chromium",
+      "suite": "splash",
+      "exitCode": 0,
+      "seconds": 133.84,
+      "runnerSha256": "7666f0cc2c4566a6f049a0610d7d645e480d446947d893a998c8ae9d0726c27d",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/splash/splash-report.json",
+      "passed": 33,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "storage-cleanup",
+      "exitCode": 0,
+      "seconds": 4.02,
+      "runnerSha256": "4ead14660b0d08fcbe14768d9c9ec69293fd99cae5bb24fa3b2de6a1a507bf72",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/storage-cleanup/storage-cleanup-report.json",
+      "passed": 10,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "chromium",
+      "suite": "storage-quota",
+      "exitCode": 0,
+      "seconds": 2.12,
+      "runnerSha256": "13b61e8738cc51a42355cc25009afafcca48a607967b95890b2df42adb133797",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/chromium/storage-quota/storage-quota-report.json",
+      "passed": 6,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "141.0.7390.37",
+      "ok": true
+    },
+    {
+      "engine": "webkit",
+      "suite": "bilingual-consistency",
+      "exitCode": 0,
+      "seconds": 13.57,
+      "runnerSha256": "d74bf852ee16552f1465ac5f59c6d79f683a645dfa0d0847cd991399348f8da8",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/bilingual-consistency/bilingual-consistency-report.json",
+      "passed": 1824,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "26.0",
+      "ok": true
+    },
+    {
+      "engine": "webkit",
+      "suite": "catalog-expansion",
+      "exitCode": 0,
+      "seconds": 38.96,
+      "runnerSha256": "0eadb2a5bc77d16f1e21af2b2794e4e2fd898410f0265321c83a1f7c082afbd4",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/catalog-expansion/catalog-expansion-report.json",
+      "passed": 114,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "26.0",
+      "ok": true
+    },
+    {
+      "engine": "webkit",
+      "suite": "catalog-name-correction",
+      "exitCode": 0,
+      "seconds": 12.54,
+      "runnerSha256": "5924e6db615ee498bfec1f19d50388e0ccfe834fbc16bdec6e317bb204033b20",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/catalog-name-correction/catalog-name-correction-report.json",
+      "passed": 12,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "26.0",
+      "ok": true
+    },
+    {
+      "engine": "webkit",
+      "suite": "count-search-screen",
+      "exitCode": 1,
+      "seconds": 5.94,
+      "runnerSha256": "0a268d4d290e31d193bded3310594dbb1127a9de5f9031152c1f8b41385c8030",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/count-search-screen/count-search-screen-report.json",
+      "passed": 6,
+      "failed": 0,
+      "pageErrors": [
+        "Unexpected request https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "26.0",
+      "ok": false
+    },
+    {
+      "engine": "webkit",
+      "suite": "feedback",
+      "exitCode": 1,
+      "seconds": 5.35,
+      "runnerSha256": "bc1c2c43097ce21dbc54beec9dcd3f2be3bf218c274922df6793ced94c3e914a",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/feedback/feedback-report.json",
+      "passed": 10,
+      "failed": 0,
+      "pageErrors": [
+        "Blocked network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "26.0",
+      "ok": false
+    },
+    {
+      "engine": "webkit",
+      "suite": "footer-relief",
+      "exitCode": 0,
+      "seconds": 8.0,
+      "runnerSha256": "37f8e1641aea8d59ecad5ff9e4b2617c06f51d476ff0ff46f86b43e9aa944028",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/footer-relief/footer-report.json",
+      "passed": 42,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": null,
+      "ok": true
+    },
+    {
+      "engine": "webkit",
+      "suite": "input-speech",
+      "exitCode": 1,
+      "seconds": 95.74,
+      "runnerSha256": "15252d3adcf3592ee0b564c2cf32450c5e462f4ff9975bd4491654f4fa96bfe9",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/input-speech/input-speech-report.json",
+      "passed": 132,
+      "failed": 0,
+      "pageErrors": [
+        "Unexpected network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "26.0",
+      "ok": false
+    },
+    {
+      "engine": "webkit",
+      "suite": "mobile-layout",
+      "exitCode": 1,
+      "seconds": 15.26,
+      "runnerSha256": "e06feee385bc3d59fb694c6a75d566f76bb470d46b438195074f17bb80b4f801",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/mobile-layout/layout-report.json",
+      "passed": 24,
+      "failed": 0,
+      "pageErrors": [
+        "Blocked network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "26.0",
+      "ok": false
+    },
+    {
+      "engine": "webkit",
+      "suite": "mobile-workflow",
+      "exitCode": 1,
+      "seconds": 19.74,
+      "runnerSha256": "08d2b9e5eb3f05d28870c8628734984c8c7176c979beaec128030449b9a233a2",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/mobile-workflow/browser-report.json",
+      "passed": 24,
+      "failed": 0,
+      "pageErrors": [
+        "Blocked network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "26.0",
+      "ok": false
+    },
+    {
+      "engine": "webkit",
+      "suite": "multi-search",
+      "exitCode": 1,
+      "seconds": 94.17,
+      "runnerSha256": "179c17f969ac06a2b870b012378d6431d156d12375eef14b52fe87b9e73b8859",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/multi-search/multi-search-report.json",
+      "passed": 48,
+      "failed": 0,
+      "pageErrors": [
+        "Blocked network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "26.0",
+      "ok": false
+    },
+    {
+      "engine": "webkit",
+      "suite": "search-hub",
+      "exitCode": 1,
+      "seconds": 46.36,
+      "runnerSha256": "92a7820c5e693674aa433a773326e7c2f19e475d4aa438d0ab46fe9dc78cd830",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/search-hub/search-hub-report.json",
+      "passed": 51,
+      "failed": 0,
+      "pageErrors": [
+        "Blocked network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "26.0",
+      "ok": false
+    },
+    {
+      "engine": "webkit",
+      "suite": "search-progress",
+      "exitCode": 1,
+      "seconds": 35.86,
+      "runnerSha256": "d750354fa112aa1fe9e59213cbf424e86584f5878fe9788bc0d2589031b6bc50",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/search-progress/search-progress-report.json",
+      "passed": 78,
+      "failed": 0,
+      "pageErrors": [
+        "Unexpected network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "26.0",
+      "ok": false
+    },
+    {
+      "engine": "webkit",
+      "suite": "shipped-bundle",
+      "exitCode": 0,
+      "seconds": 2.13,
+      "runnerSha256": "895207ed265f9e4a3d5b0a97726e5627094ac1b4400670b22e299279ef95931c",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/shipped-bundle/deployed-boot-round2-report.json",
+      "passed": 4,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": null,
+      "ok": true
+    },
+    {
+      "engine": "webkit",
+      "suite": "speech-navigation",
+      "exitCode": 1,
+      "seconds": 180.29,
+      "runnerSha256": "9f68c5056efd4a8b359fc79c0bbec69a3f842d9ac99fbd4599deca6201362709",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/speech-navigation/speech-navigation-report.json",
+      "passed": 156,
+      "failed": 0,
+      "pageErrors": [
+        "Unexpected network https://ccx.invalid/ordering/assets/overlay-relief-v70.png"
+      ],
+      "browserVersion": "26.0",
+      "ok": false
+    },
+    {
+      "engine": "webkit",
+      "suite": "splash",
+      "exitCode": 0,
+      "seconds": 138.37,
+      "runnerSha256": "7666f0cc2c4566a6f049a0610d7d645e480d446947d893a998c8ae9d0726c27d",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/splash/splash-report.json",
+      "passed": 33,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "26.0",
+      "ok": true
+    },
+    {
+      "engine": "webkit",
+      "suite": "storage-cleanup",
+      "exitCode": 0,
+      "seconds": 6.94,
+      "runnerSha256": "4ead14660b0d08fcbe14768d9c9ec69293fd99cae5bb24fa3b2de6a1a507bf72",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/storage-cleanup/storage-cleanup-report.json",
+      "passed": 10,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "26.0",
+      "ok": true
+    },
+    {
+      "engine": "webkit",
+      "suite": "storage-quota",
+      "exitCode": 0,
+      "seconds": 3.98,
+      "runnerSha256": "13b61e8738cc51a42355cc25009afafcca48a607967b95890b2df42adb133797",
+      "sourceUnchanged": true,
+      "report": "/__w/chuanchuanxiang-pandian/chuanchuanxiang-pandian/test-output/browser-regression/webkit/storage-quota/storage-quota-report.json",
+      "passed": 6,
+      "failed": 0,
+      "pageErrors": [],
+      "browserVersion": "26.0",
+      "ok": true
+    }
+  ],
+  "allPassed": false
+}
