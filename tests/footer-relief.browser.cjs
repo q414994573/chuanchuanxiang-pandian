@@ -2,7 +2,7 @@
 // Reuse the existing isolated actual-app fixture; no live Firebase requests.
 const fs=require('node:fs'),path=require('node:path');
 let fixture=fs.readFileSync(path.join(__dirname,'mobile-layout.browser.cjs'),'utf8').split('const report={baseline,')[0];
-fixture=fixture.replace(' state(){return',' emptyOrder(){order=null;draft.status='draft';for(const r of Object.values(draft.items)){r.quantity='';r.decision='none';}screen='order';render();}, tab(value){screen=value;render();},\n state(){return');
+fixture=fixture.replace(' state(){return',' emptyOrder(){order=null;draft.status="draft";for(const r of Object.values(draft.items)){r.quantity="";r.decision="none";}screen="order";render();}, tab(value){screen=value;render();},\n state(){return');
 for(const file of ['ordering/index.html','redesign-preview/index.html']){const html=fs.readFileSync(path.join(__dirname,'..',file),'utf8');require('node:assert/strict').doesNotMatch(html,/apple-mobile-web-app-status-bar-style/);}
 const run=String.raw`
 (async()=>{
