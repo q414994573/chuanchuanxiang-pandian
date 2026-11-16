@@ -8,7 +8,7 @@ const run=String.raw`
  const browser=await playwright[report.engine].launch({headless:true});report.browserVersion=browser.version();
  try{for(const width of [430,375,320])for(const role of ['owner','editor']){
   const context=await browser.newContext({viewport:{width,height:530},isMobile:true,hasTouch:true,deviceScaleFactor:1});const page=await context.newPage();page.setDefaultTimeout(5000);page.on('pageerror',e=>report.errors.push(e.message));
-  await page.route('**/*',async r=>{if(r.request().url()==='https://ccx.invalid/ordering/')await r.fulfill({contentType:'text/html',body:html});else{report.errors.push('Unexpected request '+r.request().url());await r.abort();}});
+  await page.route('**/*',async r=>{if(r.request().url()==='https://ccx.invalid/ordering/')await r.fulfill({contentType:'text/html',body:html});else if(r.request().url()==='https://ccx.invalid/ordering/assets/overlay-relief-v70.png')await r.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(__dirname,'../ordering/assets/overlay-relief-v70.png'))});else{report.errors.push('Unexpected request '+r.request().url());await r.abort();}});
   try{
    await page.goto('https://ccx.invalid/ordering/');
    await runCase(width+'px '+role+' screenshot query exposes all three rows in a keyboard-sized viewport',async()=>{

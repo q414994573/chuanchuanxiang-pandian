@@ -44,7 +44,7 @@ async function runCase(name,fn){try{report.cases.push({name,pass:true,...(await 
    });
    const page=await context.newPage();page.setDefaultTimeout(5000);
    page.on('pageerror',e=>report.errors.push(`${role}: ${e.message}`));
-   await page.route('**/*',async route=>{if(route.request().url()==='https://ccx.invalid/ordering/')await route.fulfill({status:200,contentType:'text/html',body:html});else{report.errors.push('Blocked network '+route.request().url());await route.abort();}});
+   await page.route('**/*',async route=>{if(route.request().url()==='https://ccx.invalid/ordering/')await route.fulfill({status:200,contentType:'text/html',body:html});else if(route.request().url()==='https://ccx.invalid/ordering/assets/overlay-relief-v70.png')await route.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(__dirname,'../ordering/assets/overlay-relief-v70.png'))});else{report.errors.push('Blocked network '+route.request().url());await route.abort();}});
    await page.goto('https://ccx.invalid/ordering/');
    await page.evaluate(role=>window.__ccx.setup(role),role);await settle(page);
    const initial=await page.evaluate(()=>JSON.stringify(window.__ccx.state().order));

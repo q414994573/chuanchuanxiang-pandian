@@ -111,7 +111,7 @@ async function next(page,shared=true){await page.locator(`[data-act="${shared?'o
   for(const width of widths)for(const role of roles)for(const mode of modes){
    const context=await browser.newContext({viewport:{width,height:932},isMobile:true,hasTouch:true,deviceScaleFactor:1});
    const page=await context.newPage();page.setDefaultTimeout(5000);page.on('pageerror',e=>report.errors.push(e.message));
-   await page.route('**/*',async route=>{if(route.request().url()==='https://ccx.invalid/ordering/')await route.fulfill({status:200,contentType:'text/html',body:html});else{report.errors.push('Blocked network '+route.request().url());await route.abort();}});
+   await page.route('**/*',async route=>{if(route.request().url()==='https://ccx.invalid/ordering/')await route.fulfill({status:200,contentType:'text/html',body:html});else if(route.request().url()==='https://ccx.invalid/ordering/assets/overlay-relief-v70.png')await route.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(__dirname,'../ordering/assets/overlay-relief-v70.png'))});else{report.errors.push('Blocked network '+route.request().url());await route.abort();}});
    try{
     await page.goto('https://ccx.invalid/ordering/');const prefix=`${width}px ${role} ${mode}`;
     await runCase(prefix+' order multi-name query variants, stable input and original scroll',async()=>{

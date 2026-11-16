@@ -115,7 +115,7 @@ function assertCompactOrder(g,width){
   for(const width of (process.env.CCX_BROWSER_WIDTHS?process.env.CCX_BROWSER_WIDTHS.split(',').map(Number):[430,375,320]))for(const mode of ['finalized','draft']){
    const context=await browser.newContext({viewport:{width,height:932},isMobile:true,hasTouch:true,deviceScaleFactor:1});const page=await context.newPage();page.setDefaultTimeout(5000);
    page.on('pageerror',e=>report.errors.push(e.message));
-   await page.route('**/*',async route=>{if(route.request().url()==='https://ccx.invalid/ordering/')await route.fulfill({status:200,contentType:'text/html',body:html});else{report.errors.push('Blocked network '+route.request().url());await route.abort();}});
+   await page.route('**/*',async route=>{if(route.request().url()==='https://ccx.invalid/ordering/')await route.fulfill({status:200,contentType:'text/html',body:html});else if(route.request().url()==='https://ccx.invalid/ordering/assets/overlay-relief-v70.png')await route.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(__dirname,'../ordering/assets/overlay-relief-v70.png'))});else{report.errors.push('Blocked network '+route.request().url());await route.abort();}});
    try{
     await page.goto('https://ccx.invalid/ordering/');await page.evaluate(mode=>window.__ccx.setup('owner',mode),mode);await settle(page);
     await runCase(`${width}px ${mode} count all four categories fit and align`,async()=>{

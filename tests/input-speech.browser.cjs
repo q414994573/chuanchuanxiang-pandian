@@ -109,7 +109,7 @@ async function instrument(context){await context.addInitScript(()=>{
  document.addEventListener('click',event=>{const target=event.target.closest?.('[data-act]');if(target)audio.clicks.push({act:target.dataset.act,id:target.dataset.id||null,key:target.dataset.key||null,trusted:event.isTrusted,time:performance.now()});},true);
  document.addEventListener('input',event=>{if(event.target.classList.contains('plain'))audio.inputs.push({value:event.target.value,trusted:event.isTrusted});},true);
 });}
-async function route(page){page.setDefaultTimeout(5000);page.on('pageerror',e=>report.errors.push(e.message));await page.route('**/*',async request=>{if(request.request().url()==='https://ccx.invalid/ordering/')await request.fulfill({status:200,contentType:'text/html',body:html});else{report.errors.push('Unexpected network '+request.request().url());await request.abort();}});}
+async function route(page){page.setDefaultTimeout(5000);page.on('pageerror',e=>report.errors.push(e.message));await page.route('**/*',async request=>{if(request.request().url()==='https://ccx.invalid/ordering/')await request.fulfill({status:200,contentType:'text/html',body:html});else if(request.request().url()==='https://ccx.invalid/ordering/assets/overlay-relief-v70.png')await request.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(__dirname,'../ordering/assets/overlay-relief-v70.png'))});else{report.errors.push('Unexpected network '+request.request().url());await request.abort();}});}
 
 (async()=>{
  const browser=await playwright[report.engine].launch({headless:true});report.browserVersion=browser.version();
