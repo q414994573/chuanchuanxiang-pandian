@@ -28,7 +28,7 @@ const run=String.raw`
  await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
  const geometry=()=>page.evaluate(()=>{const s=getComputedStyle(document.body,'::before');return {display:s.display,pointer:s.pointerEvents,width:parseFloat(s.width),left:parseFloat(s.left),top:parseFloat(s.top),position:s.position,transform:s.transform,z:s.zIndex,opacity:s.opacity,appZ:getComputedStyle(document.getElementById('app')).zIndex,old:getComputedStyle(document.getElementById('app'),'::after').content,overflow:document.documentElement.scrollWidth>innerWidth};});
  const result=await geometry();
- assert.equal(result.display,'block');assert.equal(result.pointer,'none');assert.equal(result.position,'fixed');assert.equal(result.left,width/2);assert.equal(result.top,422);assert.equal(result.z,'2');assert.equal(result.opacity,'0.25');assert.equal(result.appZ,'1');assert.equal(result.old,'none');assert.equal(result.overflow,false);
+ assert.ok(Math.abs(result.width-width*.6)<.1,'watermark stays at 60% viewport width');assert.equal(result.display,'block');assert.equal(result.pointer,'none');assert.equal(result.position,'fixed');assert.equal(result.left,width/2);assert.equal(result.top,422);assert.equal(result.z,'2');assert.equal(result.opacity,'0.25');assert.equal(result.appZ,'1');assert.equal(result.old,'none');assert.equal(result.overflow,false);
  await page.evaluate(()=>{const b=document.createElement('button');b.id='overlay-click-probe';b.style.cssText='position:fixed;left:calc(50% - 15px);top:calc(50% - 15px);width:30px;height:30px';b.onclick=()=>b.dataset.clicked='yes';document.getElementById('app').append(b);});
  await page.mouse.click(width/2,422);assert.equal(await page.locator('#overlay-click-probe').getAttribute('data-clicked'),'yes');await page.locator('#overlay-click-probe').evaluate(e=>e.remove());
  await page.evaluate(()=>window.scrollTo(0,0));assert.deepEqual(await geometry(),result,'scroll must not move background mark');
@@ -64,6 +64,6 @@ const run=String.raw`
  }
  await page.close();
  }}finally{await browser.close();}
- console.log(JSON.stringify({footerCases:passed,backgroundCases,failed:0}));
+ const report={engine:process.env.CCX_BROWSER_ENGINE||'chromium',passed:passed+backgroundCases,failed:0,errors:[],footerCases:passed,backgroundCases};fs.writeFileSync(path.join(outputDir,'footer-report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));
 })().catch(e=>{console.error(e);process.exitCode=1;});`;
 new Function('require','__dirname',fixture+run)(require,__dirname);

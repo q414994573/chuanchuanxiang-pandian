@@ -1,0 +1,10 @@
+{
+  "count-core.js": "eef9f0a60c3c2684fc460cb7847fb7b3ccf971b362b5298b97942fb842d738e9",
+  "current-order.json": "314e01968e843af01bc56e59ad82f86686882374f15f1d9f697a55c610b45a99",
+  "redesign-preview/preview.js": "4ea263893192296077753d38e48536ed9b93f6e8fb8d71d43b1d0ca712768afe",
+  "redesign-preview/preview.bundle.js": "35f2ada9803443246b843615b5363b04dc57faf6ff5f7d51a44ce09dc10e77af",
+  "redesign-preview/product-names.cjs": "af952c628d73f9d96084b523196899b2b2e2d857d73f4a8ff365190adbe0d9c4",
+  "redesign-preview/stock-unit-corrections.cjs": "f5196a9a559cc06b3d64145072bad89b667fb6e07ca415f9e09998a35afa6e0c",
+  "firestore.rules": "a69f4a8addb01ae2a5bb9d3c5c58e46d8fcb78ad81a3cd11a98b7b1df3abacbc",
+  "ordering/splash.js": "4bf426695841b7b190e40527c8093bbe964cf1dd80909a948958cb0486af260e"
+}

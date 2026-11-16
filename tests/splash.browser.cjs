@@ -33,6 +33,10 @@ const html=fs.readFileSync(path.join(root,'ordering/index.html'),'utf8');
     assert.equal(await page.locator('.welcome-emblem').evaluate(e=>getComputedStyle(e).animationDuration),'2s');
     assert.equal(await page.locator('.welcome-brand').evaluate(e=>getComputedStyle(e).mixBlendMode),'screen','blend at transformed parent avoids black backplate');
     await page.waitForTimeout(2200);
+    const emblem=await page.locator('.welcome-emblem').boundingBox();
+    assert.ok(Math.abs(emblem.x+emblem.width/2-width/2)<1,'opening emblem horizontally centered');
+    assert.ok(Math.abs(emblem.y+emblem.height/2-422)<1,'opening emblem vertically centered without deleted title offset');
+    assert.ok(Math.abs(emblem.width-Math.max(210,Math.min(width*.648,276)))<1,'opening emblem 20 percent larger');
     if(width===390){
      await page.screenshot({path:path.join(output,'welcome.png')});
      await page.evaluate(()=>{const child=document.querySelector('.welcome-emblem');child.dispatchEvent(new AnimationEvent('animationend',{bubbles:true,animationName:'ccx-emblem-in'}));});
