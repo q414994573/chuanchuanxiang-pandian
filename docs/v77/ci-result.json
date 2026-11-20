@@ -1,0 +1,18 @@
+{
+  "runId": "44664589617",
+  "testedCommit": "55091d42547d8d1998fabfb8605d715d6fc83e77",
+  "node": {
+    "passed": 16705,
+    "failed": 0,
+    "skipped": 0
+  },
+  "browser": {
+    "runs": 34,
+    "passed": 5148,
+    "failed": 0,
+    "allPassed": true
+  },
+  "cloudLogFiles": 7,
+  "result": "success",
+  "note": "All jobs passed on isolated fixtures; no production orders touched"
+}
