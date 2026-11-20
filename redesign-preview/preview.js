@@ -1864,7 +1864,6 @@ function startFreshCount(){
 }
 function tryLeave(next){
  // Switching tabs preserves the same unsaved order in memory.
- if(next===screen)return;
  if(readPlain()===false)return;
  if(screen==='count'&&!sharedCount()){if(leaveCountCell()===false)return;}
  else if(commitOrderEdit()===false)return;
