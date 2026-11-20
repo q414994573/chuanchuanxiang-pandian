@@ -18,11 +18,22 @@ const run=String.raw`
  assert.deepEqual(await colors(),['rgb(168, 0, 28)','rgb(168, 0, 28)']);
  await page.evaluate(()=>document.getElementById('ccx-welcome').remove());assert.deepEqual(await colors(),normalColors);
 
- await page.evaluate(()=>document.documentElement.style.setProperty('--safe-top','59px'));
+ await page.evaluate(()=>{
+   document.documentElement.style.setProperty('--safe-top','59px');
+   // This isolated UI fixture replaces the real app script with a synthetic
+   // counting app. Run its header-height sync explicitly here; the production
+   // ResizeObserver itself is checked by the v77 source contract tests.
+   const banner=document.querySelector('.banner');
+   document.documentElement.style.setProperty('--banner',Math.ceil(banner.getBoundingClientRect().height)+'px');
+ });
  await page.waitForFunction(()=>{const bar=document.querySelector('.bar'),banner=document.querySelector('.banner');return !bar||Math.abs(parseFloat(getComputedStyle(bar).top)-banner.getBoundingClientRect().height)<=1;});
  const safe=await page.evaluate(()=>({padding:getComputedStyle(document.querySelector('.banner')).paddingTop,bar:document.querySelector('.bar')&&parseFloat(getComputedStyle(document.querySelector('.bar')).top),bannerHeight:document.querySelector('.banner').getBoundingClientRect().height}));
  assert.equal(safe.padding,'66px');if(safe.bar!=null)assert.ok(Math.abs(safe.bar-safe.bannerHeight)<=1,'sticky bar uses actual header height, not a hardcoded 117px');
- await page.evaluate(()=>document.documentElement.style.removeProperty('--safe-top'));
+ await page.evaluate(()=>{
+   document.documentElement.style.removeProperty('--safe-top');
+   const banner=document.querySelector('.banner');
+   document.documentElement.style.setProperty('--banner',Math.ceil(banner.getBoundingClientRect().height)+'px');
+ });
  await page.waitForFunction(()=>{const bar=document.querySelector('.bar'),banner=document.querySelector('.banner');return !bar||Math.abs(parseFloat(getComputedStyle(bar).top)-banner.getBoundingClientRect().height)<=1;});
  const before=await page.evaluate(()=>JSON.stringify(window.__ccx.state().draftValues));
  for(const tab of ['count','order','more']){
