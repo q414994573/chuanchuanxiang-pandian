@@ -148,7 +148,7 @@ jobs:
           node=next(a.rglob('node.log'))
           txt=node.read_text()
           def last(label):
-            vals=re.findall(r'(?:ℹ|#)\\s*'+label+r'\\s+(\\d+)',txt)
+            vals=re.findall(r'(?:ℹ|#)\s*'+label+r'\s+(\d+)',txt)
             assert vals, label
             return int(vals[-1])
           n={'passed':last('pass'),'failed':last('fail'),'skipped':last('skipped')}
@@ -160,7 +160,7 @@ jobs:
           assert len(logs)>=6, len(logs)
           report={'runId':os.environ['GITHUB_RUN_ID'],'testedCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'node':n,'browser':browser,'cloudLogFiles':len(logs),'result':'success','note':'All jobs passed on isolated fixtures; no production orders touched'}
           out=pathlib.Path('docs/v77');out.mkdir(parents=True,exist_ok=True)
-          (out/'ci-result.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\\n')
+          (out/'ci-result.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
           print(json.dumps(report,ensure_ascii=False))
           PY
       - name: Commit verified report only after all regression jobs pass
