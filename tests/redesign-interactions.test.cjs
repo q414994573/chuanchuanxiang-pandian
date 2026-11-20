@@ -930,3 +930,33 @@ test('new blank rejects outstanding historical edits and preserves in-flight loc
  h.run(`peerEnabled=true;member={role:'owner'};peerBase={localId:draft.id,revision:4,stage:'draft',draft:C.clone(draft)};peerLatest=peerBase;peerApi={read:async()=>peerBase,newBlank:(next)=>new Promise(resolve=>globalThis.finishBlank=()=>resolve({localId:next.id,revision:5,stage:'draft',draft:next}))};`);
  const creating=h.run('peerNewBlank()');await new Promise(resolve=>setImmediate(resolve));h.run(`Core().edit(draft,'kr:43','stock','8');finishBlank()`);await assert.rejects(creating,/新建期间有新输入/);assert.equal(h.run(`draft.items['kr:43'].stock`),'8');assert.equal(h.run('cloudConflict'),true);
 });
+
+test('v77 tab navigation restores search origin and forgets positions for a different order',()=>{
+ const h=harness();h.find.focus=()=>{};
+ h.run("member={role:'owner'};screen='order';orderCat='cn';openOrderSearch();query='豆腐';window.scrollTo(0,205);tryLeave('more')");
+ assert.equal(h.window.scrollY,0);
+ h.run("tryLeave('order')");assert.equal(h.window.scrollY,80);
+ h.run("window.scrollTo(0,410);tryLeave('more');draft.id='count-different';tryLeave('order')");
+ assert.equal(h.window.scrollY,0);
+});
+test('v77 incomplete input blocks tab change and leaves scroll untouched',()=>{
+ const h=harness();h.run("screen='count';member={role:'owner'};openCount(0,'stock');writeCell('2.');window.scrollTo(0,371);tryLeave('more')");
+ assert.equal(h.run('screen'),'count');assert.equal(h.window.scrollY,371);
+});
+test('v77 old archives survive individual failures, index failure and a later retry',async()=>{
+ const h=harness(),entries=['a','b','c'].map(file=>({file,date:file}));
+ let indexOk=true,damaged=true;
+ h.ctx.fetch=async url=>{
+  if(url.endsWith('index.json'))return {ok:indexOk,json:async()=>({entries})};
+  const file=url.split('/').at(-1);
+  if(damaged&&file==='b')return {ok:false,json:async()=>({})};
+  return {ok:true,json:async()=>({products:[{name:file,order:1,unit:'箱'}]})};
+ };
+ h.run("screen='more';morePane='history'");await h.run('loadArchives()');
+ const visible=()=>h.run('archives.map(x=>x.file).join()');
+ assert.equal(visible(),'a,c');assert.match(h.run('morePaneHtml()'),/1 份旧档案读取失败/);
+ indexOk=false;await h.run('loadArchives()');assert.equal(visible(),'a,c');assert.match(h.run('morePaneHtml()'),/目录读取失败/);
+ indexOk=true;damaged=false;await h.run('loadArchives()');assert.equal(visible(),'a,b,c');assert.doesNotMatch(h.run('morePaneHtml()'),/读取失败|还在读取/);
+ damaged=true;await h.run('loadArchives()');assert.equal(visible(),'a,b,c');
+ entries.length=0;await h.run('loadArchives()');assert.equal(visible(),'');assert.match(h.run('morePaneHtml()'),/暂无旧历史档案/);
+});

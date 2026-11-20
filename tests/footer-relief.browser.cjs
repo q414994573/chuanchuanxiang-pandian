@@ -6,7 +6,7 @@ fixture=fixture.replace(' state(){return',' emptyOrder(){order=null;draft.status
 for(const file of ['ordering/index.html','redesign-preview/index.html']){const html=fs.readFileSync(path.join(__dirname,'..',file),'utf8');require('node:assert/strict').doesNotMatch(html,/apple-mobile-web-app-status-bar-style/);}
 const run=String.raw`
 (async()=>{
- const browser=await playwright[process.env.CCX_BROWSER_ENGINE||'chromium'].launch();let passed=0,backgroundCases=0;
+ const browser=await playwright[process.env.CCX_BROWSER_ENGINE||'chromium'].launch();let passed=0,backgroundCases=0,navigationCases=0;
  try{for(const width of [320,390,430])for(const mode of ['draft','finalized']){
  const page=await browser.newPage({viewport:{width,height:844},isMobile:true,hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',r=>r.request().url()==='https://fixture.invalid/redesign-preview/'?r.fulfill({contentType:'text/html',body:html}):r.request().url().includes('overlay-relief-v70.png')?r.fulfill({contentType:'image/png',body:fs.readFileSync(path.join(repo,'ordering/assets/overlay-relief-v70.png'))}):r.abort());
@@ -18,10 +18,33 @@ const run=String.raw`
  assert.deepEqual(await colors(),['rgb(168, 0, 28)','rgb(168, 0, 28)']);
  await page.evaluate(()=>document.getElementById('ccx-welcome').remove());assert.deepEqual(await colors(),normalColors);
 
- await page.evaluate(()=>document.documentElement.style.setProperty('--safe-top','59px'));
- const safe=await page.evaluate(()=>({padding:getComputedStyle(document.querySelector('.banner')).paddingTop,bar:document.querySelector('.bar')&&getComputedStyle(document.querySelector('.bar')).top}));
- assert.equal(safe.padding,'66px');if(safe.bar)assert.equal(safe.bar,'117px');
+ const clickTab=tab=>page.locator('.tabs [data-tab="'+tab+'"]').click();
+ const move=y=>page.evaluate(y=>{window.scrollTo(0,y);return scrollY;},y);
+ const position=()=>page.evaluate(()=>scrollY);
+ for(const tab of ['order','count']){
+  await clickTab(tab);
+  for(const inset of [0,59]){
+   await page.evaluate(inset=>document.documentElement.style.setProperty('--safe-top',inset+'px'),inset);
+   await move(580);
+   await page.waitForFunction(()=>{
+    const banner=document.querySelector('.banner').getBoundingClientRect();
+    const bar=document.querySelector('.bar').getBoundingClientRect();
+    return scrollY>100&&banner.top===0&&Math.abs(banner.bottom-bar.top)<=1;
+   },null,{timeout:3000});
+   assert.equal(await page.locator('.banner').evaluate(e=>getComputedStyle(e).paddingTop),(7+inset)+'px');
+   navigationCases++;
+  }
+ }
  await page.evaluate(()=>document.documentElement.style.removeProperty('--safe-top'));
+ const countY=await move(530);
+ await clickTab('more');assert.equal(await position(),0,'first visit to More starts at account');
+ const moreY=await move(170);assert.ok(moreY>0);
+ await clickTab('order');assert.equal(await position(),580,'restore order independently');
+ const orderY=await move(280);assert.ok(orderY>0);
+ await clickTab('count');assert.equal(await position(),countY,'restore count independently');
+ await clickTab('more');assert.equal(await position(),moreY,'restore More independently');
+ await clickTab('order');assert.equal(await position(),orderY,'retain new order position');
+ navigationCases++;
  const before=await page.evaluate(()=>JSON.stringify(window.__ccx.state().draftValues));
  for(const tab of ['count','order','more']){
  await page.evaluate(t=>window.__ccx.tab(t),tab);
@@ -64,6 +87,6 @@ const run=String.raw`
  }
  await page.close();
  }}finally{await browser.close();}
- const report={engine:process.env.CCX_BROWSER_ENGINE||'chromium',passed:passed+backgroundCases,failed:0,errors:[],footerCases:passed,backgroundCases};fs.writeFileSync(path.join(outputDir,'footer-report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));
+ const report={engine:process.env.CCX_BROWSER_ENGINE||'chromium',passed:passed+backgroundCases+navigationCases,failed:0,errors:[],footerCases:passed,backgroundCases,navigationCases};fs.writeFileSync(path.join(outputDir,'footer-report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));
 })().catch(e=>{console.error(e);process.exitCode=1;});`;
 new Function('require','__dirname',fixture+run)(require,__dirname);

@@ -27,6 +27,18 @@ const interactionFeedback=Feedback.create(window,{key:KEY+':feedback',soundMuted
 const searchActivity=S.createActivity(window,{key:KEY+':search-activity'});
 let releaseLocked=PRODUCTION,configFailed=false;
 const app=document.getElementById('app');
+// The header can wrap or grow with font size, orientation and the top safe area.
+const banner=document.querySelector('.banner');
+if(banner&&window.ResizeObserver){
+ const syncBannerHeight=()=>{
+  const height=banner.getBoundingClientRect().height;
+  if(height>0)document.documentElement.style.setProperty('--banner',height+'px');
+ };
+ syncBannerHeight();
+ new ResizeObserver(syncBannerHeight).observe(banner,{box:'border-box'});
+}
+const tabPositions=new Map();
+let archiveNotice='历史还在读取。',archivesLoading=false,archiveLoadFailed=false;
 let source,aliasById=new Map(),draft,pos=0,field='stock',screen='count',keypad=false,textMode=false,viewCat='kr',orderCat='kr',moduleEnd=false,entered=null;
 let catScroll=Object.fromEntries(CATS.map(([cat])=>[cat,0])),orderScroll=Object.fromEntries(CATS.map(([cat])=>[cat,0]));
 let user=null,member=null,auth,db,api=null,order=null,baseQty={},baseUnits={},stocks={},stockBase={},stockBaseUnits={},history=[];
@@ -1532,7 +1544,7 @@ document.body.addEventListener('toggle',e=>{if(e.target.dataset?.moreSection)mor
 
 function morePaneHtml(){
  if(morePane==='archive')return `<div class="card"><h2>${E(source.date)} 存档</h2><p class="muted">只看已经确认的旧单。空白不是 0。</p><div class="hero" style="background-image:linear-gradient(#0008,#0004),url('../assets/storefront.jpg')"><img src="../redesign-preview/logo.jpg" alt="川川香门头LOGO"></div>${source.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')}</div>`;
- if(morePane==='history')return archives.length?archives.map(block=>`<div class="card"><h2>${E(block.date)}</h2>${block.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')||'<p>这一天没有订货数字。</p>'}</div>`).join(''):'<p>历史还在读取。</p>';
+ if(morePane==='history')return (archiveNotice?`<p role="status">${E(archiveNotice)}</p>`:'')+archives.map(block=>`<div class="card"><h2>${E(block.date)}</h2>${block.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')||'<p>这一天没有订货数字。</p>'}</div>`).join('');
  if(morePane==='log')return `<div class="card"><h2>修改记录</h2>${order?C.historyHtml(catalog(),history.map((v,i)=>({...v,updatedByName:(v.updatedByName||'授权用户')+((v.orderStage||'pending')!==(history[i+1]?.orderStage||'pending')?(v.orderStage==='finalized'?' · 确认定稿':' · 重新修改'): '')})),canCount()&&!sample&&order.orderStage!=='finalized').replaceAll('data-cloud="restore"','data-act="restore-rev"'):'<p>先打开一份订单。</p>'}</div>`;
  return '';
 }
@@ -1853,16 +1865,25 @@ function startFreshCount(){
  const url=new URL(location.href);url.searchParams.delete('order');historyReplace(url);
  flushCloud();screen='count';render();
 }
+function tabScrollContext(tab){
+ if(tab==='more')return String(sessionEpoch);
+ return JSON.stringify([sessionEpoch,order?.id||draft?.id,tab==='count'?viewCat:orderCat]);
+}
 function tryLeave(next){
- // Switching tabs preserves the same unsaved order in memory.
-
+ const switching=next!==screen;
+ const originY=searchScroll??window.scrollY;
  if(readPlain()===false)return;
  if(screen==='count'&&!sharedCount()){if(leaveCountCell()===false)return;}
  else if(commitOrderEdit()===false)return;
+ if(switching)tabPositions.set(screen,{context:tabScrollContext(screen),y:Math.max(0,originY)});
  recordOrderSearch();resetOrderSearch();
  keypad=false;textMode=false;
  if(next!=='order')editId=null;
  screen=next;searchScroll=null;searchCat=null;if(next!=='count')query='';render();
+ if(switching){
+  const saved=tabPositions.get(next);
+  window.scrollTo(0,saved?.context===tabScrollContext(next)?saved.y:0);
+ }
  if(next==='more'&&api)loadList();
 }
 
@@ -1968,7 +1989,11 @@ document.body.addEventListener('click',async e=>{
    toast('已保存到云端');render();return;
   }
   if(act==='sample'){if(PRODUCTION)return;buildSample('order');render();return;}
-  if(act==='pane'){morePane=morePane===b.dataset.pane?'':b.dataset.pane;render();return;}
+  if(act==='pane'){
+   morePane=morePane===b.dataset.pane?'':b.dataset.pane;
+   if(morePane==='history'&&archiveLoadFailed)loadArchives();
+   render();return;
+  }
   if(act==='return-draft'){if(peerEnabled)await peerOpenCurrent();else returnToDraft();return;}
   if(act==='fresh'){await startFreshCount();return;}
   if(act==='set-date'){requirePeerDraft();const v=document.getElementById('countDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('请选日期');return;}if(draft.status==='reviewed'){toast('已经提交，日期不能改');return;}draft.date=v;persistLocal();toast('日期已改');return;}
@@ -2073,8 +2098,35 @@ async function loadList(){
  const box=document.getElementById('cloudList');if(!box||!api)return;
  box.innerHTML=entryHtml();await findOrders(directoryDate);await checkLatest();
 }
+async function archiveJson(file){
+ const response=await fetch('../order-archives/'+file,{cache:'no-store'});
+ if(!response.ok)throw Error('历史档案读取失败');
+ return response.json();
+}
 async function loadArchives(){
- try{const index=await (await fetch('../order-archives/index.json',{cache:'no-store'})).json();archives=[];for(const entry of index.entries||[]){const data=await (await fetch('../order-archives/'+entry.file,{cache:'no-store'})).json();archives.push({date:entry.date,products:(data.products||[]).map(p=>({name:p.name,alias:p.alias,order:p.order,unit:p.unit}))});}if(screen==='more'&&morePane==='history')render();}catch(e){archives=[];}
+ if(archivesLoading)return;
+ archivesLoading=true;
+ archiveNotice='历史还在读取。';
+ try{
+  const index=await archiveJson('index.json');
+  if(!Array.isArray(index.entries))throw Error('历史目录格式错误');
+  const results=await Promise.allSettled(index.entries.map(async entry=>{
+   const data=await archiveJson(entry.file);
+   if(!Array.isArray(data.products))throw Error('历史档案格式错误');
+   return {file:entry.file,date:entry.date,products:data.products.map(p=>({name:p.name,alias:p.alias,order:p.order,unit:p.unit}))};
+  }));
+  const previous=new Map(archives.map(block=>[block.file,block]));
+  archives=results.map((result,i)=>result.status==='fulfilled'?result.value:previous.get(index.entries[i]?.file)).filter(Boolean);
+  const failed=results.filter(result=>result.status==='rejected').length;
+  archiveLoadFailed=failed>0;
+  archiveNotice=failed?`有 ${failed} 份旧档案读取失败，重新打开旧历史档案可重试。`:(archives.length?'':'暂无旧历史档案。');
+ }catch{
+  archiveLoadFailed=true;
+  archiveNotice='旧历史目录读取失败，重新打开旧历史档案可重试。';
+ }finally{
+  archivesLoading=false;
+  if(screen==='more'&&morePane==='history')render();
+ }
 }
 async function boot(){
  let cfg={enabled:false};

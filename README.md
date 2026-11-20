@@ -11,13 +11,15 @@
 3. [v62测试与发布状态](docs/v62/regression.md)：双语小字、米线库存单位、大号连卷袋及完整回归。
 4. [完整工作日志](docs/工作日志.md)：更早改动原始记录。旧记录描述当时版本，不能直接替代当前规则。
 
-## 当前版本 v61
+## 当前版本 v77
 
 升级并锁定已修复的工具依赖，完整依赖审计为0个已知告警；新增依赖兼容测试及自动审计检查。
 
 新增“更多 → 本机空间清理”：先检查，再清理重复副本或与云端不可修改存档完全一致的旧副本。当前盘货、独有未同步内容、登录设置与云端历史保留。空间按文字长度估算，不冒充手机剩余空间或浏览器总配额。
 
-当前新建目录146种：韩国51、中国76、其他14、饮料5；保留129/137/138/142/144历史目录。新增中国食品馄饨（箱）、其他商品롤백(17cm×25cm)（박스）。实际测试及上线状态以v61报告为准。
+当前新建目录沿用 v62，共 147 种，按供应商分为韩国 51、中国 76、其他 15、饮料 5。支持 129、137、138、142、144、146 种历史目录。米线库存用 단，订货用 포대。馄饨用箱，两种尺寸的 롤백 都用 박스。
+
+v76 完整回归记录见 [v76 报告](docs/v76/regression.md)。本次修正吸顶衔接、分页滚动位置、离线查单提示和旧档案读取，验证记录见 [v77 报告](docs/v77/regression.md)。
 
 ## 不能改错的事情
 
@@ -38,7 +40,7 @@
 
 逻辑全套：`npm test`。
 
-云端模拟器：`npm run test:rules`、`npm run test:shared`、`npm run test:shared-view`、`npm run test:shared-transitions`、`npm run test:supplier-rehearsal`。五代目录兼容命令见接手说明。
+云端模拟器：`npm run test:rules`、`npm run test:shared`、`npm run test:shared-view`、`npm run test:shared-transitions`、`npm run test:supplier-rehearsal`。七代目录兼容测试使用本地模拟器运行 tests/catalog-versions.test.mjs。
 
 浏览器全套：安装Playwright及对应浏览器/系统依赖后，配置 `CCX_PLAYWRIGHT_MODULE`，运行 `python3 scripts/run-browser-regression.py`。默认Chromium/WebKit，包含手机宽度、两角色、不同订单状态，输出逐套报告与源码哈希。
 
@@ -47,7 +49,7 @@
 ## 文件与入口
 
 - `current-order.json`：当前目录和有日期的历史参考数量；新建盘货实际数量为空。
-- `catalog-legacy.json`、`catalog-v137.json`、`catalog-v138.json`、`catalog-v142.json`：129/137/138/142种历史目录兼容基准。
+- `catalog-legacy.json`、`catalog-v137.json`、`catalog-v138.json`、`catalog-v142.json`、`catalog-v144.json`、`catalog-v146.json` 为六份历史目录兼容基准。
 - `count-core.js`：盘货核心与历史校验。
 - `redesign-preview/preview.js`：当前共用界面源码；正式 `/ordering/` 使用其构建产物。
 - `cloud/`：Firestore订单、事务、审计与共同盘货。
