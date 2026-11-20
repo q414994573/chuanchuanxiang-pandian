@@ -31,7 +31,7 @@ test('cloud read-only failures are not described as unsaved writes',()=>{
 });
 const loader=from('async function loadArchives(){','async function boot(){');
 function makeLoader(fetcher,initial=[]){
- const box={fetch:fetcher,archives:initial,archiveNotice:'',screen:'more',morePane:'history',renders:0,render(){this.renders++;}};
+ const box={fetch:fetcher,archives:initial,archiveNotice:'',screen:'more',morePane:'history',renders:0,render(){box.renders++;}};
  vm.createContext(box);
  vm.runInContext(loader+';this.runLoad=loadArchives;',box);
  return box;
