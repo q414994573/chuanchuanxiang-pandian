@@ -23,9 +23,8 @@ jobs:
       - run: npm ci
       - run: |
           npm run build:preview
-          npm run build
           git diff --check
-          git add redesign-preview/preview.bundle.js cloud-app.bundle.js
+          git add redesign-preview/preview.bundle.js
           if ! git diff --cached --quiet; then
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
