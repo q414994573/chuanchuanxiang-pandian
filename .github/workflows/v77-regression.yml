@@ -2,6 +2,8 @@ name: v77 targeted fixes and full regression
 on:
   push:
     branches: [work/v77-five-targeted-fixes]
+    paths-ignore:
+      - 'docs/v77/ci-result.json'
 concurrency:
   group: v77-${{ github.ref }}
   cancel-in-progress: true
