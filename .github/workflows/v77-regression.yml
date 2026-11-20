@@ -1,0 +1,128 @@
+name: v77 targeted fixes and full regression
+on:
+  push:
+    branches: [work/v77-five-targeted-fixes]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/v77-five-targeted-fixes
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: |
+          npm run build:preview
+          npm run build
+          git diff --check
+          git add redesign-preview/preview.bundle.js cloud-app.bundle.js
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'build(v77): rebuild production and legacy bundles'
+            git push origin HEAD:work/v77-five-targeted-fixes
+          fi
+  node:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/v77-five-targeted-fixes
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: |
+          mkdir -p test-output
+          result=0
+          npm audit --audit-level=low > test-output/audit.log 2>&1 || result=$?
+          cat test-output/audit.log
+          exit "$result"
+      - run: |
+          mkdir -p test-output
+          result=0
+          node --test --test-timeout=120000 tests/*.test.cjs > test-output/node.log 2>&1 || result=$?
+          tail -35 test-output/node.log
+          exit "$result"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: node-log
+          path: test-output/*.log
+  browser:
+    needs: build
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/v77-five-targeted-fixes
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm install --no-save playwright@1.56.1
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - run: CCX_PLAYWRIGHT_MODULE="$GITHUB_WORKSPACE/node_modules/playwright" python3 scripts/run-browser-regression.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-reports
+          path: test-output/browser-regression
+  cloud:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/v77-five-targeted-fixes
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: |
+          mkdir -p test-output/cloud
+          set -o pipefail
+          npm run test:rules 2>&1 | tee test-output/cloud/rules.log
+      - run: |
+          mkdir -p test-output/cloud
+          set -o pipefail
+          npm run test:shared 2>&1 | tee test-output/cloud/shared.log
+      - run: |
+          mkdir -p test-output/cloud
+          set -o pipefail
+          npm run test:shared-view 2>&1 | tee test-output/cloud/shared-view.log
+      - run: |
+          mkdir -p test-output/cloud
+          set -o pipefail
+          npm run test:shared-transitions 2>&1 | tee test-output/cloud/shared-transitions.log
+      - run: |
+          mkdir -p test-output/cloud
+          set -o pipefail
+          npm run test:supplier-rehearsal 2>&1 | tee test-output/cloud/supplier-rehearsal.log
+      - run: |
+          mkdir -p test-output/cloud
+          set -o pipefail
+          npx firebase emulators:exec --only firestore --project demo-ccx-catalog-versions "node tests/catalog-versions.test.mjs" 2>&1 | tee test-output/cloud/catalog-versions.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cloud-logs
+          path: |
+            test-output/cloud
+            firestore-debug.log
