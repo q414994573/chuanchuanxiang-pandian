@@ -2,6 +2,9 @@ name: v77 targeted fixes and full regression
 on:
   push:
     branches: [work/v77-five-targeted-fixes]
+concurrency:
+  group: v77-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
