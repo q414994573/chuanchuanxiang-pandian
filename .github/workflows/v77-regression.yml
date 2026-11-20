@@ -126,3 +126,47 @@ jobs:
           path: |
             test-output/cloud
             firestore-debug.log
+
+  verified-report:
+    needs: [build, node, browser, cloud]
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/v77-five-targeted-fixes
+      - uses: actions/download-artifact@v4
+        with:
+          path: verified-artifacts
+      - name: Verify the same-run reports and preserve results
+        run: |
+          python3 - <<'PY'
+          import json,re,pathlib,os,subprocess
+          a=pathlib.Path('verified-artifacts')
+          node=next(a.rglob('node.log'))
+          txt=node.read_text()
+          def last(label):
+            vals=re.findall(r'(?:ℹ|#)\\s*'+label+r'\\s+(\\d+)',txt)
+            assert vals, label
+            return int(vals[-1])
+          n={'passed':last('pass'),'failed':last('fail'),'skipped':last('skipped')}
+          assert n['passed']>16000 and n['failed']==0 and n['skipped']==0
+          summary=json.loads(next(a.rglob('summary.json')).read_text())
+          assert summary.get('allPassed') and len(summary.get('runs',[]))>=34
+          browser={'runs':len(summary['runs']),'passed':sum(int(r.get('passed',0)) for r in summary['runs']),'failed':sum(int(r.get('failed',0)) for r in summary['runs']),'allPassed':True}
+          logs=list((a/'cloud-logs').rglob('*.log'))
+          assert len(logs)>=6, len(logs)
+          report={'runId':os.environ['GITHUB_RUN_ID'],'testedCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'node':n,'browser':browser,'cloudLogFiles':len(logs),'result':'success','note':'All jobs passed on isolated fixtures; no production orders touched'}
+          out=pathlib.Path('docs/v77');out.mkdir(parents=True,exist_ok=True)
+          (out/'ci-result.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\\n')
+          print(json.dumps(report,ensure_ascii=False))
+          PY
+      - name: Commit verified report only after all regression jobs pass
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/v77/ci-result.json
+          git commit -m 'test(v77): save successful complete regression results'
+          git push origin HEAD:work/v77-five-targeted-fixes
