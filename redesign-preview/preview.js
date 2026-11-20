@@ -27,11 +27,20 @@ const interactionFeedback=Feedback.create(window,{key:KEY+':feedback',soundMuted
 const searchActivity=S.createActivity(window,{key:KEY+':search-activity'});
 let releaseLocked=PRODUCTION,configFailed=false;
 const app=document.getElementById('app');
+// Keep the sticky control stack flush with the actual rendered header height.
+const stickyBanner=document.querySelector('.banner');
+if(stickyBanner){
+ const syncBanner=()=>document.documentElement.style.setProperty('--banner',Math.ceil(stickyBanner.getBoundingClientRect().height)+'px');
+ syncBanner();
+ if(typeof ResizeObserver!=='undefined')new ResizeObserver(syncBanner).observe(stickyBanner);
+}
+
 let source,aliasById=new Map(),draft,pos=0,field='stock',screen='count',keypad=false,textMode=false,viewCat='kr',orderCat='kr',moduleEnd=false,entered=null;
 let catScroll=Object.fromEntries(CATS.map(([cat])=>[cat,0])),orderScroll=Object.fromEntries(CATS.map(([cat])=>[cat,0]));
+const moduleScroll={count:0,order:0,more:0};
 let user=null,member=null,auth,db,api=null,order=null,baseQty={},baseUnits={},stocks={},stockBase={},stockBaseUnits={},history=[];
 let query='',status='正在准备…',sample=false,demoRole=null,busy=false,orderDirty=false,editId=null,editSnap=null,editRaw=null;
-let undo=null,heldPrev={},ack={},yellowOn=true,yellowOnly=false,archives=[],cloudTimer=null,cloudPending=false,morePane='';
+let undo=null,heldPrev={},ack={},yellowOn=true,yellowOnly=false,archives=[],archiveNotice='',cloudTimer=null,cloudPending=false,morePane='';
 let searchScroll=null,searchCat=null,wantFind=false,skipActUntil=0;
 let orderSearchOpen=false,searchContext=null,searchComposing=false;
 let searchCatalogKey=null,searchAliasKey=null,searchIndex=null,searchQuery=null,searchResult=null;
@@ -1532,7 +1541,7 @@ document.body.addEventListener('toggle',e=>{if(e.target.dataset?.moreSection)mor
 
 function morePaneHtml(){
  if(morePane==='archive')return `<div class="card"><h2>${E(source.date)} 存档</h2><p class="muted">只看已经确认的旧单。空白不是 0。</p><div class="hero" style="background-image:linear-gradient(#0008,#0004),url('../assets/storefront.jpg')"><img src="../redesign-preview/logo.jpg" alt="川川香门头LOGO"></div>${source.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')}</div>`;
- if(morePane==='history')return archives.length?archives.map(block=>`<div class="card"><h2>${E(block.date)}</h2>${block.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')||'<p>这一天没有订货数字。</p>'}</div>`).join(''):'<p>历史还在读取。</p>';
+ if(morePane==='history')return (archiveNotice?`<p class="muted" role="status">${E(archiveNotice)}</p>`:'')+(archives.length?archives.map(block=>`<div class="card"><h2>${E(block.date)}</h2>${block.products.filter(p=>p.order).map(p=>`<p>${Flow.boldName(p,E)}${Flow.smallName(p)?` <small>${E(Flow.smallName(p))}</small>`:''} ${E(p.order)}${E(p.unit||'')}</p>`).join('')||'<p>这一天没有订货数字。</p>'}</div>`).join(''):'<p>暂无可显示的历史归档。</p>');
  if(morePane==='log')return `<div class="card"><h2>修改记录</h2>${order?C.historyHtml(catalog(),history.map((v,i)=>({...v,updatedByName:(v.updatedByName||'授权用户')+((v.orderStage||'pending')!==(history[i+1]?.orderStage||'pending')?(v.orderStage==='finalized'?' · 确认定稿':' · 重新修改'): '')})),canCount()&&!sample&&order.orderStage!=='finalized').replaceAll('data-cloud="restore"','data-act="restore-rev"'):'<p>先打开一份订单。</p>'}</div>`;
  return '';
 }
@@ -1855,14 +1864,18 @@ function startFreshCount(){
 }
 function tryLeave(next){
  // Switching tabs preserves the same unsaved order in memory.
-
+ if(next===screen)return;
  if(readPlain()===false)return;
  if(screen==='count'&&!sharedCount()){if(leaveCountCell()===false)return;}
  else if(commitOrderEdit()===false)return;
  recordOrderSearch();resetOrderSearch();
+ const departing=screen,leavingY=window.scrollY;
  keypad=false;textMode=false;
  if(next!=='order')editId=null;
+ moduleScroll[departing]=leavingY;
  screen=next;searchScroll=null;searchCat=null;if(next!=='count')query='';render();
+ const destination=next;
+ requestAnimationFrame(()=>{if(screen===destination)window.scrollTo(0,moduleScroll[destination]||0);});
  if(next==='more'&&api)loadList();
 }
 
@@ -2074,7 +2087,29 @@ async function loadList(){
  box.innerHTML=entryHtml();await findOrders(directoryDate);await checkLatest();
 }
 async function loadArchives(){
- try{const index=await (await fetch('../order-archives/index.json',{cache:'no-store'})).json();archives=[];for(const entry of index.entries||[]){const data=await (await fetch('../order-archives/'+entry.file,{cache:'no-store'})).json();archives.push({date:entry.date,products:(data.products||[]).map(p=>({name:p.name,alias:p.alias,order:p.order,unit:p.unit}))});}if(screen==='more'&&morePane==='history')render();}catch(e){archives=[];}
+ try{
+  const response=await fetch('../order-archives/index.json',{cache:'no-store'});
+  if(!response.ok)throw Error('归档目录无法读取');
+  const index=await response.json();
+  if(!Array.isArray(index.entries))throw Error('归档目录格式错误');
+  const loaded=[];let failed=0;
+  for(const entry of index.entries){
+   try{
+    if(typeof entry.file!=='string'||!entry.file)throw Error('归档文件名错误');
+    const reply=await fetch('../order-archives/'+entry.file,{cache:'no-store'});
+    if(!reply.ok)throw Error('归档读取失败');
+    const data=await reply.json();
+    if(!Array.isArray(data.products))throw Error('归档商品资料不完整');
+    loaded.push({date:entry.date,products:data.products.map(p=>({name:p.name,alias:p.alias,order:p.order,unit:p.unit}))});
+   }catch(e){failed++;}
+  }
+  archives=loaded;
+  archiveNotice=failed?`有 ${failed} 份历史归档未读取成功；其他 ${loaded.length} 份仍可查看，请联网后刷新重试。`:'';
+ }catch(e){
+  // A temporary index failure must never erase history already loaded.
+  archiveNotice='历史归档暂时无法读取；已保留本次打开过的记录，请稍后刷新重试。';
+ }
+ if(screen==='more'&&morePane==='history')render();
 }
 async function boot(){
  let cfg={enabled:false};
